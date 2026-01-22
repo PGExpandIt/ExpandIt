@@ -1,3 +1,5 @@
+"use client";
+
 interface ToolItem {
     id: number;
     name: string;
@@ -37,7 +39,7 @@ const ToolsList = () => (
     <ul className="mt-4 space-y-2 text-white mx-8 grid grid-cols-3 gap-4">
         {items.map(({ id, name, img }) => (
             <li key={id} className="flex flex-col items-center justify-center text-center">
-                <img src={img} alt={`${name} Icon`} width={20} height={20} className="mb-2" />
+                <img src={img} alt={`${name} logo`} width={32} height={32} className="mb-2" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/logo.png'; }} />
                 <span className="text-sm text-white">{name}</span>
             </li>
         ))}

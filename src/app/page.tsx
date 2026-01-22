@@ -24,7 +24,7 @@ export default function Home() {
                     </p>
                 </section>
                 <section className="mb-8">
-                    <h4 className="text-xl font-semibold text-white">Test automation</h4>
+                    <h2 className="text-2xl font-semibold text-white">Test automation</h2>
                     <p className={COMMON_STYLES.paragraph}>
                         Last 10 years, I have been involved in test automation. I have worked with various frameworks
                         and tools, such as:
@@ -36,7 +36,7 @@ export default function Home() {
                     <ContactInformation styles={COMMON_STYLES}/>
                 </section>
             </main>
-            <footer className={`text-center text-gray-200 text-sm ${COMMON_STYLES.container}`}>
+            <footer className={`text-center text-white text-sm ${COMMON_STYLES.container}`}>
                 &copy; {new Date().getFullYear()} Piotr Gajownik - ExpandIt. All rights reserved.
             </footer>
         </div>
