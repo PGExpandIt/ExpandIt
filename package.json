@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "npx serve@latest out",
+    "start": "node scripts/preview.mjs",
     "lint": "next lint"
   },
   "dependencies": {
