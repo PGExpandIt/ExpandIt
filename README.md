@@ -2,7 +2,7 @@
 
 Marketing site for **vallus**, the Playwright test runner with a web dashboard, published by
 ExpandIt. Next.js with a static export, deployed to bunny.net by
-`.github/workflows/bunny.yml` on every push to `main`.
+`.github/workflows/bunny-sites.yml` on every push to `main`.
 
 Two pieces, deployed to two different places:
 
@@ -14,6 +14,18 @@ Two pieces, deployed to two different places:
 The site works without the booking API. Without it — or when it cannot be reached — the demo
 section shows an example calendar and hands the request to the visitor's mail client. Nothing
 breaks.
+
+## Where things are
+
+| | |
+|---|---|
+| Site | <https://vallus.eu> and `www`, on a bunny.net Site named `vallus` |
+| Booking API | <https://vallus-api-calendar-p498a.bunny.run> — Bunny Edge Script `83862` |
+| Calendar | Infomaniak, calendar `2349960` ("Demo Vallus") |
+| Previews | `https://dpl-<id>.preview.vallus.eu`, one per deploy |
+
+Rolling back is `bunny sites deployments publish <id> --site vallus`; `bunny sites deployments
+list` shows what is available.
 
 ## Running it
 
@@ -81,17 +93,15 @@ variables are visible to anyone who can read the repo, so nothing sensitive goes
 
 | Name | Required | What it is |
 |---|---|---|
-| `BUNNY_STORAGE_ZONE_PASSWORD` | yes | Storage zone password with **read+write**. bunny.net → Storage → your zone → *FTP & API Access* → Password. A read-only key uploads nothing and fails late |
-| `BUNNY_ACCESS_KEY` | only to purge | Account API key. bunny.net → Account Settings → API. Used solely to purge the pull zone after upload |
+| `BUNNY_API_KEY` | yes | Account API key. bunny.net → Account Settings → API. The only credential the site deploy needs |
 
 ### Variables
 
 | Name | Required | Example | What it is |
 |---|---|---|---|
-| `BUNNY_STORAGE_ZONE_NAME` | yes | `vallus-site` | the storage zone the build is uploaded into |
-| `BUNNY_STORAGE_ENDPOINT` | yes | `https://storage.bunnycdn.com` | endpoint of the zone's **primary** region. Falkenstein is the bare host; others are prefixed (`ny.`, `sg.`, `la.`, …). A wrong region fails authentication rather than misplacing files |
-| `BUNNY_PULL_ZONE_ID` | only to purge | `1234567` | numeric id, from the pull zone's URL in the dashboard |
-| `BOOKING_API_ORIGIN` | no | `https://api.vallus.eu` | baked into the JavaScript bundle as `NEXT_PUBLIC_BOOKING_API`. Public by design. Leave unset until the booking API is live — the demo section then uses its offline fallback |
+| `BOOKING_API_ORIGIN` | no | `https://vallus-api-calendar-p498a.bunny.run` | baked into the bundle as `NEXT_PUBLIC_BOOKING_API`. Public by design. **Unset means the demo section silently falls back to mailto** — it looks fine and books nothing |
+
+Which site is deployed to is recorded in `.bunny/site.json` — an id and a name, no credentials.
 
 ## 2. Booking API — locally `.env`, in production the Bunny script environment
 
@@ -111,7 +121,7 @@ Full walkthrough: [DEPLOY-BUNNY.pl.md](booking-api/DEPLOY-BUNNY.pl.md).
 | Name | Default | What it is |
 |---|---|---|
 | `INFOMANIAK_CALENDAR_ID` | first calendar on the account | Pin it, so a new calendar appearing on the account cannot silently become the target. `npm run probe` lists the ids. Not the `account_id` — that mismatch returns a confusing `403` |
-| `ALLOWED_ORIGINS` | `https://vallus.eu` | Comma-separated **exact** origins allowed to call the API. No wildcards. Add every origin the site answers on, e.g. `https://vallus.eu,https://www.vallus.eu` |
+| `ALLOWED_ORIGINS` | `https://vallus.eu` | Comma-separated **exact** origins. No wildcards, and the scheme counts — `http://` is refused even for your own domain. Currently `https://vallus.eu,https://www.vallus.eu`, because both answer |
 | `BOOKING_TIMEZONE` | `Europe/Warsaw` | IANA name. The offered slots are your working hours, not the visitor's. Must match how the calendar is set up, or every slot is offered at the wrong hour |
 | `BOOKING_ORGANIZER_EMAIL` | the token's profile address | Who is added to the event as organiser. **Does not change who the invitation appears to come from** — Infomaniak always uses the calendar owner for that, confirmed by reading an event back after creating it |
 | `BOOKING_ORGANIZER_NAME` | the email address | Display name next to it |
@@ -149,14 +159,27 @@ the service at a stub during testing and has no use in production.
 
 ## Deployment notes
 
-`.github/workflows/bunny.yml` lints, builds, verifies the export is rooted correctly, uploads
-`out/` to the storage zone and purges the pull zone.
+`.github/workflows/bunny-sites.yml` lints, builds, verifies the export is rooted correctly and
+deploys to the bunny.net **Site** named `vallus`. Pushes to `main` go live; pull requests get
+their own preview deploy.
 
-`enable-delete-action` is on, so files removed from the build are removed from the zone. Without
-it a renamed page would stay reachable at its old URL forever.
+Deploys are atomic — visitors never see a half-updated site — and every one is kept, so rolling
+back is `bunny sites deployments publish <id>`. Nothing needs purging by hand.
 
-In the bunny.net dashboard, point the pull zone's **custom error page** at `/404.html`, otherwise
-an unknown URL gets Bunny's own error page instead of the site's.
+To deploy by hand, without CI:
+
+```bash
+NEXT_PUBLIC_BOOKING_API=https://vallus-api-calendar-p498a.bunny.run npm run build
+npx @bunny.net/cli sites deploy out --production --site vallus
+```
+
+Omit `--production` for a preview URL. Do not omit the environment variable: the build silently
+produces an offline-mode site, which is easy to ship without noticing.
+
+**Preview URLs need the custom domain attached.** Without it, previews are served under
+`/deploys/<id>/` while the build references assets at `/_next/…`, which resolves to the site root
+and 404s — the page then dies with a client-side exception. With a domain attached, previews get
+their own hostname under `*.preview.<domain>` and work normally.
 
 ### Why the booking API is not in this workflow
 

@@ -59,7 +59,11 @@ From the website directory, `npm run dev:all` starts both sides already wired to
 
 Set `BOOKING_API_ORIGIN` as a repository variable in the website's GitHub Actions settings; the
 deploy workflow passes it to the build as `NEXT_PUBLIC_BOOKING_API`. Add the same origin to
-`ALLOWED_ORIGINS` here.
+`ALLOWED_ORIGINS` here — every origin the site answers on, since the match is exact and includes
+the scheme.
+
+The variable is read **at build time**, so changing it needs a rebuild of the site, not a restart
+of this service. A site built without it looks perfectly normal and quietly books nothing.
 
 Without that variable the website keeps its offline behaviour — the example calendar and a
 `mailto:` request — and so does it if this service is unreachable at page load. The section never
