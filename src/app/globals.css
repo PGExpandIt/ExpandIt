@@ -64,3 +64,19 @@ body {
   background: var(--color-accent);
   color: var(--color-ink);
 }
+
+/* Smooth scrolling and the loading pulse are motion the visitor did not ask for.
+   Anyone who has told their system they want less of it should get less of it. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

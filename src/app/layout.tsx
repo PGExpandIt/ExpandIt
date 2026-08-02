@@ -13,6 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Makes canonical and hreflang links absolute, which is what crawlers expect.
+  metadataBase: new URL("https://vallus.eu"),
   title: "vallus — Playwright test runner with a dashboard | ExpandIt",
   description:
     "vallus is a self-hosted dashboard that turns your Playwright projects into managed workflows: run on demand, on schedule or from CI, with reports, traces, RBAC and cross-run analytics. Built and licensed by ExpandIt.",
@@ -47,6 +49,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* WCAG 2.4.1: eight navigation links precede the content on every page.
+            Hidden until focused, so it costs sighted visitors nothing. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"
+        >
+          Skip to content
+        </a>
         {children}
       </body>
     </html>

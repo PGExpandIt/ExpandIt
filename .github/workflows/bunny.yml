@@ -1,0 +1,95 @@
+# Builds the static export and deploys it to a bunny.net storage zone, then purges
+# the pull zone so visitors get the new build instead of a cached old one.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions → Secrets):
+#   BUNNY_STORAGE_ZONE_PASSWORD  storage zone password, read+write
+#                                (Storage → your zone → FTP & API Access → Password)
+#   BUNNY_ACCESS_KEY             account API key, only needed for the cache purge
+#                                (Account Settings → API)
+#
+# Required repository variables (same screen → Variables):
+#   BUNNY_STORAGE_ZONE_NAME      e.g. vallus-site
+#   BUNNY_STORAGE_ENDPOINT       the endpoint for your zone's *primary* region,
+#                                e.g. https://storage.bunnycdn.com (Falkenstein) or
+#                                https://ny.storage.bunnycdn.com — a wrong region
+#                                fails to authenticate rather than misplacing files
+#   BUNNY_PULL_ZONE_ID           numeric id from the pull zone URL
+#
+# Optional repository variable:
+#   BOOKING_API_ORIGIN           e.g. https://api.vallus.eu — baked into the bundle at
+#                                build time. Leave unset and the demo section falls back
+#                                to the example calendar and a mailto request.
+
+name: Deploy to bunny.net
+
+on:
+  push:
+    # Both branches deploy to the same storage zone, so whichever is pushed last
+    # is what visitors get — this is not a preview environment. A real preview
+    # needs its own storage zone and pull zone.
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never let two deploys interleave uploads into the same storage zone.
+concurrency:
+  group: "bunny-deploy"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build static export
+        run: npx next build
+        env:
+          NEXT_PUBLIC_BOOKING_API: ${{ vars.BOOKING_API_ORIGIN }}
+
+      # The export must be servable from the domain root, which means basePath has to
+      # be empty in next.config.ts. If it is set, every asset would be requested under
+      # that prefix and the deployed site would load unstyled.
+      - name: Check the export is rooted correctly
+        run: |
+          if grep -q 'href="/[^"/][^"]*/_next/' out/index.html; then
+            echo "::error::out/index.html requests assets under a basePath prefix."
+            echo "Set basePath to '' in next.config.ts for a root-domain deployment."
+            grep -o 'href="[^"]*_next[^"]*"' out/index.html | head -3
+            exit 1
+          fi
+          test -f out/index.html && test -f out/404.html
+          echo "Export looks right: assets at /_next/, index.html and 404.html present."
+
+      - name: Deploy to bunny.net
+        uses: R-J-dev/bunny-deploy@v3.0.0
+        with:
+          storage-zone-password: ${{ secrets.BUNNY_STORAGE_ZONE_PASSWORD }}
+          storage-zone-name: ${{ vars.BUNNY_STORAGE_ZONE_NAME }}
+          storage-endpoint: ${{ vars.BUNNY_STORAGE_ENDPOINT }}
+          directory-to-upload: "./out"
+          concurrency: "25"
+          # Removes files in the zone that are no longer in the build. Without this,
+          # a renamed page stays reachable at its old URL indefinitely.
+          enable-delete-action: true
+          enable-purge-pull-zone: true
+          access-key: ${{ secrets.BUNNY_ACCESS_KEY }}
+          pull-zone-id: ${{ vars.BUNNY_PULL_ZONE_ID }}
+          # Bunny has no endpoint to confirm replication finished, so the purge waits
+          # a fixed moment for the upload to reach the other regions first.
+          replication-timeout: "15000"

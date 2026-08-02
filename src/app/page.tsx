@@ -12,12 +12,13 @@ import Faq from "@/components/faq";
 import Manufacturer from "@/components/manufacturer";
 import DemoBooking from "@/components/demoBooking";
 import Footer from "@/components/footer";
+import CookieNotice from "@/components/cookieNotice";
 
 export default function Home() {
     return (
         <div className="min-h-screen bg-ink">
             <Header />
-            <main>
+            <main id="main" tabIndex={-1} className="focus:outline-none">
                 <Hero />
                 <Origin />
                 <Problem />
@@ -32,6 +33,7 @@ export default function Home() {
                 <DemoBooking />
             </main>
             <Footer />
+            <CookieNotice />
         </div>
     );
 }

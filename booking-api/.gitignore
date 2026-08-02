@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+# The root .gitignore has `.env*`, which would also hide the template documenting
+# every variable. Deeper rules win, so re-include it here.
+!.env.example

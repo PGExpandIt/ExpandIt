@@ -22,6 +22,8 @@ const Footer = () => (
                         { href: "#deployment", label: "Security" },
                         { href: "#faq", label: "FAQ" },
                         { href: "#demo", label: "Book a demo" },
+                        { href: "/privacy", label: "Privacy" },
+                        { href: "/licenses", label: "Licences" },
                     ].map(({ href, label }) => (
                         <a
                             key={href}
@@ -43,7 +45,14 @@ const Footer = () => (
                 <p className="mt-2">
                     Playwright, Allure, Jira, Xray, Jenkins, GitHub, Azure, Keycloak, Grafana and
                     ReportPortal are trademarks of their respective owners and are referenced here
-                    for compatibility purposes only.
+                    for compatibility purposes only. Open-source notices are on the{" "}
+                    <a
+                        href="/licenses"
+                        className="underline decoration-line underline-offset-4 hover:decoration-accent"
+                    >
+                        licences page
+                    </a>
+                    .
                 </p>
             </div>
         </div>
