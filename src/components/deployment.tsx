@@ -2,8 +2,8 @@ import React from "react";
 
 const POINTS = [
     {
-        title: "Air-gapped by design",
-        body: "Browser binaries and every runtime dependency ship inside the package. vallus runs in networks with no route to the internet and never calls home.",
+        title: "Runs without the internet",
+        body: "Once installed, vallus needs no outbound connection: no telemetry, no licence server, no update check. The licence is verified locally by signature. Installation itself fetches one native database module for your platform, which can be staged in advance for a disconnected network.",
     },
     {
         title: "Your data stays yours",

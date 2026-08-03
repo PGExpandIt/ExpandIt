@@ -2,6 +2,16 @@ import React from "react";
 // All commercial figures live in prices.json at the repository root — edit that file, redeploy, done.
 import prices from "../../prices.json";
 
+// A service may carry a `note` in prices.json. The price cell then shows only the figure,
+// marked with an asterisk, and the note is spelled out under the list.
+type Service = { name: string; price: string; note?: string };
+const SERVICES: Service[] = prices.services;
+const NOTED = SERVICES.filter((service) => service.note);
+const marker = (service: Service) => {
+    const index = NOTED.indexOf(service);
+    return index === -1 ? null : "*".repeat(index + 1);
+};
+
 const Pricing = () => (
     <section id="pricing" className="border-b border-line bg-ink-soft">
         <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
@@ -99,13 +109,50 @@ const Pricing = () => (
                         Professional services
                     </h3>
                     <dl className="mt-4 space-y-3">
-                        {prices.services.map(({ name, price }) => (
-                            <div key={name} className="flex justify-between gap-4 text-sm">
-                                <dt className="text-muted">{name}</dt>
-                                <dd className="shrink-0 text-bone">{price}</dd>
-                            </div>
-                        ))}
+                        {SERVICES.map((service) => {
+                            const mark = marker(service);
+                            return (
+                                <div
+                                    key={service.name}
+                                    className="flex justify-between gap-4 text-sm"
+                                >
+                                    <dt className="text-muted">{service.name}</dt>
+                                    <dd
+                                        className="shrink-0 text-bone"
+                                        aria-describedby={
+                                            mark
+                                                ? `service-note-${NOTED.indexOf(service)}`
+                                                : undefined
+                                        }
+                                    >
+                                        {service.price}
+                                        {mark && (
+                                            <sup aria-hidden="true" className="ml-0.5 text-accent">
+                                                {mark}
+                                            </sup>
+                                        )}
+                                    </dd>
+                                </div>
+                            );
+                        })}
                     </dl>
+
+                    {NOTED.length > 0 && (
+                        <ul className="mt-4 space-y-1.5 border-t border-line pt-3">
+                            {NOTED.map((service, index) => (
+                                <li
+                                    key={service.name}
+                                    id={`service-note-${index}`}
+                                    className="text-xs leading-relaxed text-muted"
+                                >
+                                    <span aria-hidden="true" className="text-accent">
+                                        {"*".repeat(index + 1)}
+                                    </span>{" "}
+                                    {service.note}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 <div className="rounded-lg border border-line bg-surface p-6">

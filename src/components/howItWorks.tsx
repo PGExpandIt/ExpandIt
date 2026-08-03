@@ -4,7 +4,7 @@ const STEPS = [
     {
         step: "01",
         title: "Install",
-        body: "vallus ships as a self-contained package. Unzip it on any machine with Node.js, run npm install and npm start. Browser binaries travel with the instance — no internet connection required.",
+        body: "vallus ships as a package with its dependencies inside. Unzip it on any machine with Node.js, run npm install to add the database module for your platform, then npm start. It runs against the Playwright projects you already have.",
     },
     {
         step: "02",

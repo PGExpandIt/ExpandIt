@@ -58,7 +58,8 @@
         "SLA 8×5, 4 h response",
         "Full deployment service included",
         "Agreed roadmap backlog",
-        "Custom integrations scoped with your team"
+        "Custom integrations scoped with your team",
+        "Offline installation package included"
       ]
     }
   ],
@@ -78,6 +79,8 @@
     { "name": "On-site deployment", "price": "€1,200 / day + travel" },
     { "name": "Team training (up to 12 people)", "price": "€1,200 / day" },
     { "name": "Migration of existing Playwright projects", "price": "from €2,500" },
+    { "name": "Offline installation package (one platform, one version)", "price": "€1,000" },
+    { "name": "Rebuild of the offline package for a new version", "price": "€300", "note": "Or included for the subscription term." },
     { "name": "Custom development and integrations", "price": "€120 / h or €900 / day" }
   ],
   "discounts": [

@@ -30,8 +30,9 @@ const Hero = () => (
                 </p>
                 <p>
                     <span className="text-bone">Vallus works the same way.</span> Every instance
-                    carries everything it needs, browser binaries included. No internet. No external
-                    dependencies. No exceptions.
+                    runs on your own infrastructure and answers to nothing outside it. No telemetry,
+                    no licence server, no call home. Once it is installed it needs no route to the
+                    internet at all.
                 </p>
             </div>
 

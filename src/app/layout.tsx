@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "vallus — Schedule, run and analyze your Playwright tests from one dashboard",
     description:
-      "Self-hosted, air-gapped-ready Playwright automation: workflows, scheduling, CI webhooks, RBAC, Allure trends and trace viewer. A product of ExpandIt.",
+      "Self-hosted Playwright automation that runs without an internet connection: workflows, scheduling, CI webhooks, RBAC, Allure trends and trace viewer. A product of ExpandIt.",
     type: "website",
     siteName: "vallus by ExpandIt",
   },

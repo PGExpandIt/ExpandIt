@@ -52,7 +52,7 @@ const FEATURES: Feature[] = [
     },
     {
         title: "Fully self-hosted",
-        body: "Runs, reports, traces and history stay on your infrastructure. Nothing is sent externally, and the product works in air-gapped networks.",
+        body: "Runs, reports, traces and history stay on your infrastructure. Nothing is sent externally, no telemetry is collected, and once installed the product needs no internet connection.",
     },
 ];
 

@@ -18,7 +18,7 @@ const ITEMS = [
     },
     {
         q: "Where does our test data live?",
-        a: "Entirely on your own server. Runs, reports and traces are stored locally and nothing is sent to us or to any third party. The product also works in networks with no internet access.",
+        a: "Entirely on your own server. Runs, reports and traces are stored locally and nothing is sent to us or to any third party — there is no telemetry and no licence server to check in with. Once installed it runs in networks with no internet access; the install itself pulls one native database module for your platform, which can be staged in advance.",
     },
     {
         q: "How hard is it to deploy?",

@@ -29,9 +29,10 @@ const Origin = () => (
                 </p>
                 <p>
                     That is the model Vallus is built on. Each deployment is a self-contained
-                    instance: test runner, browser binaries, reporting, and access control on board
-                    from the first minute. It runs inside networks with no route to the internet, and
-                    it does not phone home.
+                    instance: the runner, the dashboard, reporting and access control, all on your
+                    own machine from the first minute. It runs inside networks with no route to the
+                    internet, and it does not phone home — the licence is verified locally, by
+                    signature, with nothing to check in with.
                 </p>
                 <p className="text-bone">
                     Every engineer on the team drives their own stake. The perimeter is what you
