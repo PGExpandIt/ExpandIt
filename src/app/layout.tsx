@@ -16,8 +16,9 @@ export const metadata: Metadata = {
   // Makes canonical and hreflang links absolute, which is what crawlers expect.
   metadataBase: new URL("https://vallus.eu"),
   title: "vallus — Playwright test runner with a dashboard | ExpandIt",
+  // Keep at 160 characters or fewer — Google truncates the snippet past roughly that.
   description:
-    "vallus is a self-hosted dashboard that turns your Playwright projects into managed workflows: run on demand, on schedule or from CI, with reports, traces, RBAC and cross-run analytics. Built and licensed by ExpandIt.",
+    "vallus is a self-hosted dashboard for Playwright: run suites on demand, on a schedule or from CI, with reports, traces, RBAC and cross-run analytics.",
   keywords: [
     "Playwright",
     "test automation",
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "vallus — Schedule, run and analyze your Playwright tests from one dashboard",
     description:
-      "Self-hosted Playwright automation that runs without an internet connection: workflows, scheduling, CI webhooks, RBAC, Allure trends and trace viewer. A product of ExpandIt.",
+      "Self-hosted Playwright automation: workflows, scheduling, CI webhooks, RBAC, Allure trends and the trace viewer. Runs on your own infrastructure.",
     type: "website",
     siteName: "vallus by ExpandIt",
   },

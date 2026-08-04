@@ -40,3 +40,6 @@ next-env.d.ts
 
 #IDE
 /.idea
+
+# scratch file used to draft commit messages, never part of a commit
+/commit.txt

@@ -5,7 +5,8 @@ import { LegalPage, Section, Table } from "@/components/legalPage";
 export const metadata: Metadata = {
     title: "Polityka prywatności — vallus | ExpandIt",
     description:
-        "Informacja o przetwarzaniu danych osobowych zgodnie z art. 13 RODO: administrator, cele, podstawy prawne, odbiorcy, okres przechowywania i prawa osoby, której dane dotyczą.",
+        // Maksymalnie 160 znaków — dłuższy opis Google i tak ucina.
+        "Informacja o przetwarzaniu danych osobowych zgodnie z art. 13 RODO: administrator, cele, podstawy prawne, odbiorcy, okresy przechowywania i Twoje prawa.",
     alternates: {
         canonical: "/privacy/pl/",
         languages: { en: "/privacy/", pl: "/privacy/pl/" },
