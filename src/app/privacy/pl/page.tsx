@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { LegalPage, Section, Table } from "@/components/legalPage";
 
 export const metadata: Metadata = {
-    title: "Polityka prywatności — vallus | ExpandIt",
+    title: "Polityka prywatności - vallus | ExpandIt",
     description:
-        // Maksymalnie 160 znaków — dłuższy opis Google i tak ucina.
+        // Maksymalnie 160 znaków - dłuższy opis Google i tak ucina.
         "Informacja o przetwarzaniu danych osobowych zgodnie z art. 13 RODO: administrator, cele, podstawy prawne, odbiorcy, okresy przechowywania i Twoje prawa.",
     alternates: {
         canonical: "/privacy/pl/",
@@ -45,7 +45,7 @@ export default function PrivacyPl() {
                 <Section title="1. Kto jest administratorem Twoich danych">
                     <p>
                         Administratorem danych osobowych jest <strong className="text-bone">Piotr
-                        Gajownik — ExpandIt</strong>, ul. Paryska 20B, 44-240 Żory, Polska,
+                        Gajownik - ExpandIt</strong>, ul. Paryska 20B, 44-240 Żory, Polska,
                         NIP 5321875710 (VAT UE: PL5321875710), dalej „my&quot; lub
                         „administrator&quot;.
                     </p>
@@ -60,7 +60,7 @@ export default function PrivacyPl() {
                         .
                     </p>
                     <p>
-                        Nie wyznaczyliśmy inspektora ochrony danych — nie mamy takiego obowiązku.
+                        Nie wyznaczyliśmy inspektora ochrony danych - nie mamy takiego obowiązku.
                         Wszystkie sprawy prowadzimy pod powyższym adresem.
                     </p>
                 </Section>
@@ -96,17 +96,17 @@ export default function PrivacyPl() {
                         rows={[
                             [
                                 "Umówienie i przeprowadzenie demonstracji produktu, odpowiedź na zapytanie",
-                                "art. 6 ust. 1 lit. b RODO — działania podejmowane na Twoje żądanie przed zawarciem umowy",
+                                "art. 6 ust. 1 lit. b RODO - działania podejmowane na Twoje żądanie przed zawarciem umowy",
                                 "6 miesięcy od ostatniego kontaktu",
                             ],
                             [
                                 "Kontakt handlowy i utrzymanie relacji z potencjalnym klientem",
-                                "art. 6 ust. 1 lit. f RODO — nasz prawnie uzasadniony interes polegający na prowadzeniu sprzedaży",
+                                "art. 6 ust. 1 lit. f RODO - nasz prawnie uzasadniony interes polegający na prowadzeniu sprzedaży",
                                 "do wniesienia sprzeciwu, nie dłużej niż 6 miesięcy od ostatniego kontaktu",
                             ],
                             [
                                 "Zawarcie i wykonanie umowy licencyjnej, rozliczenia",
-                                "art. 6 ust. 1 lit. b oraz lit. c RODO — obowiązki podatkowe i rachunkowe",
+                                "art. 6 ust. 1 lit. b oraz lit. c RODO - obowiązki podatkowe i rachunkowe",
                                 "przez okres wymagany przepisami, co do zasady 5 lat od końca roku podatkowego",
                             ],
                             [
@@ -165,7 +165,7 @@ export default function PrivacyPl() {
                     </p>
                     <p>
                         Jedyne, co zapisujemy w Twojej przeglądarce, to informacja o zamknięciu
-                        komunikatu o prywatności — po to, żeby nie pokazywać go przy każdej wizycie.
+                        komunikatu o prywatności - po to, żeby nie pokazywać go przy każdej wizycie.
                         Zapis następuje w pamięci lokalnej przeglądarki, nie jest plikiem cookie, nie
                         pozwala Cię zidentyfikować i możesz go w każdej chwili usunąć, czyszcząc dane
                         witryny w ustawieniach przeglądarki.
@@ -186,7 +186,7 @@ export default function PrivacyPl() {
                         <li>przenoszenia danych do innego administratora,</li>
                         <li>
                             wniesienia sprzeciwu wobec przetwarzania opartego na naszym prawnie
-                            uzasadnionym interesie — w tym wobec kontaktu handlowego.
+                            uzasadnionym interesie - w tym wobec kontaktu handlowego.
                         </li>
                     </ul>
                     <p>
@@ -200,7 +200,7 @@ export default function PrivacyPl() {
                         . Odpowiadamy bez zbędnej zwłoki, najpóźniej w ciągu miesiąca.
                     </p>
                     <p>
-                        Masz również prawo wnieść skargę do organu nadzorczego — w Polsce jest nim
+                        Masz również prawo wnieść skargę do organu nadzorczego - w Polsce jest nim
                         Prezes Urzędu Ochrony Danych Osobowych, ul. Stawki 2, 00-193 Warszawa.
                     </p>
                 </Section>
@@ -209,7 +209,7 @@ export default function PrivacyPl() {
                     <p>
                         Nie podejmujemy wobec Ciebie decyzji w sposób zautomatyzowany i nie
                         profilujemy Cię. Terminy spotkań, które widzisz w formularzu, wynikają
-                        wyłącznie z tego, co jest wolne w naszym kalendarzu — nie zależą od tego, kim
+                        wyłącznie z tego, co jest wolne w naszym kalendarzu - nie zależą od tego, kim
                         jesteś ani skąd wchodzisz.
                     </p>
                 </Section>

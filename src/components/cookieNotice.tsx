@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from "react";
 
 /**
- * Flip to true the moment anything non-essential is added — analytics, an embedded
+ * Flip to true the moment anything non-essential is added - analytics, an embedded
  * video, a chat widget, a map, a third-party font. The notice then stops being an
  * informational one-button banner and becomes a real accept/decline gate, and
  * `hasAnalyticsConsent()` starts meaning something.
  *
  * While it is false the site genuinely sets no cookies, writes nothing but this
- * one dismissal flag, and makes no third-party requests — verified by loading the
+ * one dismissal flag, and makes no third-party requests - verified by loading the
  * built export and inspecting cookies, storage and network.
  */
 const HAS_NON_ESSENTIAL = false;
@@ -35,13 +35,13 @@ const write = (choice: Choice) => {
     try {
         window.localStorage.setItem(STORAGE_KEY, choice);
     } catch {
-        // Nothing to do — the visitor simply sees the notice again next time.
+        // Nothing to do - the visitor simply sees the notice again next time.
     }
 };
 
 /**
  * Whether the visitor agreed to non-essential storage. Gate any future analytics
- * or third-party embed on this — do not load them before it returns true.
+ * or third-party embed on this - do not load them before it returns true.
  */
 export const hasAnalyticsConsent = (): boolean =>
     HAS_NON_ESSENTIAL ? read() === "accepted" : false;
@@ -82,7 +82,7 @@ const CookieNotice = () => {
                     {HAS_NON_ESSENTIAL ? (
                         <>
                             <span className="font-semibold text-bone">Cookies.</span> We use what is
-                            needed to make the site work, and — only with your agreement — some that
+                            needed to make the site work, and - only with your agreement - some that
                             help us understand how it is used. You can decline and nothing changes
                             for you.
                         </>
@@ -93,7 +93,7 @@ const CookieNotice = () => {
                             </span>{" "}
                             No trackers, no analytics, no third-party requests. The only thing stored
                             in your browser is a note that you have seen this message. Booking a demo
-                            sends the details you type straight to our own calendar service — nothing
+                            sends the details you type straight to our own calendar service - nothing
                             else leaves your machine.{" "}
                         </>
                     )}

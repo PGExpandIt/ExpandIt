@@ -3,13 +3,13 @@ import type { Metadata } from "next";
 import { LegalPage, Section } from "@/components/legalPage";
 
 export const metadata: Metadata = {
-    title: "Third-party licences — vallus | ExpandIt",
+    title: "Third-party licences - vallus | ExpandIt",
     description:
         "Open-source software and typefaces distributed as part of the vallus website, with their copyright notices and licences.",
     alternates: { canonical: "/licenses/" },
 };
 
-// Only what is actually distributed belongs here — the build tools that never leave
+// Only what is actually distributed belongs here - the build tools that never leave
 // the machine create no obligations. Verified by searching the exported output:
 // no sharp, lightningcss, caniuse-lite or axe-core end up in it.
 
@@ -31,7 +31,7 @@ const SOFTWARE: Entry[] = [
     },
     {
         name: "React and React DOM",
-        what: "The UI library behind the interactive parts — the booking calendar and this page's chrome.",
+        what: "The UI library behind the interactive parts - the booking calendar and this page's chrome.",
         copyright: "Copyright (c) Meta Platforms, Inc. and affiliates.",
         licence: "MIT",
         href: "https://github.com/facebook/react/blob/main/LICENSE",
@@ -109,7 +109,7 @@ This license is available with a FAQ at: https://openfontlicense.org`}
                         rel="noopener noreferrer"
                         className="text-bone underline decoration-line underline-offset-4 hover:decoration-accent"
                     >
-                        vercel/geist-font — LICENSE.txt
+                        vercel/geist-font - LICENSE.txt
                     </a>
                 </p>
             </Section>

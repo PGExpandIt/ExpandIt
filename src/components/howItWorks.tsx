@@ -9,7 +9,7 @@ const STEPS = [
     {
         step: "02",
         title: "Set up in the browser",
-        body: "A setup wizard creates the first admin account and registers your Playwright projects — folder path and port, nothing else. Your test code stays untouched.",
+        body: "A setup wizard creates the first admin account and registers your Playwright projects - folder path and port, nothing else. Your test code stays untouched.",
     },
     {
         step: "03",
@@ -51,7 +51,7 @@ const HowItWorks = () => (
 npm install
 npm start                       # dashboard on http://localhost:3000
 
-# optional — HTTPS, needed for the trace viewer off localhost
+# optional - HTTPS, needed for the trace viewer off localhost
 npm run tls:cert
 npm run start:tls`}
                     </code>

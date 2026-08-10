@@ -15,16 +15,16 @@ const Manufacturer = () => (
                 <div className="mt-6 max-w-3xl space-y-4 leading-relaxed text-muted">
                     <p>
                         ExpandIt designs, builds and licenses vallus. The product is not a side
-                        project of a larger platform — it is the whole of what we do, and it grew out
+                        project of a larger platform - it is the whole of what we do, and it grew out
                         of years of hands-on work in software testing: functional UI tests first, but
                         also unit, integration, performance and stress testing.
                     </p>
                     <p>
-                        Much of that work was test automation — across Selenium WebDriver, Cypress,
+                        Much of that work was test automation - across Selenium WebDriver, Cypress,
                         Appium, Protractor, Puppeteer, Cucumber and SpecFlow, with Jenkins, GitHub,
                         Azure, Jira and Xray around them. vallus is the tool that kept being missing
                         on those engagements: the layer that makes an automated suite something a
-                        whole team can run, govern and trust — not just the people who wrote it.
+                        whole team can run, govern and trust - not just the people who wrote it.
                     </p>
                     <p>
                         We build for the way testing teams actually work: self-hosted, inside your

@@ -76,6 +76,8 @@ shows a broken state.
 | `GET /health` | liveness, touches no calendar |
 | `GET /slots` | `{ timezone, slotMinutes, generatedAt, slots: [{ start, end, date, time }] }` |
 | `POST /book` | `{ name, email, start, company?, phone?, teamSize?, topic?, message?, website? }` |
+| `POST /retention` | admin token; deletes bookings past the retention period |
+| `POST /holds` | admin token; tops each working week up to `BOOKING_HOLDS_PER_WEEK` |
 
 `start` must be the exact `start` of a slot from `/slots`. `website` is a honeypot: the form
 hides it, so anything in it means a bot, and the service answers `200 {ok:true}` without
@@ -84,6 +86,26 @@ booking. Errors are `400 invalid_*`, `409 slot_taken`, `429 rate_limited`,
 
 Availability is re-checked inside `POST /book`, so a slot taken while someone was filling in
 the form is refused with `409` rather than double-booked.
+
+## Keeping the calendar from looking abandoned
+
+A calendar where every slot for the next month is free tells a visitor that nobody books
+demos here. `POST /holds` blocks one working hour in any week of the horizon that has
+nothing in it at all, and `.github/workflows/holds.yml` calls it every few days.
+
+```bash
+curl -X POST "$ORIGIN/holds?dry_run=true" -H "Authorization: Bearer $BOOKING_ADMIN_TOKEN"
+```
+
+Two properties make it safe to run on a schedule. It is **idempotent**: a week is only ever
+topped up to the target, so a second run the same day adds nothing, and a week that fills
+with real bookings is left alone. And it is **deterministic**: the same week always proposes
+the same slot, so a block does not wander between two visits to the page.
+
+What it creates are the owner's own unavailable hours - title `Unavailable` by default, no
+attendee, no personal data. They are not, and must not become, invented bookings: a prospect
+who discovers the busy calendar was staged has been told something untrue about the business.
+Set `BOOKING_HOLDS_PER_WEEK=0` to switch the whole thing off.
 
 ## Listing and cancelling
 

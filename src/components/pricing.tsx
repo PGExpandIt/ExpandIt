@@ -1,5 +1,5 @@
 import React from "react";
-// All commercial figures live in prices.json at the repository root — edit that file, redeploy, done.
+// All commercial figures live in prices.json at the repository root - edit that file, redeploy, done.
 import prices from "../../prices.json";
 
 // A service may carry a `note` in prices.json. The price cell then shows only the figure,
@@ -21,7 +21,7 @@ const Pricing = () => (
             </h2>
             <p className="mt-4 max-w-2xl text-muted">
                 {prices.intro} Evaluation is free for {prices.trial.days} days with full
-                functionality — no card, no auto-renewal.
+                functionality - no card, no auto-renewal.
             </p>
 
             <div className="mt-12 grid gap-6 lg:grid-cols-3">

@@ -3,7 +3,7 @@ import Link from "next/link";
 import VallusMark from "@/components/vallusMark";
 
 // Shared chrome for the legal pages, so the English and Polish versions cannot
-// drift apart in layout — only in words.
+// drift apart in layout - only in words.
 
 export const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <section className="mt-10">
@@ -46,7 +46,7 @@ export const Table = ({ head, rows }: { head: string[]; rows: React.ReactNode[][
 );
 
 interface LegalPageProps {
-    /** BCP 47 tag for this page's content — set on the wrapper so assistive tech and
+    /** BCP 47 tag for this page's content - set on the wrapper so assistive tech and
      *  translation tools do not read Polish as English. */
     lang: string;
     title: string;

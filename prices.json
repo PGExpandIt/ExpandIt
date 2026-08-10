@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source of truth for everything price- and trial-related on the website. Edit this file and redeploy — no component changes needed.",
+  "_comment": "Single source of truth for everything price- and trial-related on the website. Edit this file and redeploy - no component changes needed.",
   "currency": "EUR",
   "trial": {
     "days": 14,
@@ -67,7 +67,7 @@
     "title": "Commercial source license",
     "price": "from €18,000",
     "cta": "Request terms",
-    "body": "A perpetual, non-exclusive license with full source access and the right to modify the code for internal use — for organisations that need independence from the vendor, a code audit, or source escrow. One-time fee, first 12 months of maintenance included, 20% per year thereafter. Subscription fees paid in the first 24 months are credited in full against it."
+    "body": "A perpetual, non-exclusive license with full source access and the right to modify the code for internal use - for organisations that need independence from the vendor, a code audit, or source escrow. One-time fee, first 12 months of maintenance included, 20% per year thereafter. Subscription fees paid in the first 24 months are credited in full against it."
   },
   "addOns": [
     { "name": "Pack of +10 named users", "price": "€900 / year" },

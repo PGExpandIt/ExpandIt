@@ -69,6 +69,16 @@ export interface Config {
     /** Default period for the retention sweep, e.g. "6m". */
     retentionPeriod: string;
     /**
+     * How many things each working week inside the horizon should contain before
+     * POST /holds stops topping it up. 0 disables the endpoint's effect entirely.
+     */
+    holdsPerWeek: number;
+    /**
+     * Title of the blocks /holds creates. Deliberately says nothing about a
+     * meeting or a customer: these are unavailable hours, not staged bookings.
+     */
+    holdTitle: string;
+    /**
      * Secret signing the proof-of-work challenges. Unset disables the challenge —
      * the honeypot and the rate limit still apply, but /book becomes reachable
      * without loading the page first. Must be identical across all edge instances,
@@ -106,6 +116,8 @@ export const loadConfig = (): Config => ({
     organizerName: readEnv("BOOKING_ORGANIZER_NAME")?.trim() || null,
     adminToken: readEnv("BOOKING_ADMIN_TOKEN")?.trim() || null,
     retentionPeriod: optional("BOOKING_RETENTION_PERIOD", "6m"),
+    holdsPerWeek: Number(optional("BOOKING_HOLDS_PER_WEEK", "1")),
+    holdTitle: optional("BOOKING_HOLD_TITLE", "Unavailable"),
     challengeSecret: readEnv("BOOKING_CHALLENGE_SECRET")?.trim() || null,
     challengeDifficulty: Number(optional("BOOKING_CHALLENGE_DIFFICULTY", "15")),
 });

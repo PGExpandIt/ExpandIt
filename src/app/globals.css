@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   PALETTE SWITCH — the whole site is themed from this one block.
+   PALETTE SWITCH - the whole site is themed from this one block.
    Nothing else in the codebase hardcodes a colour, so swapping the two blocks
    below changes every section, button, border and glow on the page.
 
    Currently active: MINT ACCENT.
 
-   The alternative is BRAND MONO — the vallus brand pair, #F2F0EA on #1F1E1B,
+   The alternative is BRAND MONO - the vallus brand pair, #F2F0EA on #1F1E1B,
    exactly the values used by web/src/assets/brand/*.svg in the product repo.
    To switch, comment out the "MINT ACCENT" block and uncomment "BRAND MONO".
    Nothing else needs to change.
@@ -19,7 +19,7 @@
   --color-ink-soft: #171613; /* alternating section band */
   --color-surface: #1c1a17; /* cards and panels */
   --color-line: #2c2925; /* borders and dividers */
-  --color-bone: #f2f0ea; /* brand light — primary text and the vallus mark */
+  --color-bone: #f2f0ea; /* brand light - primary text and the vallus mark */
   --color-muted: #a29c91; /* secondary text */
   --color-accent: #7dd3a0; /* buttons, labels, selected states */
   --color-accent-dim: #4ea87a; /* hover on accent */

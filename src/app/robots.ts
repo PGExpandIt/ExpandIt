@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next";
 // Its main job is the Sitemap line: nothing else tells a crawler the sitemap exists.
 const SITE = "https://vallus.eu";
 
-// Required with output: 'export' — see the same note in sitemap.ts.
+// Required with output: 'export' - see the same note in sitemap.ts.
 export const dynamic = "force-static";
 
 const robots = (): MetadataRoute.Robots => ({

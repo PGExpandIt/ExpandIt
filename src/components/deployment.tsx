@@ -11,7 +11,7 @@ const POINTS = [
     },
     {
         title: "Portable deployment",
-        body: "Any machine with Node.js will do — a VM, a container, or a workstation. Optional extras such as Allure and HTTPS/TLS are configuration, not a separate install.",
+        body: "Any machine with Node.js will do - a VM, a container, or a workstation. Optional extras such as Allure and HTTPS/TLS are configuration, not a separate install.",
     },
     {
         title: "Hardened access",

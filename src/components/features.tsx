@@ -12,7 +12,7 @@ const FEATURES: Feature[] = [
     },
     {
         title: "Multi-step workflows",
-        body: "Define a run once — config, browser, test filters, environment variables, steps in sequence — and let anyone repeat it exactly, without touching a terminal.",
+        body: "Define a run once - config, browser, test filters, environment variables, steps in sequence - and let anyone repeat it exactly, without touching a terminal.",
     },
     {
         title: "Scheduling and a run queue",
@@ -24,7 +24,7 @@ const FEATURES: Feature[] = [
     },
     {
         title: "Reports, Allure and traces",
-        body: "Playwright HTML reports, Allure trends and the trace viewer are served straight from the dashboard — no zipping folders, no sharing files by hand.",
+        body: "Playwright HTML reports, Allure trends and the trace viewer are served straight from the dashboard - no zipping folders, no sharing files by hand.",
     },
     {
         title: "Cross-run analytics",
@@ -32,7 +32,7 @@ const FEATURES: Feature[] = [
     },
     {
         title: "Role-based access control",
-        body: "Viewer, executor, admin and superAdmin roles, plus per-workflow permissions — so the people who may run against production are exactly the ones you chose.",
+        body: "Viewer, executor, admin and superAdmin roles, plus per-workflow permissions - so the people who may run against production are exactly the ones you chose.",
     },
     {
         title: "SSO via OIDC",
@@ -44,7 +44,7 @@ const FEATURES: Feature[] = [
     },
     {
         title: "HTTPS and key management",
-        body: "Built-in certificate generation, TLS serving, and signed license keys — required anyway once the trace viewer is used from outside localhost.",
+        body: "Built-in certificate generation, TLS serving, and signed license keys - required anyway once the trace viewer is used from outside localhost.",
     },
     {
         title: "Jira and Xray integration",
@@ -66,7 +66,7 @@ const Features = () => (
                 A dashboard that wraps the Playwright CLI in governance, history and access control
             </h2>
             <p className="mt-4 max-w-2xl text-muted">
-                It works with your existing projects as they are — same configs, same projects, same
+                It works with your existing projects as they are - same configs, same projects, same
                 environments. No code changes, no rewriting of tests.
             </p>
 

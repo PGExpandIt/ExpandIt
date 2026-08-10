@@ -7,7 +7,7 @@ const POINTS = [
     },
     {
         title: "New integrations keep arriving",
-        body: "The integration list grows constantly — reporting backends, issue trackers, identity providers, CI systems. What is listed on this page is the state today, not the ceiling.",
+        body: "The integration list grows constantly - reporting backends, issue trackers, identity providers, CI systems. What is listed on this page is the state today, not the ceiling.",
     },
     {
         title: "Your request shapes the next release",
@@ -29,7 +29,7 @@ const Development = () => (
                 A moving product, not a frozen one
             </h2>
             <p className="mt-4 max-w-2xl text-muted">
-                You are buying something that is still being built — and the roadmap is open to the
+                You are buying something that is still being built - and the roadmap is open to the
                 teams that use it.
             </p>
 
@@ -47,7 +47,7 @@ const Development = () => (
                     <span className="font-semibold text-bone">
                         Missing an integration you depend on?
                     </span>{" "}
-                    Ask for it — most are a matter of configuration and a release, not a project.
+                    Ask for it - most are a matter of configuration and a release, not a project.
                 </p>
                 <a
                     href="#demo"

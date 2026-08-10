@@ -53,7 +53,7 @@ const Integrations = () => (
                 Integrations
             </h2>
             <p className="mt-4 max-w-2xl text-muted">
-                vallus sits between the tools you already run. Everything below is configuration —
+                vallus sits between the tools you already run. Everything below is configuration -
                 nothing requires changes to your test code. The list is a snapshot: new integrations
                 are added continuously, so if yours is missing, it is most likely a request away.
             </p>

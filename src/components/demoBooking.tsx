@@ -15,7 +15,7 @@ const MAX_MONTH_OFFSET = 3;
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const TOPICS = [
     "Live demo of the dashboard",
-    `${prices.trial.label} — evaluation key`,
+    `${prices.trial.label} - evaluation key`,
     "Deployment in our environment",
     "Licensing and pricing",
     "A specific integration we need",
@@ -39,7 +39,7 @@ interface Challenge {
  *
  * The booking service hands out the challenge with the slots and refuses bookings
  * without a solution, so a bot cannot simply POST at the endpoint. Solved here in
- * the background right after the slots load — it takes about a third of a second,
+ * the background right after the slots load - it takes about a third of a second,
  * finishes long before anyone has filled in the form, and needs no third-party
  * script, no cookie and no captcha.
  */
@@ -97,7 +97,7 @@ const buildMonth = (
     for (let dayOfMonth = 1; dayOfMonth <= daysInMonth; dayOfMonth += 1) {
         const date = new Date(year, month, dayOfMonth);
         const weekday = date.getDay();
-        // Today is excluded too — a slot on the same day would often already have passed.
+        // Today is excluded too - a slot on the same day would often already have passed.
         const weekendOrPast = weekday === 0 || weekday === 6 || date <= today;
         const iso = toIso(date);
         cells.push({ iso, dayOfMonth, selectable: isSelectable(iso, weekendOrPast) });
@@ -234,23 +234,23 @@ const DemoBooking = () => {
             const preferred =
                 prettyDate && chosenTime
                     ? `${prettyDate} at ${chosenTime}`
-                    : "no preference — please propose a slot";
+                    : "no preference - please propose a slot";
             const body = [
                 `Name: ${value("name")}`,
-                `Company: ${value("company") || "—"}`,
+                `Company: ${value("company") || "-"}`,
                 `E-mail: ${value("email")}`,
-                `Phone: ${value("phone") || "—"}`,
-                `Team size: ${value("teamSize") || "—"}`,
+                `Phone: ${value("phone") || "-"}`,
+                `Team size: ${value("teamSize") || "-"}`,
                 `Topic: ${value("topic")}`,
                 "",
                 `Preferred slot: ${preferred}`,
                 "",
                 "Message:",
-                value("message") || "—",
+                value("message") || "-",
             ].join("\n");
 
             window.location.href = `mailto:${RECIPIENT}?subject=${encodeURIComponent(
-                `vallus — demo request (${value("company") || value("name")})`,
+                `vallus - demo request (${value("company") || value("name")})`,
             )}&body=${encodeURIComponent(body)}`;
             return;
         }
@@ -260,7 +260,7 @@ const DemoBooking = () => {
             return;
         }
         if (challenge && solution === null) {
-            setError("Still preparing the form — try again in a moment.");
+            setError("Still preparing the form - try again in a moment.");
             return;
         }
 
@@ -286,14 +286,14 @@ const DemoBooking = () => {
             });
 
             if (response.status === 409) {
-                setError("Someone just took that slot. Pick another one — the times below are up to date.");
+                setError("Someone just took that slot. Pick another one - the times below are up to date.");
                 await loadSlots();
                 setSelectedSlot(null);
                 return;
             }
             if (response.status === 403) {
                 // The challenge went stale, or the page sat open for an hour.
-                setError("That took a while — refreshing the form. Please submit again.");
+                setError("That took a while - refreshing the form. Please submit again.");
                 await loadSlots();
                 return;
             }
@@ -330,12 +330,12 @@ const DemoBooking = () => {
                     Book a demo
                 </p>
                 <h2 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight text-bone sm:text-4xl">
-                    See vallus running on a real project — in 30 minutes
+                    See vallus running on a real project - in 30 minutes
                 </h2>
                 <p className="mt-4 max-w-2xl text-muted">
                     Pick a slot that suits you and tell us a little about your setup. We walk through
                     the launcher, a multi-step workflow, a live run, the trace viewer and cross-run
-                    analytics — then hand you a {prices.trial.label} key if you want to try it
+                    analytics - then hand you a {prices.trial.label} key if you want to try it
                     yourself.
                 </p>
 
@@ -383,7 +383,7 @@ const DemoBooking = () => {
                                         required
                                         autoComplete="name"
                                         className={fieldClass}
-                                        placeholder="Anna Kowalska"
+                                        placeholder="Alex Morgan"
                                     />
                                 </div>
                                 <div className="sm:col-span-1">
@@ -395,7 +395,7 @@ const DemoBooking = () => {
                                         name="company"
                                         autoComplete="organization"
                                         className={fieldClass}
-                                        placeholder="Acme S.A."
+                                        placeholder="Acme Inc."
                                     />
                                 </div>
                                 <div className="sm:col-span-1">
@@ -409,7 +409,7 @@ const DemoBooking = () => {
                                         required
                                         autoComplete="email"
                                         className={fieldClass}
-                                        placeholder="anna@acme.com"
+                                        placeholder="alex@acme.com"
                                     />
                                 </div>
                                 <div className="sm:col-span-1">
@@ -422,7 +422,7 @@ const DemoBooking = () => {
                                         type="tel"
                                         autoComplete="tel"
                                         className={fieldClass}
-                                        placeholder="+48 …"
+                                        placeholder="+44 20 7946 0000"
                                     />
                                 </div>
                                 <div className="sm:col-span-1">
@@ -473,12 +473,12 @@ const DemoBooking = () => {
                                     {prettyDate && chosenTime
                                         ? `${prettyDate}, ${chosenTime} ${source === "live" ? timezone : ""}`.trim()
                                         : source === "live"
-                                          ? "none yet — pick one on the right"
-                                          : "none yet — we will propose one"}
+                                          ? "none yet - pick one on the right"
+                                          : "none yet - we will propose one"}
                                 </span>
                             </div>
 
-                            {/* role="alert" so the message is announced, not just displayed —
+                            {/* role="alert" so the message is announced, not just displayed -
                                 a screen-reader user gets no other signal that submitting failed. */}
                             {error && (
                                 <p
@@ -505,8 +505,8 @@ const DemoBooking = () => {
                                 collected, not only in the footer. */}
                             <p className="mt-3 text-xs leading-relaxed text-muted">
                                 {source === "live"
-                                    ? "Your details go straight to our own booking service and into our calendar — no third-party scheduling platform is involved."
-                                    : "The site stores nothing and sends nothing on its own — the button opens your own e-mail client with the request filled in, so you decide what leaves your machine."}{" "}
+                                    ? "Your details go straight to our own booking service and into our calendar - no third-party scheduling platform is involved."
+                                    : "The site stores nothing and sends nothing on its own - the button opens your own e-mail client with the request filled in, so you decide what leaves your machine."}{" "}
                                 How we handle them, and the rights you have over them, are set out in
                                 our{" "}
                                 <a
@@ -604,7 +604,7 @@ const DemoBooking = () => {
                                                     ? "Select a weekday to see the times we usually keep free."
                                                     : view.cells.some((cell) => cell?.selectable)
                                                       ? "Select a highlighted day to see the times still open."
-                                                      : `Nothing free in ${view.label} — use › for the next month.`}
+                                                      : `Nothing free in ${view.label} - use › for the next month.`}
                                             </p>
                                         ) : (
                                             <>
@@ -642,7 +642,7 @@ const DemoBooking = () => {
                                                                       type="button"
                                                                       disabled={!free}
                                                                       aria-pressed={selectedExampleTime === slot}
-                                                                      aria-label={`${slot} on ${prettyDate}${free ? "" : " — unavailable"}`}
+                                                                      aria-label={`${slot} on ${prettyDate}${free ? "" : " - unavailable"}`}
                                                                       onClick={() => setSelectedExampleTime(slot)}
                                                                       className={`rounded-md border py-2 text-sm transition-colors ${
                                                                           selectedExampleTime === slot
@@ -660,7 +660,7 @@ const DemoBooking = () => {
                                                 {source === "live" &&
                                                     (slotsByDay.get(selectedDay) ?? []).length === 0 && (
                                                         <p className="mt-3 text-sm text-muted">
-                                                            Nothing left on that day — try another.
+                                                            Nothing left on that day - try another.
                                                         </p>
                                                     )}
                                             </>
@@ -669,8 +669,8 @@ const DemoBooking = () => {
 
                                     <p className="mt-6 text-xs leading-relaxed text-muted">
                                         {source === "live"
-                                            ? `Live availability from our calendar, shown in ${timezone}. The slot is held the moment you confirm, and you get an invitation by e-mail. Other time zones and times outside these hours can normally be arranged — just ask in the message.`
-                                            : "Example availability, shown to make picking a time easy — it is not a live calendar. Whatever you choose is treated as a preference and confirmed by e-mail, usually within one business day. Slots outside these hours, and other time zones, can normally be arranged."}
+                                            ? `Live availability from our calendar, shown in ${timezone}. The slot is held the moment you confirm, and you get an invitation by e-mail. Other time zones and times outside these hours can normally be arranged - just ask in the message.`
+                                            : "Example availability, shown to make picking a time easy - it is not a live calendar. Whatever you choose is treated as a preference and confirmed by e-mail, usually within one business day. Slots outside these hours, and other time zones, can normally be arranged."}
                                     </p>
                                 </>
                             )}

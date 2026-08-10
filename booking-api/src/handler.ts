@@ -7,6 +7,7 @@
 import { issueChallenge, verifyChallenge } from "./challenge.js";
 import type { Config } from "./config.js";
 import { InfomaniakCalendar } from "./infomaniak.js";
+import { planHolds } from "./holds.js";
 import { availableSlots, isSlotBookable, slotWindow } from "./slots.js";
 import { cutoffFrom, localDate, localTime } from "./time.js";
 
@@ -243,6 +244,72 @@ const secretsMatch = (given: string, expected: string): boolean => {
  * retention workflow. It is guarded by its own secret rather than the Infomaniak
  * token, so whatever triggers it can delete stale bookings and nothing else.
  */
+/**
+ * Blocks one working hour a week so the demo calendar does not read as abandoned.
+ *
+ * Called on a schedule from outside, like the retention sweep, because Bunny Edge
+ * Scripting has no scheduler. Safe to call at any cadence: a week is only ever
+ * topped up to the target, so a second run the same day adds nothing.
+ *
+ * The events it creates say only that the time is unavailable. They carry no
+ * attendee and no invented customer, and nothing in them claims a meeting was
+ * booked - see the note at the top of holds.ts for why that line matters.
+ */
+const handleHolds = async (
+    request: Request,
+    config: Config,
+    calendar: InfomaniakCalendar,
+    headers: Record<string, string>,
+): Promise<Response> => {
+    if (!config.adminToken) return json(404, { error: "not_found" }, headers);
+
+    const given = (request.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+    if (!given || !secretsMatch(given, config.adminToken)) {
+        return json(401, { error: "unauthorized" }, headers);
+    }
+
+    const url = new URL(request.url);
+    const dryRun = url.searchParams.get("dry_run") === "true";
+
+    const now = new Date();
+    const window = slotWindow(config, now);
+    const busy = await calendar.listBusy(window.from, window.to);
+    const planned = planHolds(config, now, busy);
+
+    const created: unknown[] = [];
+    if (!dryRun && planned.length > 0) {
+        // The organiser's own address on both sides: createEvent then lists them
+        // once, as the organiser, and the event gets no guest at all.
+        const profile = await calendar.getProfile();
+        for (const hold of planned) {
+            const event = await calendar.createEvent({
+                title: config.holdTitle,
+                start: new Date(hold.start),
+                end: new Date(hold.end),
+                description: "Reserved working time. Created automatically; no attendee.",
+                attendeeEmail: profile.email,
+                attendeeName: profile.displayName,
+            });
+            created.push({ id: event.id, date: hold.date, time: hold.time });
+        }
+    }
+
+    return json(
+        200,
+        {
+            ok: true,
+            dryRun,
+            holdsPerWeek: config.holdsPerWeek,
+            weeks: new Set(planned.map((hold) => hold.week)).size,
+            planned: planned.map((hold) => ({ week: hold.week, date: hold.date, time: hold.time })),
+            created: created.length,
+            ids: created,
+            timezone: config.timezone,
+        },
+        headers,
+    );
+};
+
 const handleRetention = async (
     request: Request,
     config: Config,
@@ -323,6 +390,9 @@ export const createHandler = (config: Config, calendar: InfomaniakCalendar) => {
             }
             if (request.method === "POST" && url.pathname === "/retention") {
                 return await handleRetention(request, config, calendar, headers);
+            }
+            if (request.method === "POST" && url.pathname === "/holds") {
+                return await handleHolds(request, config, calendar, headers);
             }
             return json(404, { error: "not_found" }, headers);
         } catch (error) {

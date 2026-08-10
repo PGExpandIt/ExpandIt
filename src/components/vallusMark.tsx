@@ -1,6 +1,6 @@
 import React from "react";
 
-/** The vallus mark — a palisade of bars (vallus, lat. "stake / palisade"). */
+/** The vallus mark - a palisade of bars (vallus, lat. "stake / palisade"). */
 const VallusMark = ({ className = "" }: { className?: string }) => (
     <svg
         viewBox="0 0 153 120"

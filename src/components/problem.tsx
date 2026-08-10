@@ -3,7 +3,7 @@ import React from "react";
 const PAINS = [
     {
         title: "Runs tied to one machine",
-        body: "Every execution means a terminal, the right config, browser, environment and filters — then collecting and sharing the HTML report by hand.",
+        body: "Every execution means a terminal, the right config, browser, environment and filters - then collecting and sharing the HTML report by hand.",
     },
     {
         title: "QA can't trigger anything",
@@ -23,7 +23,7 @@ const PAINS = [
     },
     {
         title: "No access control",
-        body: "Nothing decides who may run what against which environment — a real problem once staging and production data are involved.",
+        body: "Nothing decides who may run what against which environment - a real problem once staging and production data are involved.",
     },
 ];
 
@@ -37,7 +37,7 @@ const Problem = () => (
                 Playwright is excellent. Running it across a team is the hard part.
             </h2>
             <p className="mt-4 max-w-2xl text-muted">
-                Every organisation that adopts Playwright hits the same wall — and rebuilds the same
+                Every organisation that adopts Playwright hits the same wall - and rebuilds the same
                 scripts, spreadsheets and shared folders to work around it, once per project and per
                 team.
             </p>

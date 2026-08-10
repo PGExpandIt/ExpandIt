@@ -23,7 +23,7 @@ const Origin = () => (
 
             <div className="space-y-6 text-lg leading-relaxed text-muted lg:pt-16">
                 <p>
-                    Roman legionaries carried their stakes with them. The camp was not delivered — it
+                    Roman legionaries carried their stakes with them. The camp was not delivered - it
                     was raised each evening from what every man had brought, and taken down again at
                     dawn. The defence worked because it required nothing from outside the column.
                 </p>
@@ -31,7 +31,7 @@ const Origin = () => (
                     That is the model Vallus is built on. Each deployment is a self-contained
                     instance: the runner, the dashboard, reporting and access control, all on your
                     own machine from the first minute. It runs inside networks with no route to the
-                    internet, and it does not phone home — the licence is verified locally, by
+                    internet, and it does not phone home - the licence is verified locally, by
                     signature, with nothing to check in with.
                 </p>
                 <p className="text-bone">

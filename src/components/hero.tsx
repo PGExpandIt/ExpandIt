@@ -25,7 +25,7 @@ const Hero = () => (
             <div className="mx-auto mt-8 max-w-2xl space-y-4 text-left text-[15px] leading-relaxed text-muted sm:text-center">
                 <p>
                     A Roman legionary carried his own stakes. Each evening, after the march, the
-                    camp&apos;s palisade went up from what the soldiers already had — no supply line,
+                    camp&apos;s palisade went up from what the soldiers already had - no supply line,
                     no waiting for anyone.
                 </p>
                 <p>
@@ -44,7 +44,7 @@ const Hero = () => (
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted">
                 The Playwright CLI works for a single developer. vallus turns your existing
                 Playwright projects into managed, repeatable workflows that anyone on the team can
-                trigger — on demand, on a schedule, or from CI — with reports, traces and cross-run
+                trigger - on demand, on a schedule, or from CI - with reports, traces and cross-run
                 analytics in one place.
             </p>
 

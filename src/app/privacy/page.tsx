@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { LegalPage, Section, Table } from "@/components/legalPage";
 
 export const metadata: Metadata = {
-    title: "Privacy notice — vallus | ExpandIt",
+    title: "Privacy notice - vallus | ExpandIt",
     description:
         "How ExpandIt handles personal data under Article 13 GDPR: controller, purposes, legal bases, recipients, retention periods and your rights.",
     alternates: {
@@ -43,7 +43,7 @@ export default function Privacy() {
             <Section title="1. Who the controller is">
                 <p>
                     The controller of your personal data is{" "}
-                    <strong className="text-bone">Piotr Gajownik — ExpandIt</strong>, ul. Paryska
+                    <strong className="text-bone">Piotr Gajownik - ExpandIt</strong>, ul. Paryska
                     20B, 44-240 Żory, Poland, tax identification number (NIP) 5321875710 (EU VAT:
                     PL5321875710), referred to below as &quot;we&quot; or &quot;the controller&quot;.
                 </p>
@@ -93,17 +93,17 @@ export default function Privacy() {
                     rows={[
                         [
                             "Arranging and holding a product demonstration, answering your enquiry",
-                            "Art. 6(1)(b) GDPR — steps taken at your request before entering into a contract",
+                            "Art. 6(1)(b) GDPR - steps taken at your request before entering into a contract",
                             "6 months from the last contact",
                         ],
                         [
                             "Sales contact and keeping in touch with a prospective customer",
-                            "Art. 6(1)(f) GDPR — our legitimate interest in selling our own product",
+                            "Art. 6(1)(f) GDPR - our legitimate interest in selling our own product",
                             "until you object, and no longer than 6 months from the last contact",
                         ],
                         [
                             "Entering into and performing a licence agreement, invoicing",
-                            "Art. 6(1)(b) and (c) GDPR — tax and accounting obligations",
+                            "Art. 6(1)(b) and (c) GDPR - tax and accounting obligations",
                             "the period required by law, as a rule 5 years from the end of the tax year",
                         ],
                         [
@@ -181,7 +181,7 @@ export default function Privacy() {
                     <li>restrict the processing,</li>
                     <li>port your data to another controller,</li>
                     <li>
-                        object to processing based on our legitimate interest — including to sales
+                        object to processing based on our legitimate interest - including to sales
                         contact.
                     </li>
                 </ul>
@@ -205,7 +205,7 @@ export default function Privacy() {
             <Section title="7. Automated decisions and profiling">
                 <p>
                     We take no automated decisions about you and do not profile you. The meeting
-                    slots you see in the form come solely from what is free in our calendar — they
+                    slots you see in the form come solely from what is free in our calendar - they
                     do not depend on who you are or where you are visiting from.
                 </p>
             </Section>
