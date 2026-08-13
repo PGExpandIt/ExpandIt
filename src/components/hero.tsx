@@ -19,7 +19,7 @@ const Hero = () => (
 
             <p className="mt-8 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-muted">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                A product of ExpandIt · version 1.2 · actively developed
+                A product of ExpandIt · version 1.3 · actively developed
             </p>
 
             <div className="mx-auto mt-8 max-w-2xl space-y-4 text-left text-[15px] leading-relaxed text-muted sm:text-center">

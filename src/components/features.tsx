@@ -16,7 +16,23 @@ const FEATURES: Feature[] = [
     },
     {
         title: "Scheduling and a run queue",
-        body: "Nightly regression, hourly smoke, or a one-off run at 3 a.m. Queued execution keeps concurrent runs from fighting over the same machine.",
+        body: "Nightly regression, hourly smoke, or a one-off run at 3 a.m. Runs beyond the licensed limit wait in a queue instead of fighting over the same machine.",
+    },
+    {
+        title: "Every run in its own container",
+        body: "A run gets a container of its own, built from that project's code and its installed dependencies. Two runs cannot overwrite each other's generated sources or reports, so several can execute side by side on one server.",
+    },
+    {
+        title: "An image per version of your tests",
+        body: "Each version of a suite becomes its own image, named after the commit it was built from. Rolling back to a known-good suite means running an older tag - no git operation, nothing rebuilt.",
+    },
+    {
+        title: "A Playwright version per project",
+        body: "The image is chosen from the @playwright/test each project actually has installed, so a suite on 1.55 and one on 1.60 run on the same instance without either being upgraded to suit the other.",
+    },
+    {
+        title: "Add a project by cloning it",
+        body: "Point the runner at a repository and it clones the suite itself - including a subdirectory of a monorepo. An instance SSH key is generated for you to add as a deploy key, so nothing has to be arranged on the host first.",
     },
     {
         title: "CI webhooks",

@@ -14,6 +14,10 @@ const POINTS = [
         body: "Any machine with Node.js will do - a VM, a container, or a workstation. Optional extras such as Allure and HTTPS/TLS are configuration, not a separate install.",
     },
     {
+        title: "Docker where it earns its keep",
+        body: "Giving each run its own container needs a Docker daemon the runner can reach; a compose file ships with the product. Without one it still runs every suite as before, in-process - the isolation is an upgrade, not a prerequisite.",
+    },
+    {
         title: "Hardened access",
         body: "Signed license keys, TLS, OIDC single sign-on with a break-glass local admin, role-based permissions and per-workflow grants for executors.",
     },

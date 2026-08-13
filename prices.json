@@ -19,6 +19,7 @@
       "points": [
         "Up to 10 named users",
         "Up to 3 projects in the launcher",
+        "1 test run at a time, more available as an add-on",
         "1 production instance, unlimited dev/test",
         "Workflows, scheduling, run queue, RBAC",
         "Reports, Allure, trace viewer, analytics",
@@ -37,6 +38,7 @@
       "points": [
         "Up to 30 named users",
         "Unlimited projects",
+        "4 test runs in parallel, more available as an add-on",
         "2 production instances",
         "Everything in Team, plus Jira and Xray integration",
         "Prioritized integration and feature requests",
@@ -54,6 +56,7 @@
       "badge": null,
       "points": [
         "Unlimited named users and projects",
+        "Unlimited parallel test runs",
         "4+ production instances as agreed",
         "SLA 8×5, 4 h response",
         "Full deployment service included",
@@ -70,24 +73,74 @@
     "body": "A perpetual, non-exclusive license with full source access and the right to modify the code for internal use - for organisations that need independence from the vendor, a code audit, or source escrow. One-time fee, first 12 months of maintenance included, 20% per year thereafter. Subscription fees paid in the first 24 months are credited in full against it."
   },
   "addOns": [
-    { "name": "Pack of +10 named users", "price": "€900 / year" },
-    { "name": "Additional production instance", "price": "€1,200 / year" },
-    { "name": "Additional project (Team tier)", "price": "€300 / year" }
+    {
+      "name": "Additional parallel test run",
+      "price": "€600 / year"
+    },
+    {
+      "name": "Pack of +10 named users",
+      "price": "€900 / year"
+    },
+    {
+      "name": "Additional production instance",
+      "price": "€1,200 / year"
+    },
+    {
+      "name": "Additional project (Team tier)",
+      "price": "€300 / year"
+    }
   ],
   "services": [
-    { "name": "Remote deployment (2 days)", "price": "€1,800" },
-    { "name": "On-site deployment", "price": "€1,200 / day + travel" },
-    { "name": "Team training (up to 12 people)", "price": "€1,200 / day" },
-    { "name": "Migration of existing Playwright projects", "price": "from €2,500" },
-    { "name": "Offline installation package (one platform, one version)", "price": "€1,000" },
-    { "name": "Rebuild of the offline package for a new version", "price": "€300", "note": "Or included for the subscription term." },
-    { "name": "Custom development and integrations", "price": "€120 / h or €900 / day" }
+    {
+      "name": "Remote deployment (2 days)",
+      "price": "€1,800"
+    },
+    {
+      "name": "On-site deployment",
+      "price": "€1,200 / day + travel"
+    },
+    {
+      "name": "Team training (up to 12 people)",
+      "price": "€1,200 / day"
+    },
+    {
+      "name": "Migration of existing Playwright projects",
+      "price": "from €2,500"
+    },
+    {
+      "name": "Offline installation package (one platform, one version)",
+      "price": "€1,000"
+    },
+    {
+      "name": "Rebuild of the offline package for a new version",
+      "price": "€300",
+      "note": "Or included for the subscription term."
+    },
+    {
+      "name": "Custom development and integrations",
+      "price": "€120 / h or €900 / day"
+    }
   ],
   "discounts": [
-    { "name": "Prepayment for 2 years", "value": "−10%" },
-    { "name": "Prepayment for 3 years", "value": "−15%" },
-    { "name": "Educational institutions and non-profits", "value": "−40%" },
-    { "name": "Startups < 20 employees, < 3 years old", "value": "−25%" },
-    { "name": "Reference customer (case study + logo)", "value": "−10%" }
+    {
+      "name": "Prepayment for 2 years",
+      "value": "−10%"
+    },
+    {
+      "name": "Prepayment for 3 years",
+      "value": "−15%"
+    },
+    {
+      "name": "Educational institutions and non-profits",
+      "value": "−40%"
+    },
+    {
+      "name": "Startups < 20 employees, < 3 years old",
+      "value": "−25%"
+    },
+    {
+      "name": "Reference customer (case study + logo)",
+      "value": "−10%"
+    }
   ]
 }

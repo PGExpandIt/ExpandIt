@@ -14,7 +14,7 @@ const ITEMS = [
     },
     {
         q: "Does it work with our existing Playwright projects?",
-        a: "Yes. vallus wraps the standard Playwright CLI, so no code changes are needed. You point it at a project folder and it runs your existing configs, projects and environments as they are.",
+        a: "Yes. vallus wraps the standard Playwright CLI, so no code changes are needed. Point it at a project folder, or give it a repository URL and let it clone the suite itself - including a subdirectory of a monorepo. Either way it runs your existing configs, projects and environments as they are.",
     },
     {
         q: "Where does our test data live?",
@@ -22,7 +22,11 @@ const ITEMS = [
     },
     {
         q: "How hard is it to deploy?",
-        a: "Unzip, npm install, npm start, then a browser setup wizard creates the admin account and registers your projects. Teams that already have Playwright tests are usually running them through the dashboard the same day.",
+        a: "Unzip, npm install, npm start, then a browser setup wizard creates the admin account and registers your projects - by path or by cloning them from Git. A Docker Compose file ships with the product for teams who would rather run it that way. Teams that already have Playwright tests are usually running them through the dashboard the same day.",
+    },
+    {
+        q: "Can we run several suites at the same time?",
+        a: "Yes, and each run gets a container of its own, so two runs cannot overwrite each other's generated sources or reports. How many may execute at once is a licensed number: Team includes one and queues the rest, Business includes four, Enterprise is unlimited. It is not fixed by the tier - further parallel runs can be added to any licence, so a team that outgrows its limit does not have to buy users and integrations it has no use for. This needs a Docker daemon the runner can reach; without one it still runs every suite, one at a time.",
     },
     {
         q: "Can non-developers trigger runs?",
