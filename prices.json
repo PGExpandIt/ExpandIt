@@ -75,7 +75,8 @@
   "addOns": [
     {
       "name": "Additional parallel test run",
-      "price": "€600 / year"
+      "price": "€600 / year",
+      "note": "Parallel runs need a Docker daemon the runner can reach, so each run gets a container of its own. Without one vallus still runs every suite, one at a time."
     },
     {
       "name": "Pack of +10 named users",

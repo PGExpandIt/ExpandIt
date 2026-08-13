@@ -2,15 +2,30 @@ import React from "react";
 // All commercial figures live in prices.json at the repository root - edit that file, redeploy, done.
 import prices from "../../prices.json";
 
-// A service may carry a `note` in prices.json. The price cell then shows only the figure,
-// marked with an asterisk, and the note is spelled out under the list.
-type Service = { name: string; price: string; note?: string };
-const SERVICES: Service[] = prices.services;
-const NOTED = SERVICES.filter((service) => service.note);
-const marker = (service: Service) => {
-    const index = NOTED.indexOf(service);
-    return index === -1 ? null : "*".repeat(index + 1);
-};
+// An entry in prices.json may carry a `note`. The price cell then shows only the
+// figure, marked with an asterisk, and the note is spelled out under the list.
+// Used by services and add-ons alike - a condition attached to something you buy
+// belongs next to its price, not three sections away.
+type Priced = { name: string; price: string; note?: string };
+
+/** The noted entries of one list, and how to mark them. Each list numbers its own
+ *  asterisks, so a note in one section cannot renumber another. */
+function notes(entries: Priced[], idPrefix: string) {
+    const noted = entries.filter((entry) => entry.note);
+    return {
+        noted,
+        idFor: (entry: Priced) => `${idPrefix}-note-${noted.indexOf(entry)}`,
+        marker: (entry: Priced) => {
+            const index = noted.indexOf(entry);
+            return index === -1 ? null : "*".repeat(index + 1);
+        },
+    };
+}
+
+const SERVICES: Priced[] = prices.services;
+const ADD_ONS: Priced[] = prices.addOns;
+const serviceNotes = notes(SERVICES, "service");
+const addOnNotes = notes(ADD_ONS, "add-on");
 
 const Pricing = () => (
     <section id="pricing" className="border-b border-line bg-ink-soft">
@@ -95,13 +110,43 @@ const Pricing = () => (
                         Add-ons
                     </h3>
                     <dl className="mt-4 space-y-3">
-                        {prices.addOns.map(({ name, price }) => (
-                            <div key={name} className="flex justify-between gap-4 text-sm">
-                                <dt className="text-muted">{name}</dt>
-                                <dd className="shrink-0 text-bone">{price}</dd>
-                            </div>
-                        ))}
+                        {ADD_ONS.map((addOn) => {
+                            const mark = addOnNotes.marker(addOn);
+                            return (
+                                <div key={addOn.name} className="flex justify-between gap-4 text-sm">
+                                    <dt className="text-muted">{addOn.name}</dt>
+                                    <dd
+                                        className="shrink-0 text-bone"
+                                        aria-describedby={mark ? addOnNotes.idFor(addOn) : undefined}
+                                    >
+                                        {addOn.price}
+                                        {mark && (
+                                            <sup aria-hidden="true" className="ml-0.5 text-accent">
+                                                {mark}
+                                            </sup>
+                                        )}
+                                    </dd>
+                                </div>
+                            );
+                        })}
                     </dl>
+
+                    {addOnNotes.noted.length > 0 && (
+                        <ul className="mt-4 space-y-1.5 border-t border-line pt-3">
+                            {addOnNotes.noted.map((addOn, index) => (
+                                <li
+                                    key={addOn.name}
+                                    id={`add-on-note-${index}`}
+                                    className="text-xs leading-relaxed text-muted"
+                                >
+                                    <span aria-hidden="true" className="text-accent">
+                                        {"*".repeat(index + 1)}
+                                    </span>{" "}
+                                    {addOn.note}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 <div className="rounded-lg border border-line bg-surface p-6">
@@ -110,7 +155,7 @@ const Pricing = () => (
                     </h3>
                     <dl className="mt-4 space-y-3">
                         {SERVICES.map((service) => {
-                            const mark = marker(service);
+                            const mark = serviceNotes.marker(service);
                             return (
                                 <div
                                     key={service.name}
@@ -121,7 +166,7 @@ const Pricing = () => (
                                         className="shrink-0 text-bone"
                                         aria-describedby={
                                             mark
-                                                ? `service-note-${NOTED.indexOf(service)}`
+                                                ? serviceNotes.idFor(service)
                                                 : undefined
                                         }
                                     >
@@ -137,9 +182,9 @@ const Pricing = () => (
                         })}
                     </dl>
 
-                    {NOTED.length > 0 && (
+                    {serviceNotes.noted.length > 0 && (
                         <ul className="mt-4 space-y-1.5 border-t border-line pt-3">
-                            {NOTED.map((service, index) => (
+                            {serviceNotes.noted.map((service, index) => (
                                 <li
                                     key={service.name}
                                     id={`service-note-${index}`}
