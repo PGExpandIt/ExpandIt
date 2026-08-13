@@ -1,0 +1,69 @@
+# Monthly retention sweep: deletes demo bookings older than the period promised in
+# the privacy notice. The personal data lives in calendar events and nothing there
+# expires on its own, so something has to do this — and Bunny Edge Scripting has no
+# scheduler of its own.
+#
+# This workflow holds NO calendar credentials. It calls a single endpoint on the
+# booking API, which is guarded by its own secret. If that secret ever leaked, the
+# worst an attacker could do is trigger the deletion of already-expired bookings.
+# The Infomaniak token stays where it belongs — in the Bunny script's secrets.
+#
+# Required repository secrets:
+#   BOOKING_ADMIN_TOKEN   the same value as BOOKING_ADMIN_TOKEN in the Bunny script env
+# Required repository variables:
+#   BOOKING_API_ORIGIN    e.g. https://api.vallus.eu
+
+name: Retention sweep
+
+on:
+  schedule:
+    # 04:17 on the 1st of each month. Odd minute on purpose: the top of the hour is
+    # when every scheduled job on GitHub fires at once and runs late.
+    - cron: "17 4 1 * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "List what would be deleted, delete nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run the sweep
+        env:
+          ORIGIN: ${{ vars.BOOKING_API_ORIGIN }}
+          TOKEN: ${{ secrets.BOOKING_ADMIN_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: |
+          if [ -z "$ORIGIN" ] || [ -z "$TOKEN" ]; then
+            echo "::error::BOOKING_API_ORIGIN variable or BOOKING_ADMIN_TOKEN secret is missing."
+            exit 1
+          fi
+
+          response=$(curl -sS -m 120 -w '\n%{http_code}' -X POST \
+            "$ORIGIN/retention?dry_run=$DRY_RUN" \
+            -H "Authorization: Bearer $TOKEN")
+
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -1)
+
+          echo "HTTP $status"
+          echo "$body"
+
+          if [ "$status" != "200" ]; then
+            echo "::error::Retention sweep failed with HTTP $status"
+            exit 1
+          fi
+
+          deleted=$(echo "$body" | grep -o '"deleted":[0-9]*' | cut -d: -f2)
+          matched=$(echo "$body" | grep -o '"matched":[0-9]*' | cut -d: -f2)
+          echo "### Retention sweep" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- matched: ${matched:-0}" >> $GITHUB_STEP_SUMMARY
+          echo "- deleted: ${deleted:-0}" >> $GITHUB_STEP_SUMMARY
+          echo "- dry run: $DRY_RUN" >> $GITHUB_STEP_SUMMARY

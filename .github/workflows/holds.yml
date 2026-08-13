@@ -1,0 +1,74 @@
+# Tops the demo calendar up to one blocked hour per working week, so a visitor
+# choosing a slot does not see a month in which literally nothing is taken.
+#
+# The blocks are the owner's own unavailable hours: no attendee, no invented
+# customer, nothing claiming a meeting happened. See booking-api/src/holds.ts.
+#
+# Cadence is deliberately loose. The endpoint only ever tops a week up to the
+# target, so running early, twice, or after a gap all end in the same place -
+# which is why a missed cron here needs no catching up.
+#
+# This workflow holds NO calendar credentials. It calls one endpoint guarded by
+# its own secret; the Infomaniak token stays in the Bunny script's secrets.
+#
+# Required repository secrets:
+#   BOOKING_ADMIN_TOKEN   the same value as BOOKING_ADMIN_TOKEN in the Bunny script env
+# Required repository variables:
+#   BOOKING_API_ORIGIN    e.g. https://vallus-api-calendar-p498a.bunny.run
+
+name: Top up the demo calendar
+
+on:
+  schedule:
+    # 06:23 every third day of the month. Odd minute on purpose: jobs scheduled on
+    # the hour queue behind everyone else's and run late. Day-of-month stepping
+    # restarts on the 1st, so the gap around a month boundary is one to three days
+    # rather than exactly three - which suits this better than a fixed rhythm.
+    - cron: "23 6 */3 * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "List what would be blocked, create nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  top-up:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Top up the calendar
+        env:
+          ORIGIN: ${{ vars.BOOKING_API_ORIGIN }}
+          TOKEN: ${{ secrets.BOOKING_ADMIN_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: |
+          if [ -z "$ORIGIN" ] || [ -z "$TOKEN" ]; then
+            echo "::error::BOOKING_API_ORIGIN variable or BOOKING_ADMIN_TOKEN secret is missing."
+            exit 1
+          fi
+
+          response=$(curl -sS -m 120 -w '\n%{http_code}' -X POST \
+            "$ORIGIN/holds?dry_run=$DRY_RUN" \
+            -H "Authorization: Bearer $TOKEN")
+
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -1)
+
+          echo "HTTP $status"
+          echo "$body"
+
+          if [ "$status" != "200" ]; then
+            echo "::error::Calendar top-up failed with HTTP $status"
+            exit 1
+          fi
+
+          created=$(echo "$body" | grep -o '"created":[0-9]*' | cut -d: -f2)
+          weeks=$(echo "$body" | grep -o '"weeks":[0-9]*' | cut -d: -f2)
+          echo "### Demo calendar top-up" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- weeks needing a block: ${weeks:-0}" >> $GITHUB_STEP_SUMMARY
+          echo "- blocks created: ${created:-0}" >> $GITHUB_STEP_SUMMARY
+          echo "- dry run: $DRY_RUN" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,28 @@
+{
+  "name": "vallus-booking-api",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Booking endpoint for the vallus website, backed by the Infomaniak Calendar API, deployed to Bunny Edge Scripting",
+  "type": "module",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node --env-file=.env dist/edge.js",
+    "dev": "tsc --watch",
+    "probe": "node --env-file=.env dist/probe.js",
+    "cancel": "node --env-file=.env dist/cancel.js",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "deploy": "npm run build:edge && npx --yes @bunny.net/cli@latest scripts deploy dist/bundle.js",
+    "build:edge": "esbuild src/edge.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=dist/bundle.js"
+  },
+  "dependencies": {
+    "@bunny.net/edgescript-sdk": "^0.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "esbuild": "^0.28.1",
+    "typescript": "^5"
+  }
+}
