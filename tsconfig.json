@@ -23,5 +23,13 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    // booking-api is a separate service with its own tsconfig, its own
+    // dependencies and its own build. Type-checking it from here made the
+    // website build depend on `npm install` having been run inside it —
+    // which CI never does, so the site failed on a fresh checkout with
+    // "Cannot find module '@bunny.net/edgescript-sdk'".
+    "booking-api"
+  ]
 }
