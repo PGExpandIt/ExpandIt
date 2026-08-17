@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 // All commercial figures live in prices.json at the repository root - edit that file, redeploy, done.
 import prices from "../../prices.json";
 
@@ -39,8 +40,14 @@ const Pricing = () => (
                 functionality - no card, no auto-renewal.
             </p>
 
-            <div className="mt-12 grid gap-6 lg:grid-cols-3">
-                {prices.tiers.map(({ id, name, price, cadence, summary, points, highlight, badge }) => (
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {prices.tiers.map((tier) => {
+                    const { id, name, price, cadence, summary, points, highlight, badge } = tier;
+                    // A tier may override the call to action (e.g. the free tier links
+                    // to /free/ instead of the demo). Defaults keep the paid tiers as-is.
+                    const cta = "cta" in tier && tier.cta ? tier.cta : "Talk to us";
+                    const href = "href" in tier && tier.href ? tier.href : "/#demo";
+                    return (
                     <article
                         key={id}
                         className={`flex flex-col rounded-lg border bg-surface p-8 ${
@@ -59,27 +66,51 @@ const Pricing = () => (
                         <p className="text-sm text-muted">{cadence}</p>
                         <p className="mt-4 text-sm leading-relaxed text-muted">{summary}</p>
                         <ul className="mt-6 flex-1 space-y-2.5">
-                            {points.map((point) => (
-                                <li key={point} className="flex gap-2.5 text-sm text-muted">
-                                    <span aria-hidden="true" className="text-accent">
-                                        ✓
-                                    </span>
-                                    <span>{point}</span>
-                                </li>
-                            ))}
+                            {points
+                                // A point is either a plain string (included) or an
+                                // object flagging a capability this tier does NOT have,
+                                // which renders a red ✗ instead of the green ✓.
+                                .map((point) =>
+                                    typeof point === "string"
+                                        ? { text: point, included: true }
+                                        : point,
+                                )
+                                // Green (included) first, red (excluded) last. Array.sort
+                                // is stable, so order within each group is preserved.
+                                .sort((a, b) => Number(b.included) - Number(a.included))
+                                .map((item) => (
+                                    <li
+                                        key={item.text}
+                                        className={`flex gap-2.5 text-sm ${
+                                            item.included ? "text-muted" : "text-muted/70"
+                                        }`}
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className={item.included ? "text-accent" : "text-danger"}
+                                        >
+                                            {item.included ? "✓" : "✗"}
+                                        </span>
+                                        <span className="sr-only">
+                                            {item.included ? "Included: " : "Not included: "}
+                                        </span>
+                                        <span>{item.text}</span>
+                                    </li>
+                                ))}
                         </ul>
-                        <a
-                            href="#demo"
+                        <Link
+                            href={href}
                             className={`mt-8 rounded-md px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
                                 highlight
                                     ? "bg-accent text-ink hover:bg-accent-dim"
                                     : "border border-line text-bone hover:border-muted"
                             }`}
                         >
-                            Talk to us
-                        </a>
+                            {cta}
+                        </Link>
                     </article>
-                ))}
+                    );
+                })}
             </div>
 
             <div className="mt-6 rounded-lg border border-line bg-surface p-8 lg:flex lg:items-center lg:justify-between lg:gap-10">

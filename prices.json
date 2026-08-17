@@ -9,6 +9,26 @@
   "intro": "All prices are net, in EUR, excluding VAT. Every tier is self-hosted on your own infrastructure.",
   "tiers": [
     {
+      "id": "free",
+      "name": "Free",
+      "price": "€0",
+      "cadence": "6-month term, renewable",
+      "summary": "For small teams and evaluation — the core runner at no cost.",
+      "highlight": false,
+      "badge": null,
+      "cta": "Get a free key",
+      "href": "/free/",
+      "points": [
+        "2 named users",
+        "1 project in the launcher",
+        "1 test run at a time",
+        "Full core runner: workflows, scheduling, reports",
+        "6-month term — renewable, never perpetual",
+        { "text": "Gated integrations (Xray, SSO, Grafana, ReportPortal)", "included": false },
+        { "text": "E-mail / priority support", "included": false }
+      ]
+    },
+    {
       "id": "team",
       "name": "Team",
       "price": "€2,400",
@@ -24,7 +44,8 @@
         "Workflows, scheduling, run queue, RBAC",
         "Reports, Allure, trace viewer, analytics",
         "All releases during the term included",
-        "E-mail support, 3 business days"
+        "E-mail support, 3 business days",
+        { "text": "Jira, Xray & SSO integration (Business+)", "included": false }
       ]
     },
     {
@@ -43,7 +64,9 @@
         "Everything in Team, plus Jira and Xray integration",
         "Prioritized integration and feature requests",
         "E-mail support, 1 business day",
-        "2 h remote onboarding session"
+        "2 h remote onboarding session",
+        { "text": "SLA & guaranteed response times (Enterprise)", "included": false },
+        { "text": "Offline installation package (Enterprise)", "included": false }
       ]
     },
     {

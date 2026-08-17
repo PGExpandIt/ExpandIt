@@ -45,6 +45,12 @@ const sitemap = (): MetadataRoute.Sitemap => {
             },
         },
         {
+            url: `${SITE}/free/`,
+            lastModified,
+            changeFrequency: "monthly",
+            priority: 0.8,
+        },
+        {
             url: `${SITE}/licenses/`,
             lastModified,
             changeFrequency: "yearly",

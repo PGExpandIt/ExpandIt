@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import VallusMark from "@/components/vallusMark";
 
 const Footer = () => (
@@ -17,21 +18,22 @@ const Footer = () => (
 
                 <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
                     {[
-                        { href: "#features", label: "Features" },
-                        { href: "#pricing", label: "Pricing" },
-                        { href: "#deployment", label: "Security" },
-                        { href: "#faq", label: "FAQ" },
-                        { href: "#demo", label: "Book a demo" },
-                        { href: "/privacy", label: "Privacy" },
-                        { href: "/licenses", label: "Licences" },
+                        { href: "/#features", label: "Features" },
+                        { href: "/#pricing", label: "Pricing" },
+                        { href: "/free/", label: "Free" },
+                        { href: "/#deployment", label: "Security" },
+                        { href: "/#faq", label: "FAQ" },
+                        { href: "/#demo", label: "Book a demo" },
+                        { href: "/privacy/", label: "Privacy" },
+                        { href: "/licenses/", label: "Licences" },
                     ].map(({ href, label }) => (
-                        <a
+                        <Link
                             key={href}
                             href={href}
                             className="text-sm text-muted transition-colors hover:text-bone"
                         >
                             {label}
-                        </a>
+                        </Link>
                     ))}
                 </nav>
             </div>
@@ -46,12 +48,12 @@ const Footer = () => (
                     Playwright, Allure, Jira, Xray, Jenkins, GitHub, Azure, Keycloak, Grafana and
                     ReportPortal are trademarks of their respective owners and are referenced here
                     for compatibility purposes only. Open-source notices are on the{" "}
-                    <a
-                        href="/licenses"
+                    <Link
+                        href="/licenses/"
                         className="underline decoration-line underline-offset-4 hover:decoration-accent"
                     >
                         licences page
-                    </a>
+                    </Link>
                     .
                 </p>
             </div>
