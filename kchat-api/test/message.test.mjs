@@ -2,6 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { createHandler } from "../dist/handler.js";
+import { issueCode } from "../dist/otp.js";
+
+const OTP = { otpSecret: "otp-test-secret", mailerUrl: "http://mailer.local", mailerSecret: "mailer-shared" };
 
 const ORIGIN = "https://vallus.eu";
 
@@ -34,6 +37,11 @@ const baseConfig = (over = {}) => ({
     rateLimitPerHour: 100,
     challengeSecret: null, // challenge off — these tests exercise validation and relay
     challengeDifficulty: 15,
+    // OTP off by default (all three null) so otpEnabled() is false.
+    otpSecret: null,
+    mailerUrl: null,
+    mailerSecret: null,
+    otpTtlMs: 10 * 60 * 1000,
     ...over,
 });
 
@@ -156,6 +164,195 @@ test("GET /config advertises the limit and (with no secret) no challenge", async
     const body = await res.json();
     assert.equal(body.maxMessageChars, 4000);
     assert.equal(body.challenge, null);
+});
+
+const postRegister = (handler, body, headers = {}) =>
+    handler(
+        new Request("http://localhost/register", {
+            method: "POST",
+            headers: { "content-type": "application/json", origin: ORIGIN, ...headers },
+            body: JSON.stringify(body),
+        }),
+    );
+
+test("/register relays a free-licence request (no proof-of-work needed)", async () => {
+    // Even with a challenge secret set, /register does not require the challenge —
+    // the /free form does not run the PoW flow.
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig({ challengeSecret: "s3cr3t" }), kchat);
+
+    const res = await postRegister(handler, { company: "Acme Inc.", email: "alex@acme.com", marketing: true });
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { ok: true, transport: "webhook" });
+
+    const text = kchat._state.sent[0].text;
+    assert.match(text, /Free licence request/);
+    assert.match(text, /Acme Inc\./);
+    assert.match(text, /alex@acme\.com/);
+    assert.match(text, /opt-in:\*\* yes/);
+});
+
+test("/register requires a company and a valid e-mail", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(), kchat);
+
+    const noCompany = await postRegister(handler, { email: "alex@acme.com" });
+    assert.equal(noCompany.status, 400);
+    assert.equal((await noCompany.json()).error, "invalid_company");
+
+    const badEmail = await postRegister(handler, { company: "Acme", email: "nope" });
+    assert.equal(badEmail.status, 400);
+    assert.equal((await badEmail.json()).error, "invalid_email");
+
+    assert.equal(kchat._state.sent.length, 0);
+});
+
+test("/register honeypot returns ok but relays nothing", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(), kchat);
+
+    const res = await postRegister(handler, { company: "Acme", email: "a@b.co", website: "http://bot" });
+    assert.equal(res.status, 200);
+    assert.equal(kchat._state.sent.length, 0);
+});
+
+test("with OTP on, /message needs a valid code+token", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(OTP), kchat);
+    const email = "alex@acme.com";
+    const { code, token } = await issueCode(OTP.otpSecret, email, 60_000);
+
+    const good = await post(handler, { message: "hi", email, code, token });
+    assert.equal(good.status, 200);
+    assert.equal(kchat._state.sent.length, 1);
+
+    const bad = await post(handler, { message: "hi", email, code: "000000", token });
+    assert.equal(bad.status, 403);
+    assert.equal((await bad.json()).error, "code_invalid");
+    assert.equal(kchat._state.sent.length, 1); // unchanged
+});
+
+test("a mistyped OTP code does not spend the per-IP budget", async () => {
+    // The per-token cap in otp.ts is what bounds guessing. If the per-IP limit also
+    // counted typos it would run out first, and a visitor fumbling six digits from
+    // their inbox would be told "rate_limited" — the wrong problem, for an hour.
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig({ ...OTP, rateLimitPerHour: 2 }), kchat);
+    const email = "alex@acme.com";
+    const ip = { "x-forwarded-for": "203.0.113.9" };
+
+    for (let i = 0; i < 4; i += 1) {
+        const { token } = await issueCode(OTP.otpSecret, email, 60_000);
+        const res = await post(handler, { message: "hi", email, code: "000000", token }, ip);
+        assert.equal(res.status, 403, `attempt ${i + 1} should still reach the OTP check`);
+        assert.equal((await res.json()).reason, "wrong_code");
+    }
+
+    // Budget untouched: the real code still gets through.
+    const { code, token } = await issueCode(OTP.otpSecret, email, 60_000);
+    const good = await post(handler, { message: "hi", email, code, token }, ip);
+    assert.equal(good.status, 200);
+    assert.equal(kchat._state.sent.length, 1);
+});
+
+test("a junk token still spends the per-IP budget", async () => {
+    // Only a genuine wrong code is refunded. Someone posting garbage has no token to
+    // mistype, so the limit must still cut them off.
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig({ ...OTP, rateLimitPerHour: 2 }), kchat);
+    const ip = { "x-forwarded-for": "203.0.113.10" };
+    const junk = { message: "hi", email: "alex@acme.com", code: "000000", token: "not-a-token" };
+
+    assert.equal((await post(handler, junk, ip)).status, 403);
+    assert.equal((await post(handler, junk, ip)).status, 403);
+    assert.equal((await post(handler, junk, ip)).status, 429, "third is over the limit");
+});
+
+test("with OTP on, /register needs a valid code+token", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(OTP), kchat);
+    const email = "buyer@acme.com";
+    const { code, token } = await issueCode(OTP.otpSecret, email, 60_000);
+
+    const missing = await postRegister(handler, { company: "Acme", email });
+    assert.equal(missing.status, 403);
+    assert.equal(kchat._state.sent.length, 0);
+
+    const ok = await postRegister(handler, { company: "Acme", email, code, token });
+    assert.equal(ok.status, 200);
+    assert.equal(kchat._state.sent.length, 1);
+});
+
+test("/request-code is 404 when OTP is off", async () => {
+    const handler = createHandler(baseConfig(), fakeKchat());
+    const res = await handler(
+        new Request("http://localhost/request-code", {
+            method: "POST",
+            headers: { "content-type": "application/json", origin: ORIGIN },
+            body: JSON.stringify({ email: "a@b.co" }),
+        }),
+    );
+    assert.equal(res.status, 404);
+});
+
+test("/request-code issues a token and calls the mailer (signed)", async () => {
+    const handler = createHandler(baseConfig(OTP), fakeKchat());
+    const calls = [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async (url, init) => {
+        calls.push({ url: String(url), init });
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    try {
+        const res = await handler(
+            new Request("http://localhost/request-code", {
+                method: "POST",
+                headers: { "content-type": "application/json", origin: ORIGIN },
+                body: JSON.stringify({ email: "alex@acme.com" }),
+            }),
+        );
+        assert.equal(res.status, 200);
+        const body = await res.json();
+        assert.ok(body.token, "a token is returned");
+        assert.ok(body.expiresAt > Date.now(), "an expiry is returned");
+
+        assert.equal(calls.length, 1, "the mailer was called once");
+        assert.match(calls[0].url, /\/send-code$/);
+        assert.ok(calls[0].init.headers["x-signature"], "the mailer request is signed");
+    } finally {
+        globalThis.fetch = realFetch;
+    }
+});
+
+test("a POST from a disallowed origin is 403 and relays nothing", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(), kchat);
+
+    const res = await handler(
+        new Request("http://localhost/message", {
+            method: "POST",
+            headers: { "content-type": "application/json", origin: "https://evil.example" },
+            body: JSON.stringify({ message: "hi" }),
+        }),
+    );
+    assert.equal(res.status, 403);
+    assert.equal((await res.json()).error, "forbidden_origin");
+    assert.equal(kchat._state.sent.length, 0);
+});
+
+test("a POST with no Origin header is 403 (blocks bare curl)", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(), kchat);
+
+    const res = await handler(
+        new Request("http://localhost/register", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ company: "Acme", email: "a@b.co" }),
+        }),
+    );
+    assert.equal(res.status, 403);
+    assert.equal(kchat._state.sent.length, 0);
 });
 
 test("an unknown route is 404 and OPTIONS is a 204 preflight", async () => {

@@ -92,7 +92,26 @@ export interface Config {
      * average 2.4 s and occasionally take seven — too slow to hide.
      */
     challengeDifficulty: number;
+    /**
+     * Signs the one-time e-mail codes. Set together with `mailerUrl` and
+     * `mailerSecret` — any one of the three missing leaves e-mail verification off,
+     * `/request-code` answering 404 and `/book` gated by the proof-of-work alone,
+     * exactly as before this existed.
+     */
+    otpSecret: string | null;
+    /** Base URL of the off-edge mailer (see ../mailer). The edge never opens SMTP. */
+    mailerUrl: string | null;
+    /** Shared secret the mailer request is signed with — its `MAILER_AUTH_SECRET`. */
+    mailerSecret: string | null;
+    /** How long an emailed code stays valid, in ms. */
+    otpTtlMs: number;
 }
+
+/** True when all three OTP settings are present; anything less means it is off. */
+export const otpEnabled = (
+    config: Config,
+): config is Config & { otpSecret: string; mailerUrl: string; mailerSecret: string } =>
+    Boolean(config.otpSecret && config.mailerUrl && config.mailerSecret);
 
 export { readEnv };
 
@@ -120,4 +139,8 @@ export const loadConfig = (): Config => ({
     holdTitle: optional("BOOKING_HOLD_TITLE", "Unavailable"),
     challengeSecret: readEnv("BOOKING_CHALLENGE_SECRET")?.trim() || null,
     challengeDifficulty: Number(optional("BOOKING_CHALLENGE_DIFFICULTY", "15")),
+    otpSecret: readEnv("BOOKING_OTP_SECRET")?.trim() || null,
+    mailerUrl: readEnv("BOOKING_MAILER_URL")?.trim().replace(/\/+$/, "") || null,
+    mailerSecret: readEnv("BOOKING_MAILER_SECRET")?.trim() || null,
+    otpTtlMs: Number(optional("BOOKING_OTP_TTL_MINUTES", "10")) * 60 * 1000,
 });

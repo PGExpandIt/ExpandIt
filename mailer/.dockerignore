@@ -1,0 +1,14 @@
+node_modules/
+dist/
+k8s/
+compose.yaml
+compose.*.yaml
+Caddyfile
+test/
+.env
+.env.*
+.git/
+.gitignore
+Dockerfile
+.dockerignore
+*.md

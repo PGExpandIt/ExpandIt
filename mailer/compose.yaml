@@ -1,0 +1,85 @@
+# Deployment for a single VPS (Infomaniak VPS Lite or anything similar): the mailer
+# plus a TLS terminator in front of it. Two containers, no orchestrator — the
+# service is stateless and the edge calls it a handful of times a day.
+name: vallus-mailer
+
+services:
+  mailer:
+    build: .
+    image: vallus/mailer:0.1.0
+    restart: unless-stopped
+
+    # Deliberately no `ports:`. Publishing a port on a VPS exposes it to the
+    # internet even with ufw configured, because Docker writes its own iptables
+    # rules ahead of the firewall's. Only caddy reaches this, over the internal
+    # network — and the HMAC signature is still the real gate.
+    expose:
+      - "8790"
+
+    env_file: .env
+    environment:
+      # The code binds loopback by default. In a container the compose network is
+      # the boundary, so bind everywhere and let `expose` do the limiting.
+      BIND_HOST: "0.0.0.0"
+
+    healthcheck:
+      # busybox wget, already in node:alpine — no extra package, no curl.
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8790/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    networks: [internal]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+
+    ports:
+      - "80:80"     # ACME HTTP-01 challenge and the redirect to 443
+      - "443:443"
+
+    environment:
+      MAILER_DOMAIN: ${MAILER_DOMAIN:?set MAILER_DOMAIN in .env, e.g. mailer.vallus.eu}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env, an address for certificate expiry notices}
+
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates live here. Lose this volume and every restart re-issues, which
+      # walks straight into the Let's Encrypt rate limit.
+      - caddy_data:/data
+      - caddy_config:/config
+
+    depends_on:
+      mailer:
+        condition: service_healthy
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    networks: [internal]
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -45,6 +45,12 @@ export interface Config {
     username: string | null;
     /** Icon emoji for webhook posts, e.g. ":envelope:" (optional). */
     iconEmoji: string | null;
+    /**
+     * Optional path prefix stripped from the request before routing. Lets the same
+     * script answer both directly (`/message`) and behind a same-origin reverse
+     * proxy that forwards under a prefix (`/api/kchat/message`). Empty by default.
+     */
+    basePath: string;
     /** Prefix line prepended to every relayed message. */
     messagePrefix: string;
     /** Hard cap on the message body; longer input is truncated. */
@@ -67,6 +73,16 @@ export interface Config {
      * the form is being filled in. Each extra bit doubles the work.
      */
     challengeDifficulty: number;
+    /**
+     * OTP e-mail verification. Enabled only when all three are set (secret + mailer
+     * URL + mailer shared secret); otherwise /request-code is off and the message
+     * endpoints fall back to the proof-of-work challenge.
+     */
+    otpSecret: string | null;
+    mailerUrl: string | null;
+    mailerSecret: string | null;
+    /** How long an issued code stays valid, in ms. */
+    otpTtlMs: number;
 }
 
 export { readEnv };
@@ -92,6 +108,7 @@ export const loadConfig = (): Config => {
         token,
         apiBase,
         channelId,
+        basePath: (readEnv("KCHAT_BASE_PATH")?.trim() || "").replace(/\/$/, ""),
         defaultChannel: readEnv("KCHAT_CHANNEL")?.trim() || null,
         username: readEnv("KCHAT_USERNAME")?.trim() || null,
         iconEmoji: readEnv("KCHAT_ICON_EMOJI")?.trim() || null,
@@ -102,5 +119,9 @@ export const loadConfig = (): Config => {
         rateLimitPerHour: Number(optional("KCHAT_RATE_LIMIT_PER_HOUR", "5")),
         challengeSecret: readEnv("KCHAT_CHALLENGE_SECRET")?.trim() || null,
         challengeDifficulty: Number(optional("KCHAT_CHALLENGE_DIFFICULTY", "15")),
+        otpSecret: readEnv("KCHAT_OTP_SECRET")?.trim() || null,
+        mailerUrl: readEnv("KCHAT_MAILER_URL")?.trim().replace(/\/$/, "") || null,
+        mailerSecret: readEnv("KCHAT_MAILER_SECRET")?.trim() || null,
+        otpTtlMs: Number(optional("KCHAT_OTP_TTL_MINUTES", "10")) * 60 * 1000,
     };
 };

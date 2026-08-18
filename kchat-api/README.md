@@ -80,8 +80,39 @@ environment variables as secrets in the Bunny script settings.
 - **Proof-of-work challenge** — `GET /config` issues a signed challenge the browser
   must solve; unset `KCHAT_CHALLENGE_SECRET` to disable it. See `challenge.ts`.
 - **Per-IP rate limit** — best-effort at the edge (`KCHAT_RATE_LIMIT_PER_HOUR`).
+  A wrong OTP code is refunded rather than charged against it; see below.
 - **Mention defanging** — `@channel` / `@here` / `@all` / `@user` in submitted text
   are neutralised so a visitor cannot ping the team through the relay.
+
+## OTP e-mail verification (optional)
+
+Set `KCHAT_OTP_SECRET`, `KCHAT_MAILER_URL` and `KCHAT_MAILER_SECRET` (see
+`../mailer`) and the endpoints require a verified e-mail before anything reaches
+the channel:
+
+```
+browser ──POST /request-code {email}──►  edge issues a code, calls the mailer,
+                                          returns a signed token (not the code)
+        ── user reads the code from the inbox ──
+browser ──POST /message|/register {…, code, token}──►  verified → relayed to kChat
+```
+
+- The code is **stateless** like the proof-of-work: `token = base64url({expiry}).HMAC(secret, email.code.expiry)`.
+  The code travels only by e-mail; the token is safe to show in the browser.
+  Single-use, short-lived, with a per-token guess cap (5 wrong codes).
+- **A mistyped code does not spend the per-IP budget.** Guessing is bounded by the
+  per-token cap, so charging typos to the IP limit as well would only mean the
+  looser limit ran out first: with the default `KCHAT_RATE_LIMIT_PER_HOUR=5` a
+  visitor fumbling six digits from their inbox got `rate_limited` — the wrong
+  problem, for an hour — before the OTP cap ever applied. Only `wrong_code` is
+  refunded; `malformed`, `expired` and `too_many` still cost a slot, so posting junk
+  without a real token is cut off as before. `/request-code` is charged normally,
+  which caps a single IP at roughly 25 guesses an hour against a six-digit space.
+- Proof-of-work still gates **`/request-code`** (the e-mail-send step); OTP gates
+  the **post**. With OTP on, the message endpoints no longer ask for the challenge.
+- Leave any of the three vars unset and OTP is off: `/request-code` returns 404 and
+  the message endpoints fall back to the proof-of-work challenge. The edge **never**
+  opens SMTP — it only calls the mailer over HTTP.
 
 ## Tests
 
@@ -90,8 +121,8 @@ npm test
 ```
 
 Covers the challenge (accept/expire/replay/tamper) and the handler (validation,
-honeypot, mention defanging, truncation, rate limit, challenge gate, routing) with a
-fake kChat client — no network, no real channel touched.
+honeypot, mention defanging, truncation, rate limit and its OTP refund, challenge
+gate, routing) with a fake kChat client — no network, no real channel touched.
 
 ## What never reaches the browser
 
