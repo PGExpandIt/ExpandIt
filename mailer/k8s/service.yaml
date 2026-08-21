@@ -1,0 +1,16 @@
+# ClusterIP, not LoadBalancer: only the ingress controller talks to this. One
+# public IP for the whole cluster instead of one per service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailer
+  labels:
+    app.kubernetes.io/name: vallus-mailer
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vallus-mailer
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

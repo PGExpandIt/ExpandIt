@@ -1,0 +1,25 @@
+{
+  "name": "vallus-mailer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal SMTP relay for vallus: sends one-time codes as sales@vallus.eu via Infomaniak SMTP. Runs on a host that allows outbound TCP (NOT the edge). Called over HTTP by the kChat edge relay, authenticated with a shared HMAC secret.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node --env-file=.env dist/server.js",
+    "dev": "tsc --watch",
+    "probe": "node --env-file=.env dist/probe.js",
+    "test": "npm run build && node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.16"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/nodemailer": "^6.4.16",
+    "typescript": "^5"
+  }
+}

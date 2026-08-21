@@ -1,0 +1,33 @@
+# TLS termination for the one caller that exists: the kChat edge script. The
+# signature on the body is the real gate — this only gets the bytes there intact.
+#
+# Assumes ingress-nginx + cert-manager. On Infomaniak the ingress controller's
+# Service is what consumes the paid LoadBalancer and public IP; keep it to one.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mailer
+  labels:
+    app.kubernetes.io/name: vallus-mailer
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 8k
+    # A second limit in front of the in-process one, so a flood of bad signatures
+    # never reaches Node.
+    nginx.ingress.kubernetes.io/limit-rps: "5"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [mailer.vallus.eu]
+      secretName: mailer-tls
+  rules:
+    - host: mailer.vallus.eu
+      http:
+        paths:
+          - path: /send-code
+            pathType: Exact
+            backend:
+              service:
+                name: mailer
+                port:
+                  name: http

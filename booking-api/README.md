@@ -75,14 +75,19 @@ shows a broken state.
 |---|---|
 | `GET /health` | liveness, touches no calendar |
 | `GET /slots` | `{ timezone, slotMinutes, generatedAt, slots: [{ start, end, date, time }] }` |
-| `POST /book` | `{ name, email, start, company?, phone?, teamSize?, topic?, message?, website? }` |
+| `POST /request-code` | `{ email }` → `{ ok, token, expiresAt }`; e-mails a 6-digit code. `404` when verification is off |
+| `POST /book` | `{ name, email, start, code?, token?, company?, phone?, teamSize?, topic?, message?, website? }` |
 | `POST /retention` | admin token; deletes bookings past the retention period |
 | `POST /holds` | admin token; tops each working week up to `BOOKING_HOLDS_PER_WEEK` |
+
+`GET /slots` also reports `otp: true|false`, so the page knows whether to ask for a code
+before it offers a confirm button.
 
 `start` must be the exact `start` of a slot from `/slots`. `website` is a honeypot: the form
 hides it, so anything in it means a bot, and the service answers `200 {ok:true}` without
 booking. Errors are `400 invalid_*`, `409 slot_taken`, `429 rate_limited`,
-`502 upstream_error`.
+`502 upstream_error`. With verification on, `/book` adds `403 code_invalid`
+(with `reason`) and `/request-code` adds `502 mail_failed`.
 
 Availability is re-checked inside `POST /book`, so a slot taken while someone was filling in
 the form is refused with `409` rather than double-booked.
@@ -145,6 +150,7 @@ does not do.
 | Minimum age of 3 s on the challenge | submissions faster than a person can fill in a form |
 | Honeypot field | bots that fill in every input they find |
 | Per-IP rate limit | volume, best-effort |
+| E-mail verification (optional) | bookings on addresses nobody reads — see below |
 
 `GET /slots` hands out a challenge signed with `BOOKING_CHALLENGE_SECRET`. Before booking, the
 browser must find a counter whose SHA-256 begins with `BOOKING_CHALLENGE_DIFFICULTY` zero bits —
@@ -161,6 +167,40 @@ instances**, so it has to come from the environment.
 
 What this does not stop is somebody driving a real browser. Nothing short of a captcha does, and a
 captcha does not either — the point is to make the cheap attack uneconomical.
+
+## E-mail verification
+
+Optional, and off unless `BOOKING_OTP_SECRET`, `BOOKING_MAILER_URL` and `BOOKING_MAILER_SECRET`
+are all set. With it on, booking becomes two steps:
+
+```
+browser ──POST /request-code {email}──►  code e-mailed via ../mailer, signed token returned
+        ── visitor reads the code from the inbox ──
+browser ──POST /book {…, code, token}──►  verified → event created
+```
+
+**Why, when proof-of-work already exists.** PoW proves a browser did some work. It cannot tell a
+real address from a plausible one — and here that difference is expensive: an unverified booking
+puts an event in the calendar, sends an invitation nobody receives, and takes a slot a real
+prospect could have had. A typo costs the same as a lie. The code moves that check to before
+anything is written.
+
+**Which gate applies where.** PoW guards `/request-code`, because that is the step that sends
+mail. The code then guards `/book`, and PoW is no longer asked for there — requiring both would
+mean solving a challenge twice for one booking. Turn verification off and `/book` goes back to
+being PoW-gated, unchanged.
+
+The code lives only in the e-mail; the token is a signed commitment safe to hand to the browser
+(`otp.ts`, byte-identical to `kchat-api`'s). Single-use, short-lived, capped at 5 wrong guesses per
+token.
+
+**A mistyped code does not spend the per-IP budget.** Only `wrong_code` is refunded — `malformed`,
+`expired` and `too_many` still cost a slot. Without that refund the looser limit runs out first and
+a visitor fumbling six digits gets `rate_limited` for an hour, which explains nothing.
+
+**The slot is not held while the code is typed.** If someone takes it in the meantime, `/book`
+answers `409` and the page reloads the times — the same path as any other lost slot, just reachable
+in one more place.
 
 ## Configuration
 

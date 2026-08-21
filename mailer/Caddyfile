@@ -1,0 +1,26 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$MAILER_DOMAIN} {
+	# The edge calls exactly one path. Everything else gets a flat 404 — including
+	# /health, which exists for the container healthcheck, not for the internet.
+	@send {
+		method POST
+		path /send-code
+	}
+	handle @send {
+		# A ceiling in front of the one in handler.ts, so an oversized body never
+		# reaches Node.
+		request_body {
+			max_size 8KB
+		}
+		reverse_proxy mailer:8790
+	}
+
+	handle {
+		respond 404
+	}
+
+	header -Server
+}

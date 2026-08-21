@@ -6,8 +6,11 @@
 
 import { issueChallenge, verifyChallenge } from "./challenge.js";
 import type { Config } from "./config.js";
+import { otpEnabled } from "./config.js";
 import { InfomaniakCalendar } from "./infomaniak.js";
 import { planHolds } from "./holds.js";
+import { sendCodeViaMailer } from "./mailerClient.js";
+import { issueCode, verifyCode } from "./otp.js";
 import { availableSlots, isSlotBookable, slotWindow } from "./slots.js";
 import { cutoffFrom, localDate, localTime } from "./time.js";
 
@@ -36,6 +39,18 @@ const rateLimited = (ip: string, perHour: number): boolean => {
     if (recent.length >= perHour) return true;
     recent.push(Date.now());
     return false;
+};
+
+/**
+ * Hand back the slot `rateLimited` just took.
+ *
+ * Only for failures already bounded somewhere tighter — a mistyped code, capped
+ * per token in `otp.ts`. Without this the two limits stack: the per-IP budget runs
+ * out first, so a visitor fumbling six digits from their inbox is locked out for
+ * an hour and told `rate_limited`, which says nothing about what they got wrong.
+ */
+const refundAttempt = (ip: string): void => {
+    attempts.get(ip)?.pop();
 };
 
 const clientIp = (request: Request): string => {
@@ -110,9 +125,81 @@ const handleSlots = async (
             generatedAt: now.toISOString(),
             slots: availableSlots(config, now, busy),
             challenge,
+            // The page needs to know whether to show the code step before it lets
+            // anyone press "confirm". Absent it would ask, get a 403 and have to
+            // recover mid-booking.
+            otp: otpEnabled(config),
         },
         headers,
     );
+};
+
+/**
+ * Step one of a verified booking: e-mail a code and hand back the token that goes
+ * with it. The code itself is never in the response — the whole point is that only
+ * whoever reads the inbox can complete the booking.
+ *
+ * Proof-of-work still guards this endpoint, because this is the step that costs us
+ * a real e-mail. `/book` is then guarded by the code instead.
+ */
+const handleRequestCode = async (
+    request: Request,
+    config: Config,
+    headers: Record<string, string>,
+): Promise<Response> => {
+    if (!otpEnabled(config)) return json(404, { error: "not_found" }, headers);
+
+    const ip = clientIp(request);
+    if (rateLimited(ip, config.rateLimitPerHour)) {
+        return json(
+            429,
+            { error: "rate_limited", message: "Too many code requests. Try again later." },
+            headers,
+        );
+    }
+
+    let body: any;
+    try {
+        body = await readJsonBody(request);
+    } catch (error) {
+        return json(400, { error: "bad_request", message: (error as Error).message }, headers);
+    }
+
+    // Same honeypot as /book: answer as if it worked, send nothing.
+    if (typeof body.website === "string" && body.website.trim() !== "") {
+        return json(200, { ok: true }, headers);
+    }
+
+    const email = String(body.email ?? "").trim();
+    if (!EMAIL.test(email) || email.length > 200) {
+        return json(400, { error: "invalid_email" }, headers);
+    }
+
+    if (config.challengeSecret) {
+        const result = await verifyChallenge(
+            config.challengeSecret,
+            String(body.challenge ?? ""),
+            body.solution,
+            { minAgeMs: CHALLENGE_MIN_AGE_MS, maxAgeMs: CHALLENGE_MAX_AGE_MS },
+        );
+        if (!result.ok) {
+            return json(403, { error: "challenge_failed", reason: result.reason }, headers);
+        }
+    }
+
+    const issued = await issueCode(config.otpSecret, email, config.otpTtlMs);
+    try {
+        await sendCodeViaMailer(config.mailerUrl, config.mailerSecret, email, issued.code);
+    } catch (error) {
+        console.error("[booking-api] /request-code send failed:", error);
+        return json(
+            502,
+            { error: "mail_failed", message: "Could not send the code. Please try again." },
+            headers,
+        );
+    }
+
+    return json(200, { ok: true, token: issued.token, expiresAt: issued.expiresAt }, headers);
 };
 
 const handleBook = async (
@@ -121,7 +208,8 @@ const handleBook = async (
     calendar: InfomaniakCalendar,
     headers: Record<string, string>,
 ): Promise<Response> => {
-    if (rateLimited(clientIp(request), config.rateLimitPerHour)) {
+    const ip = clientIp(request);
+    if (rateLimited(ip, config.rateLimitPerHour)) {
         return json(
             429,
             { error: "rate_limited", message: "Too many booking attempts. Try again later." },
@@ -142,7 +230,28 @@ const handleBook = async (
         return json(200, { ok: true }, headers);
     }
 
-    if (config.challengeSecret) {
+    const name = String(body.name ?? "").trim();
+    const email = String(body.email ?? "").trim();
+
+    if (!name || name.length > 120) return json(400, { error: "invalid_name" }, headers);
+    if (!EMAIL.test(email) || email.length > 200) {
+        return json(400, { error: "invalid_email" }, headers);
+    }
+
+    // With verification on, the code takes over from the proof-of-work: it is the
+    // stronger claim of the two, and it already cost the visitor a round trip
+    // through their inbox. Asking for both would mean solving a challenge twice
+    // for one booking. The proof-of-work still guards /request-code.
+    if (otpEnabled(config)) {
+        const result = await verifyCode(config.otpSecret, email, body.code, body.token);
+        if (!result.ok) {
+            // Refund a genuine typo only. `malformed`, `expired` and `too_many` are
+            // not someone misreading six digits, so those keep costing a slot and a
+            // caller without a real token still runs out after rateLimitPerHour.
+            if (result.reason === "wrong_code") refundAttempt(ip);
+            return json(403, { error: "code_invalid", reason: result.reason }, headers);
+        }
+    } else if (config.challengeSecret) {
         const result = await verifyChallenge(
             config.challengeSecret,
             String(body.challenge ?? ""),
@@ -155,14 +264,6 @@ const handleBook = async (
             // they could not learn by trying.
             return json(403, { error: "challenge_failed", reason: result.reason }, headers);
         }
-    }
-
-    const name = String(body.name ?? "").trim();
-    const email = String(body.email ?? "").trim();
-
-    if (!name || name.length > 120) return json(400, { error: "invalid_name" }, headers);
-    if (!EMAIL.test(email) || email.length > 200) {
-        return json(400, { error: "invalid_email" }, headers);
     }
 
     const start = new Date(String(body.start ?? "").trim());
@@ -384,6 +485,9 @@ export const createHandler = (config: Config, calendar: InfomaniakCalendar) => {
             }
             if (request.method === "GET" && url.pathname === "/slots") {
                 return await handleSlots(config, calendar, headers);
+            }
+            if (request.method === "POST" && url.pathname === "/request-code") {
+                return await handleRequestCode(request, config, headers);
             }
             if (request.method === "POST" && url.pathname === "/book") {
                 return await handleBook(request, config, calendar, headers);

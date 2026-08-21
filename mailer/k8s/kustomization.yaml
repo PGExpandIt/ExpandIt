@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: vallus
+
+resources:
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - networkpolicy.yaml
+  # secret.example.yaml is deliberately NOT listed — create the real Secret out of
+  # band with `kubectl create secret`, so no password is ever in the repo.
+
+images:
+  - name: registry.example.com/vallus/mailer
+    newTag: 0.1.0

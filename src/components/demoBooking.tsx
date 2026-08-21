@@ -123,6 +123,17 @@ const DemoBooking = () => {
     const [confirmed, setConfirmed] = useState<{ date: string; time: string; timezone: string } | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // E-mail verification. The service decides whether it applies (`otp` on /slots);
+    // with it off every state below stays untouched and the form works as before.
+    const [otpRequired, setOtpRequired] = useState(false);
+    // Set once a code has been e-mailed. Its presence is what turns the form from
+    // "send me a code" into "confirm the booking".
+    const [otpToken, setOtpToken] = useState<string | null>(null);
+    const [otpEmail, setOtpEmail] = useState<string | null>(null);
+    const [code, setCode] = useState("");
+    const [sendingCode, setSendingCode] = useState(false);
+    const [notice, setNotice] = useState<string | null>(null);
+
     // Resolved after mount so the static export and the browser agree on what "today" is.
     useEffect(() => {
         const now = new Date();
@@ -139,6 +150,7 @@ const DemoBooking = () => {
             if (body.timezone) setTimezone(body.timezone);
             setChallenge(body.challenge ?? null);
             setSolution(null);
+            setOtpRequired(body.otp === true);
             setSource("live");
         } catch {
             // Never leave the visitor staring at a broken section: fall back to the
@@ -223,6 +235,68 @@ const DemoBooking = () => {
         setError(null);
     };
 
+    /**
+     * Ask the service to e-mail a code. Nothing is booked here — this only proves
+     * the address exists, so a typo costs one e-mail rather than an event in the
+     * calendar and an invitation nobody receives.
+     */
+    const requestCode = async (email: string, honeypot: string) => {
+        if (!API) return;
+        if (!email) {
+            setError("Add your e-mail first - that is where the code goes.");
+            return;
+        }
+
+        setSendingCode(true);
+        setError(null);
+        setNotice(null);
+        try {
+            const response = await fetch(`${API}/request-code`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email,
+                    website: honeypot,
+                    challenge: challenge?.token,
+                    solution,
+                }),
+            });
+
+            if (response.status === 429) {
+                setError("Too many code requests from your network. Try again in a while, or write to us directly.");
+                return;
+            }
+            if (response.status === 403) {
+                setError("That took a while - refreshing the form. Please try again.");
+                await loadSlots();
+                return;
+            }
+            if (!response.ok) {
+                setError("We could not send the code. Please try again, or write to us directly.");
+                return;
+            }
+
+            const body = await response.json();
+            // The honeypot path answers 200 with no token. Treat it as sent: a bot
+            // learns nothing, and a person never gets here.
+            if (!body.token) return;
+            setOtpToken(body.token);
+            setOtpEmail(email);
+            setCode("");
+            setNotice(`We sent a 6-digit code to ${email}. Enter it below to confirm the booking.`);
+            // A challenge is single-use: the service marks it spent on the way in.
+            // Without a fresh one, "Send a new code" would be refused as `replayed`
+            // and the visitor would be told the form went stale, which is not what
+            // happened. Fetching new slots hands out a new challenge, and the
+            // effect below solves it while they read their inbox.
+            void loadSlots();
+        } catch {
+            setError("The booking service is unreachable. Please try again, or write to us directly.");
+        } finally {
+            setSendingCode(false);
+        }
+    };
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -264,6 +338,13 @@ const DemoBooking = () => {
             return;
         }
 
+        // First press with verification on sends the code; the slot is not booked
+        // yet and nothing reaches the calendar until the code comes back.
+        if (otpRequired && !otpToken) {
+            await requestCode(value("email"), value("website"));
+            return;
+        }
+
         setSubmitting(true);
         setError(null);
         try {
@@ -281,6 +362,8 @@ const DemoBooking = () => {
                     website: value("website"), // honeypot; a human leaves it empty
                     challenge: challenge?.token,
                     solution,
+                    code: otpRequired ? code.trim() : undefined,
+                    token: otpRequired ? otpToken : undefined,
                     start: selectedSlot.start,
                 }),
             });
@@ -292,6 +375,25 @@ const DemoBooking = () => {
                 return;
             }
             if (response.status === 403) {
+                const failed = await response.json().catch(() => ({}) as any);
+                if (failed.error === "code_invalid") {
+                    // A wrong code must not throw away the code that was e-mailed —
+                    // mistyping one digit and being sent back to the start is the
+                    // fastest way to lose someone who was ready to book.
+                    if (failed.reason === "wrong_code") {
+                        setError("That code does not match. Check the e-mail and try again.");
+                        setCode("");
+                        return;
+                    }
+                    setError(
+                        failed.reason === "expired"
+                            ? "That code has expired. We can send you a new one."
+                            : "That code can no longer be used. We can send you a new one.",
+                    );
+                    setOtpToken(null);
+                    setCode("");
+                    return;
+                }
                 // The challenge went stale, or the page sat open for an hour.
                 setError("That took a while - refreshing the form. Please submit again.");
                 await loadSlots();
@@ -478,6 +580,50 @@ const DemoBooking = () => {
                                 </span>
                             </div>
 
+                            {/* The code step. Appears only once a code has actually been sent,
+                                so the form stays a single screen until it has to grow. */}
+                            {otpToken && (
+                                <div className="mt-4 rounded-md border border-line bg-ink px-4 py-4">
+                                    <label htmlFor="code" className={labelClass}>
+                                        Code from your e-mail
+                                    </label>
+                                    <input
+                                        id="code"
+                                        name="code"
+                                        value={code}
+                                        onChange={(event) =>
+                                            setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                                        }
+                                        inputMode="numeric"
+                                        autoComplete="one-time-code"
+                                        placeholder="123456"
+                                        className={`${fieldClass} tracking-[0.4em]`}
+                                    />
+                                    <p className="mt-2 text-xs text-muted">
+                                        Sent to {otpEmail}. Nothing is in the calendar yet - the booking is
+                                        made when the code checks out.{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => void requestCode(otpEmail ?? "", "")}
+                                            disabled={sendingCode}
+                                            className="cursor-pointer text-bone underline decoration-line underline-offset-4 hover:decoration-accent disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            {sendingCode ? "Sending…" : "Send a new code"}
+                                        </button>
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* role="status" rather than "alert": this is progress, not a problem. */}
+                            {notice && !error && (
+                                <p
+                                    role="status"
+                                    className="mt-3 rounded-md border border-line bg-ink px-4 py-3 text-sm text-muted"
+                                >
+                                    {notice}
+                                </p>
+                            )}
+
                             {/* role="alert" so the message is announced, not just displayed -
                                 a screen-reader user gets no other signal that submitting failed. */}
                             {error && (
@@ -491,14 +637,18 @@ const DemoBooking = () => {
 
                             <button
                                 type="submit"
-                                disabled={submitting}
+                                disabled={submitting || sendingCode || (otpToken !== null && code.length < 6)}
                                 className="mt-6 w-full cursor-pointer rounded-md bg-accent px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {submitting
                                     ? "Booking…"
-                                    : source === "live"
-                                      ? "Confirm the booking"
-                                      : "Send the request"}
+                                    : sendingCode
+                                      ? "Sending the code…"
+                                      : source !== "live"
+                                        ? "Send the request"
+                                        : otpRequired && !otpToken
+                                          ? "E-mail me a code"
+                                          : "Confirm the booking"}
                             </button>
 
                             {/* Article 13 GDPR information has to be available where the data is

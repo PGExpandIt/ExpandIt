@@ -6,9 +6,15 @@
 #
 # Required repository secret:
 #   BUNNY_API_KEY        bunny.net → Account Settings → API
-# Optional repository variable:
+# Optional repository variables:
 #   BOOKING_API_ORIGIN   e.g. https://api.vallus.eu — without it the demo section
 #                        falls back to the example calendar and a mailto request
+#   KCHAT_API_ORIGIN     the kChat relay base. Set to the same-origin path
+#                        "/api/kchat" (a pull-zone edge rule proxies it to the
+#                        relay script); or the relay's *.bunny.run URL for a direct
+#                        cross-origin call. Unset → the contact form uses mailto.
+#   LICENSE_API_ORIGIN   the free-licence request endpoint (the kChat relay's
+#                        /register). Same values as above; unset → /free uses mailto.
 
 name: Deploy site
 on:
@@ -45,6 +51,12 @@ jobs:
           # site deploys in offline mode — which looks fine and quietly does not
           # book anything.
           NEXT_PUBLIC_BOOKING_API: ${{ vars.BOOKING_API_ORIGIN }}
+          # Same pattern for the kChat contact form: unset → the form quietly falls
+          # back to a mailto request.
+          NEXT_PUBLIC_KCHAT_API: ${{ vars.KCHAT_API_ORIGIN }}
+          # The /free licence-request form. Currently the kChat relay's /register;
+          # unset → the form quietly falls back to a mailto request.
+          NEXT_PUBLIC_LICENSE_API: ${{ vars.LICENSE_API_ORIGIN }}
 
       # basePath must be empty for a root-domain deployment. If it is not, every
       # asset is requested under a prefix that does not exist and the site loads

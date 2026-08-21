@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailer
+  labels:
+    app.kubernetes.io/name: vallus-mailer
+spec:
+  # Exactly one. The per-recipient rate limit lives in process memory, so every
+  # extra replica multiplies how many codes one inbox can receive per hour.
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0        # never two pods at once, for the same reason
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vallus-mailer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vallus-mailer
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mailer
+          image: registry.example.com/vallus/mailer:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8790
+          envFrom:
+            - configMapRef:
+                name: mailer-config
+            - secretRef:
+                name: mailer-secrets
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests: { cpu: 50m,  memory: 96Mi }
+            limits:   { cpu: 300m, memory: 256Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            # readOnlyRootFilesystem still needs a writable scratch dir for Node.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
