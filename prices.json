@@ -2,9 +2,9 @@
   "_comment": "Single source of truth for everything price- and trial-related on the website. Edit this file and redeploy - no component changes needed.",
   "currency": "EUR",
   "trial": {
-    "days": 14,
-    "label": "14-day trial",
-    "note": "Full functionality for 14 days, no card and no auto-renewal. The evaluation key is issued with an expiry date and can be extended once by agreement."
+    "days": 21,
+    "label": "21-day trial",
+    "note": "Full functionality for 21 days, no card and no auto-renewal. The evaluation key is issued with an expiry date and can be extended once by agreement."
   },
   "intro": "All prices are net, in EUR, excluding VAT. Every tier is self-hosted on your own infrastructure.",
   "tiers": [
@@ -39,7 +39,7 @@
       "points": [
         "Up to 10 named users",
         "Up to 3 projects in the launcher",
-        "1 test run at a time, more available as an add-on",
+        "2 test runs in parallel per project, more available as an add-on",
         "1 production instance, unlimited dev/test",
         "Workflows, scheduling, run queue, RBAC",
         "Reports, Allure, trace viewer, analytics",
@@ -59,7 +59,7 @@
       "points": [
         "Up to 30 named users",
         "Unlimited projects",
-        "4 test runs in parallel, more available as an add-on",
+        "5 test runs in parallel per project, more available as an add-on",
         "2 production instances",
         "Everything in Team, plus Jira and Xray integration",
         "Prioritized integration and feature requests",
@@ -79,7 +79,7 @@
       "badge": null,
       "points": [
         "Unlimited named users and projects",
-        "Unlimited parallel test runs",
+        "Unlimited parallel test runs, no licence ceiling",
         "4+ production instances as agreed",
         "SLA 8×5, 4 h response",
         "Full deployment service included",
@@ -97,7 +97,7 @@
   },
   "addOns": [
     {
-      "name": "Additional parallel test run",
+      "name": "Additional parallel test run (per project)",
       "price": "€600 / year",
       "note": "Parallel runs need a Docker daemon the runner can reach, so each run gets a container of its own. Without one vallus still runs every suite, one at a time."
     },
