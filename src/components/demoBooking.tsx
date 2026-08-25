@@ -375,7 +375,10 @@ const DemoBooking = () => {
                 return;
             }
             if (response.status === 403) {
-                const failed = await response.json().catch(() => ({}) as any);
+                // Only these two fields are read below; typing them beats `any` and
+                // still tolerates a body that is missing or not JSON at all.
+                const failed: { error?: string; reason?: string } =
+                    await response.json().catch(() => ({}));
                 if (failed.error === "code_invalid") {
                     // A wrong code must not throw away the code that was e-mailed —
                     // mistyping one digit and being sent back to the start is the

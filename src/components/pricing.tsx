@@ -113,6 +113,11 @@ const Pricing = () => (
                 })}
             </div>
 
+            {/* One shared footnote for the asterisked points above — the parallel-run
+                figures are a licence ceiling, not a promise the host can meet without
+                a Docker daemon. */}
+            <p className="mt-6 text-xs leading-relaxed text-muted/80">{prices.tiersNote}</p>
+
             <div className="mt-6 rounded-lg border border-line bg-surface p-8 lg:flex lg:items-center lg:justify-between lg:gap-10">
                 <div>
                     <div className="flex flex-wrap items-baseline gap-3">
@@ -135,7 +140,10 @@ const Pricing = () => (
                 </a>
             </div>
 
-            <div className="mt-6 grid gap-6 sm:grid-cols-3">
+            {/* Add-ons and services only. The discount grid is deliberately not
+    published — it is a negotiation lever, not a page a prospect reads
+    before the first call. The figures live in the internal price list. */}
+            <div className="mt-6 grid gap-6 sm:grid-cols-2">
                 <div className="rounded-lg border border-line bg-surface p-6">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-bone">
                         Add-ons
@@ -231,19 +239,6 @@ const Pricing = () => (
                     )}
                 </div>
 
-                <div className="rounded-lg border border-line bg-surface p-6">
-                    <h3 className="text-sm font-semibold uppercase tracking-wide text-bone">
-                        Discounts
-                    </h3>
-                    <dl className="mt-4 space-y-3">
-                        {prices.discounts.map(({ name, value }) => (
-                            <div key={name} className="flex justify-between gap-4 text-sm">
-                                <dt className="text-muted">{name}</dt>
-                                <dd className="shrink-0 text-accent">{value}</dd>
-                            </div>
-                        ))}
-                    </dl>
-                </div>
             </div>
         </div>
     </section>

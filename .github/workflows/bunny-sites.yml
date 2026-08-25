@@ -43,6 +43,9 @@ jobs:
           node-version: "lts/*"
           cache: npm
       - run: npm ci
+      # `eslint .` — `next lint` was removed in Next.js 16 and left this step
+      # failing on every run, which blocked the deploy. Build output and the
+      # sibling services are excluded in eslint.config.mjs.
       - run: npm run lint
 
       - run: npm run build

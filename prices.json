@@ -7,6 +7,7 @@
     "note": "Full functionality for 21 days, no card and no auto-renewal. The evaluation key is issued with an expiry date and can be extended once by agreement."
   },
   "intro": "All prices are net, in EUR, excluding VAT. Every tier is self-hosted on your own infrastructure.",
+  "tiersNote": "* Running tests in parallel requires a Docker daemon the runner can reach — each run then gets a container of its own. Without one vallus still runs every suite, one at a time.",
   "tiers": [
     {
       "id": "free",
@@ -39,7 +40,7 @@
       "points": [
         "Up to 10 named users",
         "Up to 3 projects in the launcher",
-        "2 test runs in parallel per project, more available as an add-on",
+        "2 test runs in parallel per project*, more available as an add-on",
         "1 production instance, unlimited dev/test",
         "Workflows, scheduling, run queue, RBAC",
         "Reports, Allure, trace viewer, analytics",
@@ -59,7 +60,7 @@
       "points": [
         "Up to 30 named users",
         "Unlimited projects",
-        "5 test runs in parallel per project, more available as an add-on",
+        "5 test runs in parallel per project*, more available as an add-on",
         "2 production instances",
         "Everything in Team, plus Jira and Xray integration",
         "Prioritized integration and feature requests",
@@ -79,7 +80,7 @@
       "badge": null,
       "points": [
         "Unlimited named users and projects",
-        "Unlimited parallel test runs, no licence ceiling",
+        "Unlimited parallel test runs*, no licence ceiling",
         "4+ production instances as agreed",
         "SLA 8×5, 4 h response",
         "Full deployment service included",
@@ -143,28 +144,6 @@
     {
       "name": "Custom development and integrations",
       "price": "€120 / h or €900 / day"
-    }
-  ],
-  "discounts": [
-    {
-      "name": "Prepayment for 2 years",
-      "value": "−10%"
-    },
-    {
-      "name": "Prepayment for 3 years",
-      "value": "−15%"
-    },
-    {
-      "name": "Educational institutions and non-profits",
-      "value": "−40%"
-    },
-    {
-      "name": "Startups < 20 employees, < 3 years old",
-      "value": "−25%"
-    },
-    {
-      "name": "Reference customer (case study + logo)",
-      "value": "−10%"
     }
   ]
 }

@@ -7,7 +7,7 @@
     "dev:all": "node scripts/dev-all.mjs",
     "build": "next build",
     "start": "node scripts/preview.mjs",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "next": "^16.3.1",
