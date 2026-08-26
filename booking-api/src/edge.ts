@@ -1,7 +1,7 @@
 // Entry point. The same file runs in both places:
 //
-//   • Bunny Edge Scripting (Deno) — serve() with no listener; Bunny owns the socket
-//   • locally under Node          — serve({port, hostname}) when PORT is set
+//   • Bunny Edge Scripting (Deno) - serve() with no listener; Bunny owns the socket
+//   • locally under Node          - serve({port, hostname}) when PORT is set
 //
 // The SDK ships a Node build (package exports "node": esm-node/lib.mjs), so local
 // development needs no Deno install.

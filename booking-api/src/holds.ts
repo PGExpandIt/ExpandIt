@@ -7,7 +7,7 @@
 // What these events are: the owner's own unavailable hours. They carry no
 // attendee, no invented company name, no personal data, and nothing about them
 // claims a meeting took place. They must never be dressed up as bookings that
-// did not happen — a prospect who later learns the "busy" calendar was staged
+// did not happen - a prospect who later learns the "busy" calendar was staged
 // has been told something untrue about the business, and that is a worse problem
 // than an empty calendar.
 //
@@ -71,7 +71,7 @@ const pickIndex = (seed: string, length: number): number => {
  * Which slots to block so that every working week inside the booking horizon has
  * at least `holdsPerWeek` things in it.
  *
- * Anything already in the calendar counts — a real booking, a previous hold, the
+ * Anything already in the calendar counts - a real booking, a previous hold, the
  * owner's dentist appointment. That is what makes this safe to run on a schedule:
  * a week is only ever topped up to the target, so repeated runs add nothing, and
  * a week that fills up with real bookings is left alone entirely.

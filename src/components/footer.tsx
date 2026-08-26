@@ -21,6 +21,7 @@ const Footer = () => (
                         { href: "/#features", label: "Features" },
                         { href: "/#pricing", label: "Pricing" },
                         { href: "/free/", label: "Free" },
+                        { href: "/articles/", label: "Articles" },
                         { href: "/#deployment", label: "Security" },
                         { href: "/#faq", label: "FAQ" },
                         { href: "/#demo", label: "Book a demo" },

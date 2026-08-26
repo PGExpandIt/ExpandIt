@@ -7,7 +7,7 @@
 // picked (it moves when one is taken, which silently breaks CORS). This pins them.
 //
 // The API is optional. Without booking-api/.env it will not start, and the site
-// falls back to the example calendar and a mailto request — exactly what a plain
+// falls back to the example calendar and a mailto request - exactly what a plain
 // GitHub Pages deployment does.
 
 import { spawn } from "node:child_process";
@@ -75,10 +75,10 @@ const main = async () => {
             });
         } catch (error) {
             console.error(`[dev:all] booking-api failed to build: ${error.message}`);
-            console.error(`[dev:all] carrying on — the site will use its offline fallback.`);
+            console.error(`[dev:all] carrying on - the site will use its offline fallback.`);
         }
     } else {
-        console.log(`[dev:all] no booking-api/.env — starting the site only.`);
+        console.log(`[dev:all] no booking-api/.env - starting the site only.`);
         console.log(`[dev:all] the demo section will use the example calendar and mailto.`);
     }
 

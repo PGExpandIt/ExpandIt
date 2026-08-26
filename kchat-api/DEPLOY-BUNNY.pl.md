@@ -1,6 +1,6 @@
 # Wdrożenie kchat-api na Bunny Edge Scripting
 
-Usługa działa jako skrypt na brzegu sieci bunny.net — tak samo jak `booking-api`.
+Usługa działa jako skrypt na brzegu sieci bunny.net - tak samo jak `booking-api`.
 Przekazuje wiadomości z formularza kontaktowego na kanał **Infomaniak kChat**. Sekret
 (URL webhooka albo token bota) siedzi wyłącznie w konfiguracji skryptu Bunny, nigdy
 w repozytorium ani w przeglądarce.
@@ -12,11 +12,11 @@ Koszt jak przy booking-api: **$0,2 / mln żądań + $0,02 / 1000 s CPU, min. $1/
 ## 1. Webhook w kChat
 
 1. W kChat: **menu produktu → Integrations → Incoming Webhooks → Add**.
-2. Wybierz kanał docelowy, skopiuj URL — wygląda tak:
+2. Wybierz kanał docelowy, skopiuj URL - wygląda tak:
    `https://<org>.kchat.infomaniak.com/hooks/<id>`.
-3. Traktuj go jak hasło do kanału — kto go ma, może pisać na kanał.
+3. Traktuj go jak hasło do kanału - kto go ma, może pisać na kanał.
 
-(Alternatywa: token bota — wtedy zamiast webhooka ustawiasz `KCHAT_API_BASE`,
+(Alternatywa: token bota - wtedy zamiast webhooka ustawiasz `KCHAT_API_BASE`,
 `KCHAT_TOKEN`, `KCHAT_CHANNEL_ID`. Webhook jest prostszy i domyślny.)
 
 ## 2. Sprawdzenie lokalnie
@@ -25,7 +25,7 @@ Koszt jak przy booking-api: **$0,2 / mln żądań + $0,02 / 1000 s CPU, min. $1/
 cd kchat-api
 cp .env.example .env          # wklej URL do KCHAT_WEBHOOK_URL
 npm install && npm run build
-npm run probe                 # wysyła JEDNĄ testową wiadomość — sprawdź kanał
+npm run probe                 # wysyła JEDNĄ testową wiadomość - sprawdź kanał
 npm test                      # 19 testów: challenge + walidacja handlera
 ```
 
@@ -33,21 +33,21 @@ npm test                      # 19 testów: challenge + walidacja handlera
 
 1. Panel bunny.net → **Edge Platform → Scripting → Add Script**.
 2. Typ: **Standalone script** (własny adres `*.bunny.run`).
-3. Zapisz **Script ID** — potrzebny do wdrożenia.
+3. Zapisz **Script ID** - potrzebny do wdrożenia.
 
 ### Zmienne i sekrety
 
 Panel skryptu → **Env Configuration**. Rozróżnienie jest istotne:
 
-- **Environment secrets** — szyfrowane, nieodczytywalne po zapisaniu. Tu wchodzą
+- **Environment secrets** - szyfrowane, nieodczytywalne po zapisaniu. Tu wchodzą
   `KCHAT_WEBHOOK_URL` (albo `KCHAT_TOKEN`) i `KCHAT_CHALLENGE_SECRET`.
-- **Environment variables** — zwykłe, odczytywalne. Cała reszta.
+- **Environment variables** - zwykłe, odczytywalne. Cała reszta.
 
 | Nazwa | Rodzaj | Wartość |
 |---|---|---|
 | `KCHAT_WEBHOOK_URL` | **secret** | URL webhooka z kroku 1 |
 | `KCHAT_CHALLENGE_SECRET` | **secret** | `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
-| `ALLOWED_ORIGINS` | variable | `https://vallus.eu` — dokładne adresy po przecinku, bez wildcardów |
+| `ALLOWED_ORIGINS` | variable | `https://vallus.eu` - dokładne adresy po przecinku, bez wildcardów |
 | `KCHAT_USERNAME` | variable | `vallus site` (opcjonalnie) |
 | `KCHAT_ICON_EMOJI` | variable | `:envelope:` (opcjonalnie) |
 | `KCHAT_MESSAGE_PREFIX` | variable | np. `New message from the vallus website` |
@@ -55,10 +55,10 @@ Panel skryptu → **Env Configuration**. Rozróżnienie jest istotne:
 | `KCHAT_CHALLENGE_DIFFICULTY` | variable | `15` (opcjonalnie) |
 
 **`KCHAT_CHALLENGE_SECRET` włącza proof-of-work.** Bez niego formularz nadal ma
-honeypot i limit żądań, ale challenge jest wyłączony — ustaw go w produkcji.
+honeypot i limit żądań, ale challenge jest wyłączony - ustaw go w produkcji.
 
 **`PORT` zostaw nieustawiony.** Skrypt sprawdza tę zmienną, żeby odróżnić
-uruchomienie lokalne od edge'a — ustawiona wymusza tryb lokalny.
+uruchomienie lokalne od edge'a - ustawiona wymusza tryb lokalny.
 
 ## 4. Wdrożenie
 
@@ -96,7 +96,7 @@ wartość publiczna i tak ma być. Bez niej formularz kontaktowy degraduje się 
 `mailto`. Sekret webhooka **nigdy** nie trafia do repozytorium ani GitHuba.
 
 > Uwaga: komponent `src/components/contactKchat.tsx` istnieje, ale **nie jest jeszcze
-> osadzony** na żadnej stronie — najpierw zamontuj `<ContactKchat />` (np. na `/contact`
+> osadzony** na żadnej stronie - najpierw zamontuj `<ContactKchat />` (np. na `/contact`
 > lub stronie głównej), żeby formularz był widoczny po deployu.
 
 ## Same-origin proxy (opcjonalnie, ale zalecane)
@@ -120,13 +120,13 @@ Jak to jest skonfigurowane:
      "Description":"Proxy /api/kchat/* to the kChat relay (same-origin)",
      "Enabled":true}'
    ```
-   Reguła jest odwracalna — usunięcie przywraca stan sprzed (reszta ruchu strony
+   Reguła jest odwracalna - usunięcie przywraca stan sprzed (reszta ruchu strony
    jej nie dotyczy, bo pattern jest wąski).
 3. **Strona**: `NEXT_PUBLIC_KCHAT_API` / `NEXT_PUBLIC_LICENSE_API` = `/api/kchat`
    (ścieżka względna, same-origin). Bez preflightu CORS; w Network widać tylko
    `vallus.eu/api/kchat/...`.
 
-Origin-gate (403 dla POST spoza `vallus.eu`) działa też za proxy — przeglądarka
+Origin-gate (403 dla POST spoza `vallus.eu`) działa też za proxy - przeglądarka
 przy same-origin POST wysyła `Origin: https://vallus.eu`, a Bunny forwarduje ten
 nagłówek do skryptu.
 

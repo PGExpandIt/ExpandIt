@@ -23,7 +23,7 @@ kubectl -n vallus create secret generic mailer-secrets \
   --from-literal=MAILER_AUTH_SECRET='…'
 ```
 
-`MAILER_AUTH_SECRET` must be byte-identical to `KCHAT_MAILER_SECRET` on the edge —
+`MAILER_AUTH_SECRET` must be byte-identical to `KCHAT_MAILER_SECRET` on the edge -
 a mismatch shows up as a uniform `401 bad_signature`, not as a partial failure.
 
 ## 3. Apply
@@ -56,7 +56,7 @@ prints `SMTP login OK` (or `FAILED`) a second after startup.
 The per-recipient rate limit is a `Map` in process memory (`src/handler.ts`). Two
 replicas mean two independent counters, so an inbox can receive twice the cap per
 hour. `maxSurge: 0` keeps that true during rollouts too, at the cost of a few
-seconds of downtime — acceptable for a service the edge calls a handful of times
+seconds of downtime - acceptable for a service the edge calls a handful of times
 a day. Move the counter to a shared store before raising the replica count.
 
 ## Cost note
@@ -64,4 +64,4 @@ a day. Move the counter to a shared store before raising the replica count.
 The free Infomaniak control plane covers the control plane only. The worker node,
 the public IP and the LoadBalancer in front of the ingress controller are billed
 at standard Public Cloud rates. Run one ingress controller for the whole cluster
-rather than a `type: LoadBalancer` Service per app — hence the ClusterIP here.
+rather than a `type: LoadBalancer` Service per app - hence the ClusterIP here.

@@ -1,5 +1,5 @@
 # Deployment for a single VPS (Infomaniak VPS Lite or anything similar): the mailer
-# plus a TLS terminator in front of it. Two containers, no orchestrator — the
+# plus a TLS terminator in front of it. Two containers, no orchestrator - the
 # service is stateless and the edge calls it a handful of times a day.
 name: vallus-mailer
 
@@ -12,7 +12,7 @@ services:
     # Deliberately no `ports:`. Publishing a port on a VPS exposes it to the
     # internet even with ufw configured, because Docker writes its own iptables
     # rules ahead of the firewall's. Only caddy reaches this, over the internal
-    # network — and the HMAC signature is still the real gate.
+    # network - and the HMAC signature is still the real gate.
     expose:
       - "8790"
 
@@ -23,7 +23,7 @@ services:
       BIND_HOST: "0.0.0.0"
 
     healthcheck:
-      # busybox wget, already in node:alpine — no extra package, no curl.
+      # busybox wget, already in node:alpine - no extra package, no curl.
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8790/health"]
       interval: 30s
       timeout: 5s

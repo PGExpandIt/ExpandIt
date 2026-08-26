@@ -88,7 +88,7 @@ test("offered times are exactly the configured ones, in local time", () => {
 
 test("a busy period removes the slot it overlaps and leaves the others", () => {
     // now is Monday 10:00 Warsaw and the lead time is 24 h, so the first bookable
-    // moment is Tuesday 10:00 Warsaw — Tuesday 09:00 is out for that reason alone.
+    // moment is Tuesday 10:00 Warsaw - Tuesday 09:00 is out for that reason alone.
     // Tuesday 11:00 Warsaw = 09:00 UTC, and that is what this busy period covers.
     const busy = [
         { start: new Date("2026-08-04T09:00:00Z"), end: new Date("2026-08-04T09:30:00Z") },

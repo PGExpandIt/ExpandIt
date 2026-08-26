@@ -7,14 +7,14 @@
     "note": "Full functionality for 21 days, no card and no auto-renewal. The evaluation key is issued with an expiry date and can be extended once by agreement."
   },
   "intro": "All prices are net, in EUR, excluding VAT. Every tier is self-hosted on your own infrastructure.",
-  "tiersNote": "* Running tests in parallel requires a Docker daemon the runner can reach — each run then gets a container of its own. Without one vallus still runs every suite, one at a time.",
+  "tiersNote": "* Running tests in parallel requires a Docker daemon the runner can reach - each run then gets a container of its own. Without one vallus still runs every suite, one at a time.",
   "tiers": [
     {
       "id": "free",
       "name": "Free",
       "price": "€0",
       "cadence": "6-month term, renewable",
-      "summary": "For small teams and evaluation — the core runner at no cost.",
+      "summary": "For small teams and evaluation - the core runner at no cost.",
       "highlight": false,
       "badge": null,
       "cta": "Get a free key",
@@ -24,7 +24,7 @@
         "1 project in the launcher",
         "1 test run at a time",
         "Full core runner: workflows, scheduling, reports",
-        "6-month term — renewable, never perpetual",
+        "6-month term - renewable, never perpetual",
         { "text": "Gated integrations (Xray, SSO, Grafana, ReportPortal)", "included": false },
         { "text": "E-mail / priority support", "included": false }
       ]

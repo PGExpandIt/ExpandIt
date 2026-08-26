@@ -1,5 +1,5 @@
 // All configuration comes from the environment. Nothing here may ever reach the
-// browser: the webhook URL — or the bot token — lets the holder post into the
+// browser: the webhook URL - or the bot token - lets the holder post into the
 // channel, so it stays on this service.
 
 // Nothing here touches the filesystem: on Bunny Edge Scripting there is none.
@@ -9,7 +9,7 @@
 /**
  * Reads an environment variable on whichever runtime this is.
  *
- * Bunny's docs give two ways of doing it — `Deno.env.get` and `process.env` — and
+ * Bunny's docs give two ways of doing it - `Deno.env.get` and `process.env` - and
  * which one exists depends on the runtime the script ends up on. Checking both
  * means the same build works under Node locally and on the edge in production.
  */
@@ -33,7 +33,7 @@ const list = (name: string, fallback: string): string[] =>
 export interface Config {
     /** Incoming-webhook URL. When set, this is the transport. */
     webhookUrl: string | null;
-    /** Bot/personal-access token — the fallback transport when no webhook is set. */
+    /** Bot/personal-access token - the fallback transport when no webhook is set. */
     token: string | null;
     /** API origin for the token transport, e.g. https://<org>.kchat.infomaniak.com */
     apiBase: string | null;
@@ -60,7 +60,7 @@ export interface Config {
     /** Per-IP message attempts allowed per hour. */
     rateLimitPerHour: number;
     /**
-     * Secret signing the proof-of-work challenges. Unset disables the challenge —
+     * Secret signing the proof-of-work challenges. Unset disables the challenge -
      * the honeypot and the rate limit still apply, but POST /message becomes
      * reachable without loading the page first. Must be identical across all edge
      * instances, so it has to come from the environment rather than be generated

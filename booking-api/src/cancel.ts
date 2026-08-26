@@ -99,7 +99,7 @@ const main = async () => {
             console.log("  (nothing to delete)");
             if (all.length) {
                 console.log(
-                    `  ${all.length} other event(s) in that range were left alone — they do not carry the prefix.`,
+                    `  ${all.length} other event(s) in that range were left alone - they do not carry the prefix.`,
                 );
             }
             return;
@@ -107,7 +107,7 @@ const main = async () => {
         for (const entry of stale) console.log(describe(entry));
 
         if (!yes && !(await confirm(`\nDelete ${stale.length} event(s)? This cannot be undone.`))) {
-            console.log("Cancelled — nothing deleted.");
+            console.log("Cancelled - nothing deleted.");
             return;
         }
         await deleteAll(stale);
@@ -127,10 +127,10 @@ const main = async () => {
         console.log(`About to delete ${entries.length} event(s) starting with "${prefix}":`);
         for (const entry of entries) console.log(describe(entry));
 
-        // These are real bookings, not just test ones — anything booked through the
+        // These are real bookings, not just test ones - anything booked through the
         // website carries the same prefix. Never delete them without being asked.
         if (!yes && !(await confirm("\nThis cannot be undone. Delete them?"))) {
-            console.log("Cancelled — nothing deleted.");
+            console.log("Cancelled - nothing deleted.");
             return;
         }
         await deleteAll(entries);

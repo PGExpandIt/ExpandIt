@@ -30,7 +30,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(config.port, config.bindHost, () => {
     console.log(`[mailer] listening on http://${config.bindHost}:${config.port}`);
     console.log(`[mailer] SMTP ${config.smtp.host}:${config.smtp.port} as ${config.smtp.user}`);
-    // Fail fast if the mailbox login is wrong — better here than on the first code.
+    // Fail fast if the mailbox login is wrong - better here than on the first code.
     sender
         .verifyConnection()
         .then(() => console.log("[mailer] SMTP login OK"))

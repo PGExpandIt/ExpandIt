@@ -16,10 +16,10 @@ const kchat = new KChat(config);
 
 const main = async () => {
     const body = process.argv[2] ?? "Test message from kchat-api probe. If you can read this, the relay works.";
-    console.log(`— transport —\n  ${kchat.transport}`);
+    console.log(`- transport -\n  ${kchat.transport}`);
 
     const text = [`**${config.messagePrefix}**`, "", body].join("\n");
-    console.log("\n— sending —");
+    console.log("\n- sending -");
     const result = await kchat.send({ text });
     console.log(`  delivered via ${result.transport}. Check the kChat channel.`);
 };

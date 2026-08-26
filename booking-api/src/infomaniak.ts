@@ -78,7 +78,7 @@ export class InfomaniakCalendar {
      * The configured calendar, or the first one on the account.
      *
      * A configured id is checked against the account's calendars once per process.
-     * Without that check, an id belonging to another account — or simply mistyped —
+     * Without that check, an id belonging to another account - or simply mistyped -
      * surfaces later as a bare `403 access_denied` on event listing, which reads
      * like a token or scope problem and sends you looking in the wrong place.
      */
@@ -111,7 +111,7 @@ export class InfomaniakCalendar {
 
     /**
      * Who appears as the organiser. The configured override wins; only without one
-     * is the token's profile read — which also means the `user_info` scope is only
+     * is the token's profile read - which also means the `user_info` scope is only
      * needed when no override is set.
      */
     async getProfile(): Promise<{ email: string; displayName: string }> {
@@ -130,7 +130,7 @@ export class InfomaniakCalendar {
      * Busy periods between two instants.
      *
      * Events whose timestamps cannot be parsed are returned as busy anyway, using
-     * whatever could be read — an unparseable event must never make a slot look
+     * whatever could be read - an unparseable event must never make a slot look
      * free. Callers that get an empty array should be sure it means "nothing in
      * the calendar", not "the shape changed"; run `npm run probe` to confirm.
      */
@@ -184,7 +184,7 @@ export class InfomaniakCalendar {
         const profile = await this.getProfile();
 
         // Someone booking with the organiser's own address would otherwise be listed
-        // twice — once as the guest, once as the organiser. It happens in testing, and
+        // twice - once as the guest, once as the organiser. It happens in testing, and
         // it would happen to a colleague booking an internal demo.
         const sameAsOrganizer =
             input.attendeeEmail.trim().toLowerCase() === profile.email.trim().toLowerCase();
@@ -235,7 +235,7 @@ export class InfomaniakCalendar {
      *
      * `DELETE /1/calendar/pim/event/{id}` is not in Infomaniak's reference client and
      * is not documented alongside the endpoints above; it was verified by hand against
-     * a live account — 200 with `data: null`, and the event gone from the calendar.
+     * a live account - 200 with `data: null`, and the event gone from the calendar.
      * Treat it as working but unofficial.
      *
      * There is no undo. Nothing calls this during a booking; it exists for cleaning up

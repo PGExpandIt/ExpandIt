@@ -1,40 +1,40 @@
-# RODO — co jeszcze zostało do domknięcia
+# RODO - co jeszcze zostało do domknięcia
 
 Lista rzeczy potrzebnych, żeby przetwarzanie danych osobowych na stronie vallus i wokół niej
 było uporządkowane. Stan na dziś, z zaznaczeniem co jest gotowe, co czeka na Twoje dane i co
 jest decyzją, a nie zadaniem technicznym.
 
-> **Nie jestem prawnikiem.** To zestawienie oparte na tym, co system faktycznie robi —
+> **Nie jestem prawnikiem.** To zestawienie oparte na tym, co system faktycznie robi -
 > zweryfikowane w kodzie i w przeglądarce. Podstawy prawne i treść polityki powinien przejrzeć
 > prawnik przed publikacją.
 
 ---
 
-## 1. Polityka prywatności — komplet
+## 1. Polityka prywatności - komplet
 
-### Dane administratora — **uzupełnione**
+### Dane administratora - **uzupełnione**
 
 W polityce wpisane jest:
 
-> Piotr Gajownik — ExpandIt, ul. Paryska 20B, 44-240 Żory, Polska, NIP 5321875710
+> Piotr Gajownik - ExpandIt, ul. Paryska 20B, 44-240 Żory, Polska, NIP 5321875710
 > (VAT UE: PL5321875710)
 
-REGON pominięty — jest opcjonalny. Jeśli chcesz go dodać, podaj numer.
+REGON pominięty - jest opcjonalny. Jeśli chcesz go dodać, podaj numer.
 
 Art. 13 ust. 1 lit. a RODO wymaga wskazania tożsamości administratora, a przy JDG tożsamością
-jest imię i nazwisko — dlatego nazwisko musi tu być, mimo że w treściach marketingowych zostało
+jest imię i nazwisko - dlatego nazwisko musi tu być, mimo że w treściach marketingowych zostało
 usunięte.
 
 **To ta sama kolizja, o której pisałem przy licencjach i przy pliku `web/LICENSE`.** Ukrywanie
-skali działa w treściach marketingowych — w dokumentach prawnych nie. Warto to przyjąć świadomie
+skali działa w treściach marketingowych - w dokumentach prawnych nie. Warto to przyjąć świadomie
 i pilnować tylko tego, żeby nazwisko nie wracało tam, gdzie nie musi: w podpisie e-mail, w panelu
 pomocy produktu, w adresach skrzynek.
 
-### Data obowiązywania — **ustawiona na 2 sierpnia 2026 r.**
+### Data obowiązywania - **ustawiona na 2 sierpnia 2026 r.**
 
-Jeśli publikacja nastąpi później, powiedz — zmienię na właściwą.
+Jeśli publikacja nastąpi później, powiedz - zmienię na właściwą.
 
-### Retencja — **zdecydowane i wpisane: 6 miesięcy**
+### Retencja - **zdecydowane i wpisane: 6 miesięcy**
 
 Już wpisane do polityki:
 
@@ -46,7 +46,7 @@ Już wpisane do polityki:
 | Obrona przed roszczeniami | do przedawnienia |
 
 **Retencja jest teraz wykonalna jednym poleceniem.** Dane zgłaszających się osób nie leżą
-w żadnej bazie, tylko **w wydarzeniach w Twoim kalendarzu Infomaniak** — tytuł zawiera nazwę
+w żadnej bazie, tylko **w wydarzeniach w Twoim kalendarzu Infomaniak** - tytuł zawiera nazwę
 firmy, a opis imię, e-mail, telefon i treść wiadomości. Nic tam nie wygasa samo, więc:
 
 ```bash
@@ -57,7 +57,7 @@ npm run cancel -- --older-than 6m --yes   # bez pytania, do zadania cyklicznego
 
 Polecenie rusza **wyłącznie** wydarzenia, których tytuł zaczyna się od `BOOKING_TITLE_PREFIX`
 (domyślnie „vallus demo"). Wszystko inne w kalendarzu zostaje nietknięte i jest raportowane jako
-pominięte — sprawdzone na żywym kalendarzu: wydarzenie „Wizyta u dentysty" z tego samego okresu
+pominięte - sprawdzone na żywym kalendarzu: wydarzenie „Wizyta u dentysty" z tego samego okresu
 przetrwało.
 
 **Jest też wpięte w harmonogram** i nie wymaga od Ciebie pamiętania. `.github/workflows/retention.yml`
@@ -75,7 +75,7 @@ Bunny.
 
 ---
 
-## 2. Umowy powierzenia — **podpisane**
+## 2. Umowy powierzenia - **podpisane**
 
 Dane prospektów przechodzą przez dwóch dostawców. Każdy jest **podmiotem przetwarzającym**
 w rozumieniu art. 28 RODO.
@@ -87,38 +87,38 @@ w rozumieniu art. 28 RODO.
 
 ### Czy trzeba je gdzieś załączać? Nie.
 
-Umowa powierzenia to kontrakt między Tobą a dostawcą — nie publikuje się jej i nie dołącza do
+Umowa powierzenia to kontrakt między Tobą a dostawcą - nie publikuje się jej i nie dołącza do
 polityki prywatności. Wystarczy, że w polityce jest napisane, że przetwarzanie odbywa się „na
-podstawie umów powierzenia zawartych zgodnie z art. 28 RODO" — i **od teraz to zdanie jest
+podstawie umów powierzenia zawartych zgodnie z art. 28 RODO" - i **od teraz to zdanie jest
 prawdziwe**, co wcześniej było lekko na wyrost.
 
 Liczy się natomiast **rozliczalność** (art. 5 ust. 2 RODO): w razie kontroli trzeba umieć te
 umowy okazać. Praktycznie oznacza to tyle:
 
 - zachowaj podpisane egzemplarze (PDF) w miejscu, które przetrwa zmianę laptopa,
-- zanotuj datę podpisania i wersję dokumentu — wystarczy jedna linijka na dostawcę,
+- zanotuj datę podpisania i wersję dokumentu - wystarczy jedna linijka na dostawcę,
 - przy odnowieniu albo zmianie warunków przez dostawcę pobierz nową wersję.
 
-> **Nie wrzucaj ich do tego repozytorium.** `PGExpandIt/ExpandIt` jest **publiczne** —
+> **Nie wrzucaj ich do tego repozytorium.** `PGExpandIt/ExpandIt` jest **publiczne** -
 > sprawdzone. Wszystko, co tam trafi, widzi każdy i zostaje w historii gita nawet po usunięciu
 > pliku. Naturalne miejsce to kDrive w Twoim kSuite: ten sam dostawca, szwajcarskie serwery,
 > poza repozytorium.
 
 Transfery są bezpieczne bez dodatkowych formalności: Słowenia to UE, a **Szwajcaria ma decyzję
 o adekwatności** (art. 45 RODO), więc standardowe klauzule umowne nie są potrzebne. Infomaniak
-trzyma dane wyłącznie w Szwajcarii i nie korzysta z amerykańskich podwykonawców — to argument,
+trzyma dane wyłącznie w Szwajcarii i nie korzysta z amerykańskich podwykonawców - to argument,
 który warto podnosić przy sprzedaży do sektora publicznego, nie tylko formalność.
 
 ---
 
 ## 3. Rejestr czynności przetwarzania
 
-Art. 30 ust. 5 RODO zwalnia podmioty poniżej 250 pracowników — **ale zwolnienie nie działa**,
+Art. 30 ust. 5 RODO zwalnia podmioty poniżej 250 pracowników - **ale zwolnienie nie działa**,
 gdy przetwarzanie nie ma charakteru sporadycznego. Zbieranie zgłoszeń przez formularz na stronie
 i prowadzenie na tej podstawie sprzedaży jest regularne, więc w praktyce rejestr należy
 prowadzić.
 
-To nie jest system informatyczny — wystarczy tabela w arkuszu albo dokument, obejmująca:
+To nie jest system informatyczny - wystarczy tabela w arkuszu albo dokument, obejmująca:
 
 - nazwę czynności (np. „obsługa zgłoszeń demo", „realizacja umów licencyjnych"),
 - cel i podstawę prawną,
@@ -127,12 +127,12 @@ To nie jest system informatyczny — wystarczy tabela w arkuszu albo dokument, o
 - planowane terminy usunięcia,
 - ogólny opis zabezpieczeń.
 
-**Szkielet jest przygotowany** — plik `rejestr-czynnosci-przetwarzania.md`, wypełniony pięcioma
+**Szkielet jest przygotowany** - plik `rejestr-czynnosci-przetwarzania.md`, wypełniony pięcioma
 czynnościami wynikającymi z tego, co system faktycznie robi: obsługa zgłoszeń demo, kontakt
 handlowy, umowy i rozliczenia, wsparcie techniczne, realizacja praw osób. Do uzupełnienia zostały
 pola `[…]` i pozycje `[POTWIERDŹ]` dotyczące Twojego stanowiska pracy.
 
-**Nie umieściłem go w tym repozytorium** — jest publiczne, a rejestr opisuje odbiorców i przyjęte
+**Nie umieściłem go w tym repozytorium** - jest publiczne, a rejestr opisuje odbiorców i przyjęte
 zabezpieczenia. Trzymaj go razem z podpisanymi umowami powierzenia, poza repozytorium kodu.
 
 ---
@@ -165,7 +165,7 @@ jeśli pojawi się wątpliwość.
 
 ## 5. Kiedy dojdą kolejne obowiązki
 
-Dziś strona nie ma cookies ani analityki — sprawdziłem to na zbudowanej wersji: zero plików
+Dziś strona nie ma cookies ani analityki - sprawdziłem to na zbudowanej wersji: zero plików
 cookie, zero zapisów w pamięci przeglądarki poza informacją o zamknięciu banera, zero zapytań do
 zewnętrznych hostów. Baner jest więc informacyjny, nie zgodowy, i to jest stan zgodny z prawdą.
 
@@ -174,18 +174,18 @@ To się zmieni, jeśli dodasz:
 | Co | Co wtedy dochodzi |
 |---|---|
 | Analitykę (nawet „prywatną" jak Plausible czy Matomo) | przełącznik `HAS_NON_ESSENTIAL` w `cookieNotice.tsx` na `true`, realna zgoda przed załadowaniem skryptu, opis w polityce |
-| Newsletter albo mailing handlowy | odrębna zgoda i możliwość jej wycofania — wymaga tego Prawo komunikacji elektronicznej, niezależnie od RODO |
-| Osadzone wideo, mapę, czat | to samo co przy analityce — zgoda przed załadowaniem |
+| Newsletter albo mailing handlowy | odrębna zgoda i możliwość jej wycofania - wymaga tego Prawo komunikacji elektronicznej, niezależnie od RODO |
+| Osadzone wideo, mapę, czat | to samo co przy analityce - zgoda przed załadowaniem |
 | Formularz kontaktowy z prawdziwą wysyłką (zamiast `mailto`) | opisanie nowego dostawcy w polityce i umowa powierzenia z nim |
 
 ---
 
-## 6. Produkt vallus — inna rola, nie mieszać
+## 6. Produkt vallus - inna rola, nie mieszać
 
 Warto to rozgraniczyć, bo przy rozmowach z klientami korporacyjnymi pytanie padnie:
 
-- **Strona vallus.eu** — tutaj Ty jesteś **administratorem** danych osób, które się zgłaszają.
-- **Produkt vallus u klienta** — jest self-hosted. Dane testowe, konta użytkowników i wyniki
+- **Strona vallus.eu** - tutaj Ty jesteś **administratorem** danych osób, które się zgłaszają.
+- **Produkt vallus u klienta** - jest self-hosted. Dane testowe, konta użytkowników i wyniki
   zostają na infrastrukturze klienta, a Ty nie masz do nich dostępu. **Nie jesteś tam
   podmiotem przetwarzającym**, bo nic nie przetwarzasz.
 - **Wyjątek:** wsparcie zdalne, przy którym zobaczyłbyś środowisko klienta z danymi osobowymi.
@@ -197,15 +197,15 @@ dane klienta. Ty możesz odpowiedzieć, że nigdzie u Ciebie.
 
 ---
 
-## Podsumowanie — status
+## Podsumowanie - status
 
 | | Pozycja | Stan |
 |---|---|---|
-| ✅ | Polityka prywatności — treść i struktura art. 13 | gotowa: `/privacy/` (EN, główna) i `/privacy/pl/` (PL) |
+| ✅ | Polityka prywatności - treść i struktura art. 13 | gotowa: `/privacy/` (EN, główna) i `/privacy/pl/` (PL) |
 | ✅ | Link w stopce, w banerze i **przy formularzu** | gotowe |
 | ✅ | Baner informacyjny o braku cookies | gotowy, przełączalny na zgodowy |
 | ✅ | Retencja 6 miesięcy | wpisana do polityki |
-| ✅ | Dane administratora | wpisane (Piotr Gajownik — ExpandIt, Żory, NIP 5321875710) |
+| ✅ | Dane administratora | wpisane (Piotr Gajownik - ExpandIt, Żory, NIP 5321875710) |
 | ✅ | Data obowiązywania | 2 sierpnia 2026 r. |
 | ✅ | Umowa powierzenia z Infomaniakiem | podpisana |
 | ✅ | Umowa powierzenia z Bunny | podpisana |

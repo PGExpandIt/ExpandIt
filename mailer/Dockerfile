@@ -33,6 +33,6 @@ COPY package.json ./
 USER node
 EXPOSE 8790
 
-# Not `npm start` — that runs `node --env-file=.env`, and here the configuration
+# Not `npm start` - that runs `node --env-file=.env`, and here the configuration
 # arrives as real environment variables from a Secret and a ConfigMap.
 CMD ["node", "dist/server.js"]

@@ -3,7 +3,7 @@
 A small service that shows real free slots from an Infomaniak (kSuite) calendar and books
 them. The website calls it; the Infomaniak token never leaves this service.
 
-Runs on **Bunny Edge Scripting** (Deno) in production and under Node locally — the same entry
+Runs on **Bunny Edge Scripting** (Deno) in production and under Node locally - the same entry
 point for both, via `@bunny.net/edgescript-sdk`. Node 20.6 or newer for local work.
 
 ```
@@ -22,7 +22,7 @@ That is this.
 
 | | |
 |---|---|
-| `src/time.ts`, `src/slots.ts`, `src/infomaniak.ts` | the portable core — only `Intl`, `Date`, `fetch`, `URLSearchParams` |
+| `src/time.ts`, `src/slots.ts`, `src/infomaniak.ts` | the portable core - only `Intl`, `Date`, `fetch`, `URLSearchParams` |
 | `src/handler.ts` | the whole API as one `Request` → `Response` function |
 | `src/edge.ts` | entry point; serves on the edge, or locally when `PORT` is set |
 | `src/probe.ts`, `src/cancel.ts` | local CLI tools, never deployed |
@@ -35,7 +35,7 @@ The short version:
 
 1. **Create a token** at <https://manager.infomaniak.com/v3/ng/accounts/token/list>. Scope
    `workspace:calendar`; `user_info` only if you leave `BOOKING_ORGANIZER_EMAIL` unset. Shown
-   once — copy it.
+   once - copy it.
 2. `cp .env.example .env` and fill in `INFOMANIAK_TOKEN`.
 3. `npm install && npm run build`
 4. **Probe the account** before wiring anything up:
@@ -45,7 +45,7 @@ The short version:
    ```
 
    It lists your calendars, resolves the one that will be used, prints the raw JSON of the
-   first event it finds, and shows the slots that would be offered. It only reads — it
+   first event it finds, and shows the slots that would be offered. It only reads - it
    creates nothing. Check that the local times it prints match what you see in the
    Infomaniak web calendar, then put the calendar's id in `INFOMANIAK_CALENDAR_ID` so a new
    calendar appearing on the account cannot silently change the target.
@@ -59,14 +59,14 @@ From the website directory, `npm run dev:all` starts both sides already wired to
 
 Set `BOOKING_API_ORIGIN` as a repository variable in the website's GitHub Actions settings; the
 deploy workflow passes it to the build as `NEXT_PUBLIC_BOOKING_API`. Add the same origin to
-`ALLOWED_ORIGINS` here — every origin the site answers on, since the match is exact and includes
+`ALLOWED_ORIGINS` here - every origin the site answers on, since the match is exact and includes
 the scheme.
 
 The variable is read **at build time**, so changing it needs a rebuild of the site, not a restart
 of this service. A site built without it looks perfectly normal and quietly books nothing.
 
-Without that variable the website keeps its offline behaviour — the example calendar and a
-`mailto:` request — and so does it if this service is unreachable at page load. The section never
+Without that variable the website keeps its offline behaviour - the example calendar and a
+`mailto:` request - and so does it if this service is unreachable at page load. The section never
 shows a broken state.
 
 ## Endpoints
@@ -119,17 +119,17 @@ npm run cancel                          # next 60 days, with event ids
 npm run cancel -- 689304406             # delete that event
 npm run cancel -- --tests               # delete upcoming bookings by title prefix, after confirming
 npm run cancel -- --older-than 6m       # retention sweep: delete past bookings older than 6 months
-npm run cancel -- --older-than 6m --yes # same, unattended — for a scheduled job
+npm run cancel -- --older-than 6m --yes # same, unattended - for a scheduled job
 ```
 
 The retention sweep is what makes a "we keep enquiries for six months" promise true: the personal
 data lives in calendar events, not in a database, so nothing expires on its own. It only ever
 touches events whose title starts with `BOOKING_TITLE_PREFIX`; everything else in the calendar is
-left alone and reported as skipped. Periods are `30d`, `6m`, `1y` — months are counted on the
+left alone and reported as skipped. Periods are `30d`, `6m`, `1y` - months are counted on the
 calendar and clamped, so six months before 31 August is 28 February rather than 3 March.
 
 Deletion is immediate and there is no undo. `--tests` prints what it is about to remove and asks
-first — worth remembering that real bookings carry the same title prefix as test ones, so it is
+first - worth remembering that real bookings carry the same title prefix as test ones, so it is
 not a "test only" switch.
 
 `DELETE /1/calendar/pim/event/{id}` is absent from Infomaniak's reference client and from the
@@ -140,33 +140,33 @@ Nothing in the booking flow deletes anything. This is a manual tool.
 
 ## Bot protection
 
-Four layers, none of them a third-party service — a captcha would mean loading a script from
+Four layers, none of them a third-party service - a captcha would mean loading a script from
 someone else's server on every page view, which is precisely what the privacy notice says the site
 does not do.
 
 | Layer | Stops |
 |---|---|
-| Signed proof-of-work challenge | POSTing at `/book` without ever loading the page — the first thing a scripted abuser writes |
+| Signed proof-of-work challenge | POSTing at `/book` without ever loading the page - the first thing a scripted abuser writes |
 | Minimum age of 3 s on the challenge | submissions faster than a person can fill in a form |
 | Honeypot field | bots that fill in every input they find |
 | Per-IP rate limit | volume, best-effort |
-| E-mail verification (optional) | bookings on addresses nobody reads — see below |
+| E-mail verification (optional) | bookings on addresses nobody reads - see below |
 
 `GET /slots` hands out a challenge signed with `BOOKING_CHALLENGE_SECRET`. Before booking, the
-browser must find a counter whose SHA-256 begins with `BOOKING_CHALLENGE_DIFFICULTY` zero bits —
+browser must find a counter whose SHA-256 begins with `BOOKING_CHALLENGE_DIFFICULTY` zero bits -
 measured at ~110k hashes/s through SubtleCrypto, difficulty 15 averages 0.3 s. The page solves it
 in the background while the form is being filled in, so nobody waits. `POST /book` then checks the
 signature, the age, the solution, and that this exact challenge has not already been spent.
 
 Difficulty is a dial: every extra bit doubles the cost. 18 averages 2.4 s and occasionally takes
-seven, which is too slow to hide from a visitor — hence 15.
+seven, which is too slow to hide from a visitor - hence 15.
 
 Leave `BOOKING_CHALLENGE_SECRET` unset and the challenge disappears from `/slots` and stops being
 required. The honeypot and the rate limit still apply. **The secret must be identical across edge
 instances**, so it has to come from the environment.
 
 What this does not stop is somebody driving a real browser. Nothing short of a captcha does, and a
-captcha does not either — the point is to make the cheap attack uneconomical.
+captcha does not either - the point is to make the cheap attack uneconomical.
 
 ## E-mail verification
 
@@ -180,13 +180,13 @@ browser ──POST /book {…, code, token}──►  verified → event created
 ```
 
 **Why, when proof-of-work already exists.** PoW proves a browser did some work. It cannot tell a
-real address from a plausible one — and here that difference is expensive: an unverified booking
+real address from a plausible one - and here that difference is expensive: an unverified booking
 puts an event in the calendar, sends an invitation nobody receives, and takes a slot a real
 prospect could have had. A typo costs the same as a lie. The code moves that check to before
 anything is written.
 
 **Which gate applies where.** PoW guards `/request-code`, because that is the step that sends
-mail. The code then guards `/book`, and PoW is no longer asked for there — requiring both would
+mail. The code then guards `/book`, and PoW is no longer asked for there - requiring both would
 mean solving a challenge twice for one booking. Turn verification off and `/book` goes back to
 being PoW-gated, unchanged.
 
@@ -194,20 +194,20 @@ The code lives only in the e-mail; the token is a signed commitment safe to hand
 (`otp.ts`, byte-identical to `kchat-api`'s). Single-use, short-lived, capped at 5 wrong guesses per
 token.
 
-**A mistyped code does not spend the per-IP budget.** Only `wrong_code` is refunded — `malformed`,
+**A mistyped code does not spend the per-IP budget.** Only `wrong_code` is refunded - `malformed`,
 `expired` and `too_many` still cost a slot. Without that refund the looser limit runs out first and
 a visitor fumbling six digits gets `rate_limited` for an hour, which explains nothing.
 
 **The slot is not held while the code is typed.** If someone takes it in the meantime, `/book`
-answers `409` and the page reloads the times — the same path as any other lost slot, just reachable
+answers `409` and the page reloads the times - the same path as any other lost slot, just reachable
 in one more place.
 
 ## Configuration
 
-See `.env.example`. Booking rules — workdays, slot times, slot length, lead time, horizon —
+See `.env.example`. Booking rules - workdays, slot times, slot length, lead time, horizon -
 are environment variables, so changing office hours does not require a code change.
 
-Everything comes from the process environment — the code never touches the filesystem, because
+Everything comes from the process environment - the code never touches the filesystem, because
 on Bunny Edge Scripting there is none. Locally, Node loads `.env` itself through `--env-file`
 (see the npm scripts); in production the values are the script's environment variables, with
 `INFOMANIAK_TOKEN` set as an **environment secret** so it cannot be read back.
@@ -222,7 +222,7 @@ wall clock while declaring `Europe/Warsaw` and the event lands two hours off, si
 
 Infomaniak's own reference client
 ([mcp-server-calendar](https://github.com/Infomaniak/mcp-server-calendar), `calendar-client.ts`)
-has exactly this bug: it formats with `toISOString()` — UTC — and labels the result with the
+has exactly this bug: it formats with `toISOString()` - UTC - and labels the result with the
 profile's timezone. cal.com has the same class of bug against Infomaniak, open since January
 2025 ([calcom/cal.com#18981](https://github.com/calcom/cal.com/issues/18981)).
 
@@ -246,7 +246,7 @@ anything unparseable as busy, so an unexpected change can only ever hide a free 
 double-book you.
 
 **One thing the API decides for you:** the organiser on a created event is the owner of the
-calendar the token belongs to. The `organizer: true` flag we send on an attendee is ignored —
+calendar the token belongs to. The `organizer: true` flag we send on an attendee is ignored -
 confirmed by reading an event back after creating it. `BOOKING_ORGANIZER_EMAIL` therefore controls
 who is *added* to the event, not the address the invitation appears to come from. If that address
 matters, use a token belonging to the user who owns it.

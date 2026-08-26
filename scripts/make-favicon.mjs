@@ -201,4 +201,4 @@ const images = SIZES.map((size) => ({ size, png: encodePng(renderSquare(size), s
 const target = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "app", "favicon.ico");
 writeFileSync(target, buildIco(images));
 
-console.log(`favicon.ico: ${SIZES.join(", ")} px — ${buildIco(images).length} bytes -> ${target}`);
+console.log(`favicon.ico: ${SIZES.join(", ")} px - ${buildIco(images).length} bytes -> ${target}`);

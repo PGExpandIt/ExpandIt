@@ -14,7 +14,7 @@ const optional = (name: string, fallback: string): string => readEnv(name) ?? fa
 export interface Config {
     port: number;
     /** Interface to bind. Loopback locally; 0.0.0.0 in a container, where the
-     *  Service — not the public network — is what reaches the port. */
+     *  Service - not the public network - is what reaches the port. */
     bindHost: string;
     smtp: {
         host: string;
@@ -31,7 +31,7 @@ export interface Config {
     codeTtlMinutes: number;
     /** Footer appended below the body, after the RFC 3676 `-- ` delimiter.
      *  Empty means no footer. Copied from the mailbox's webmail signature by
-     *  hand — that one is a webmail feature and never reaches an SMTP send. */
+     *  hand - that one is a webmail feature and never reaches an SMTP send. */
     signature: string;
     /** Shared HMAC secret the edge signs /send-code requests with. */
     authSecret: string;

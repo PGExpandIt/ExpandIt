@@ -1,7 +1,7 @@
 // One-time e-mail codes, kept stateless the same way the proof-of-work challenge
 // is: the 6-digit CODE is the secret and travels only by e-mail; the TOKEN is a
 // signed commitment that is safe to hand back to the browser. Verifying needs only
-// the secret, the submitted e-mail, the code and the token — no store.
+// the secret, the submitted e-mail, the code and the token - no store.
 //
 //   token = base64url({ x: expiry }) . HMAC(secret, `${emailNorm}.${code}.${expiry}`)
 //
@@ -41,7 +41,7 @@ const timingSafeEqual = (a: string, b: string): boolean => {
 const normEmail = (email: string): string => email.trim().toLowerCase();
 
 export interface IssuedCode {
-    /** The 6-digit code — e-mailed to the user, never returned to the browser. */
+    /** The 6-digit code - e-mailed to the user, never returned to the browser. */
     code: string;
     /** Opaque token the browser sends back with the code. */
     token: string;
@@ -60,7 +60,7 @@ export const issueCode = async (secret: string, email: string, ttlMs: number): P
 export type VerifyResult = { ok: true } | { ok: false; reason: "malformed" | "expired" | "too_many" | "wrong_code" };
 
 /** Tokens already accepted (single-use) and per-token wrong-code counts. Best-effort
- *  at the edge — the signature, the short expiry and the attempt cap bound the damage. */
+ *  at the edge - the signature, the short expiry and the attempt cap bound the damage. */
 const spent = new Map<string, number>();
 const wrongCounts = new Map<string, number>();
 const MAX_WRONG_PER_TOKEN = 5;
@@ -92,7 +92,7 @@ export const verifyCode = async (
 
     forgetOld(now);
     if (now > expiry) return { ok: false, reason: "expired" };
-    if (spent.has(tokenStr)) return { ok: false, reason: "wrong_code" }; // already used — treat as invalid
+    if (spent.has(tokenStr)) return { ok: false, reason: "wrong_code" }; // already used - treat as invalid
     if ((wrongCounts.get(tokenStr) ?? 0) >= MAX_WRONG_PER_TOKEN) return { ok: false, reason: "too_many" };
 
     const expected = await hmacHex(secret, `${normEmail(email)}.${codeStr}.${expiry}`);

@@ -1,5 +1,5 @@
 // The mailer API as one Web-standard handler: Request in, Response out. Only the
-// edge calls it, authenticated by an HMAC signature over the raw body — there is no
+// edge calls it, authenticated by an HMAC signature over the raw body - there is no
 // CORS or browser here, so a bad signature is the only gate that matters.
 
 import type { Config } from "./config.js";
@@ -72,7 +72,7 @@ export const createHandler = (config: Config, sender: CodeSender) => {
         try {
             await sender.sendCode(email, code);
         } catch (error) {
-            // The SMTP error can carry the mailbox address or server detail — log it,
+            // The SMTP error can carry the mailbox address or server detail - log it,
             // return something generic.
             console.error(`[mailer] send to ${email} failed:`, error);
             return json(502, { error: "send_failed" });

@@ -13,7 +13,7 @@ edge (kchat-api)  ──POST /send-code──►  mailer  ──SMTP :587──�
 ## Why a separate service
 
 Bunny Edge Scripting **discourages sending e-mail directly** (it trips abuse
-protection and risks account suspension), and Infomaniak has **no HTTP send API** —
+protection and risks account suspension), and Infomaniak has **no HTTP send API** -
 transactional mail is SMTP only. SMTP needs a raw TCP socket, which the edge should
 not open. So the send lives here, on a host that allows outbound TCP:587/465 (a
 small VPS, your server, or Infomaniak's own hosting to keep everything in-house).
@@ -30,23 +30,23 @@ Returns `{ ok: true }`, or `401 bad_signature`, `400 invalid_email` / `invalid_c
 
 ## Security
 
-- **HMAC-signed requests** — the mailer acts only on bodies signed with the shared
+- **HMAC-signed requests** - the mailer acts only on bodies signed with the shared
   secret, so a discovered URL cannot be used to send. There is no browser and no
   CORS here; the signature is the gate.
-- **Per-recipient rate limit** — caps sends to one inbox per hour, so even a leaked
+- **Per-recipient rate limit** - caps sends to one inbox per hour, so even a leaked
   secret cannot bomb an address.
 - The mailbox password and shared secret live in env only, never in the repo.
 - SMTP errors are logged with detail but returned to the caller as a generic `502`.
 
 ## Setup
 
-1. `cp .env.example .env` — fill in the Infomaniak SMTP credentials for
+1. `cp .env.example .env` - fill in the Infomaniak SMTP credentials for
    `sales@vallus.eu` and generate `MAILER_AUTH_SECRET` (same value goes on the edge
    as `KCHAT_MAILER_SECRET`).
 2. `npm install && npm run build`.
-3. `npm run probe you@example.com` — verifies the SMTP login and sends one real
+3. `npm run probe you@example.com` - verifies the SMTP login and sends one real
    code. Check the inbox.
-4. `npm start` — HTTP server on `PORT` (default 8790). Put it behind TLS / a reverse
+4. `npm start` - HTTP server on `PORT` (default 8790). Put it behind TLS / a reverse
    proxy, reachable by the edge; do not expose it publicly without need.
 
 ## The signature
@@ -58,7 +58,7 @@ line break; empty means no footer.
 It has to be set here even though the mailbox already has one. A webmail
 signature is applied by the webmail client as it composes; SMTP delivers exactly
 the body it is handed, and Infomaniak exposes no API to read that signature back.
-So it is copied, and copies drift — change one, change the other.
+So it is copied, and copies drift - change one, change the other.
 
 Plain text only. The code e-mail is a `text/plain` part, which is deliberate:
 transactional mail with no HTML lands in fewer spam folders, and a footer with a
@@ -68,13 +68,13 @@ logo would mean carrying an HTML alternative for one line of branding.
 
 Two supported shapes, same image:
 
-- **One VPS** (`compose.yaml`) — the mailer plus Caddy for TLS. This is the cheaper
+- **One VPS** (`compose.yaml`) - the mailer plus Caddy for TLS. This is the cheaper
   option and the one to reach for unless a cluster already exists.
-- **Kubernetes** (`k8s/`) — worth it only when the cluster is already paid for by
+- **Kubernetes** (`k8s/`) - worth it only when the cluster is already paid for by
   other services; see `k8s/README.md`.
 
-For the VPS, the full walkthrough — firewall, DNS, rsync, verification and the
-operational notes — is [DEPLOY-VPS.pl.md](DEPLOY-VPS.pl.md). In short: point
+For the VPS, the full walkthrough - firewall, DNS, rsync, verification and the
+operational notes - is [DEPLOY-VPS.pl.md](DEPLOY-VPS.pl.md). In short: point
 `mailer.vallus.eu` at the server, fill `.env` (including `MAILER_DOMAIN` and
 `ACME_EMAIL`), then
 
@@ -83,8 +83,8 @@ docker compose up -d --build
 ```
 
 Caddy issues the certificate on first start and publishes exactly one route,
-`POST /send-code`. Everything else — including `/health`, which serves the
-container healthcheck — answers 404 from the proxy. The mailer itself is never
+`POST /send-code`. Everything else - including `/health`, which serves the
+container healthcheck - answers 404 from the proxy. The mailer itself is never
 published to the host; only Caddy can reach it.
 
 Verify the one thing the network can silently break:
@@ -103,5 +103,5 @@ npm test
 ```
 
 Covers signature verification (accept / reject / tamper), validation, the
-per-recipient rate limit and the SMTP-failure path, with a fake sender — no live
+per-recipient rate limit and the SMTP-failure path, with a fake sender - no live
 SMTP, no mail sent.

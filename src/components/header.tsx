@@ -5,7 +5,7 @@ import VallusMark from "@/components/vallusMark";
 // Hrefs are homepage-relative (`/#section`) so the header works from any route -
 // it is reused on /free and the legal pages, where a bare `#section` anchor would
 // resolve against the wrong page. next/link scrolls to the hash on the homepage
-// and navigates there first from elsewhere. `/free/` is a real route.
+// and navigates there first from elsewhere. `/free/` and `/articles/` are real routes.
 const NAV = [
     { href: "/#product", label: "Product" },
     { href: "/#features", label: "Features" },
@@ -13,6 +13,7 @@ const NAV = [
     { href: "/#integrations", label: "Integrations" },
     { href: "/#development", label: "Roadmap" },
     { href: "/#pricing", label: "Pricing" },
+    { href: "/articles/", label: "Articles" },
     { href: "/#manufacturer", label: "Company" },
 ];
 

@@ -47,7 +47,7 @@ test("a token signed with another secret is rejected", async () => {
     assert.equal(result.reason, "bad_signature");
 });
 
-test("a tampered difficulty is rejected — the signature covers it", async () => {
+test("a tampered difficulty is rejected - the signature covers it", async () => {
     // Forge a payload asking for zero work, keeping the original signature.
     const challenge = await issueChallenge(SECRET, 20);
     const [, signature] = challenge.token.split(".");

@@ -4,7 +4,7 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import type { Config } from "./config.js";
 
-/** What the handler needs from a sender — a real one, or a fake in tests. */
+/** What the handler needs from a sender - a real one, or a fake in tests. */
 export interface CodeSender {
     sendCode(email: string, code: string): Promise<void>;
     verifyConnection?(): Promise<void>;
@@ -21,14 +21,14 @@ export class SmtpSender implements CodeSender {
             port: config.smtp.port,
             secure: config.smtp.secure, // true = implicit TLS (465); false = STARTTLS (587)
             // On 587 nodemailer would otherwise fall back to plaintext when the
-            // server does not advertise STARTTLS — and the mailbox password goes
+            // server does not advertise STARTTLS - and the mailbox password goes
             // out on that connection. Fail the send instead.
             requireTLS: !config.smtp.secure,
             auth: { user: config.smtp.user, pass: config.smtp.pass },
         });
     }
 
-    /** Checks the SMTP login without sending anything — handy on startup / probe. */
+    /** Checks the SMTP login without sending anything - handy on startup / probe. */
     async verifyConnection(): Promise<void> {
         await this.transport.verify();
     }

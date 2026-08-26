@@ -47,7 +47,7 @@ const rateLimited = (ip: string, perHour: number): boolean => {
 /**
  * Hand back the slot `rateLimited` just took.
  *
- * Only for failures that are already bounded somewhere tighter — a mistyped OTP
+ * Only for failures that are already bounded somewhere tighter - a mistyped OTP
  * code, capped per token in `otp.ts`. Without this the two limits stack: the
  * per-IP budget runs out first, so a visitor who fumbles the code from their
  * inbox is locked out for an hour and the error they see is `rate_limited`,
@@ -168,7 +168,7 @@ const handleConfig = async (config: Config, headers: Record<string, string>): Pr
 /**
  * The anti-bot gate for a side-effecting post. When OTP is on, the caller must
  * present a code+token proving control of the e-mail; otherwise the proof-of-work
- * challenge applies (only where `challengeFallback` is true — /register never used
+ * challenge applies (only where `challengeFallback` is true - /register never used
  * it). Verified last, after cheap validation, so a fixable error does not burn a
  * single-use code or challenge.
  */
@@ -188,7 +188,7 @@ const verifyHumanGate = async (
         if (!result.ok) {
             // Refund a genuine typo only. A malformed or expired token is not someone
             // misreading six digits, and `too_many` means the per-token cap already
-            // did its job — those keep costing the caller a slot, so a spammer
+            // did its job - those keep costing the caller a slot, so a spammer
             // without a real token still runs out after `rateLimitPerHour`.
             if (result.reason === "wrong_code") refundAttempt(ip);
             return json(403, { error: "code_invalid", reason: result.reason }, headers);
@@ -252,7 +252,7 @@ const handleRequestCode = async (
         return json(502, { error: "mail_failed", message: "Could not send the code. Please try again." }, headers);
     }
 
-    // The code itself is never returned — only the token and its expiry.
+    // The code itself is never returned - only the token and its expiry.
     return json(200, { ok: true, token: issued.token, expiresAt: issued.expiresAt }, headers);
 };
 
@@ -341,7 +341,7 @@ const handleRegister = async (
     if (!EMAIL.test(email)) return json(400, { error: "invalid_email", message: "A valid e-mail is required." }, headers);
 
     // When OTP is on, the e-mail must be verified (code + token) before the request
-    // reaches the channel — the /free form does not run the proof-of-work flow, so
+    // reaches the channel - the /free form does not run the proof-of-work flow, so
     // there is no challenge fallback here.
     const gate = await verifyHumanGate(config, body, email, headers, false, ip);
     if (gate) return gate;
@@ -359,7 +359,7 @@ export const createHandler = (config: Config, kchat: KChat) => {
         // Behind a same-origin proxy the base path arrives NOT at the start: the
         // site's router first rewrites to /deploys/<hash>/api/kchat/message, then the
         // edge rule forwards that here. So route from the base-path marker wherever
-        // it appears — and leave a direct, unprefixed call (/message) untouched.
+        // it appears - and leave a direct, unprefixed call (/message) untouched.
         let pathname = url.pathname;
         if (config.basePath) {
             const at = pathname.indexOf(config.basePath);
@@ -370,7 +370,7 @@ export const createHandler = (config: Config, kchat: KChat) => {
         if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
 
         // Hard origin gate on side-effecting requests. CORS alone only stops a
-        // browser from READING the response — the POST still ran and the message
+        // browser from READING the response - the POST still ran and the message
         // still went out. Rejecting here means a cross-site (or Origin-less) POST
         // does nothing at all. Spoofable by a non-browser client, so it sits on top
         // of the proof-of-work and rate limit, not instead of them.

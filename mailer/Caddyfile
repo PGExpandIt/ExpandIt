@@ -3,7 +3,7 @@
 }
 
 {$MAILER_DOMAIN} {
-	# The edge calls exactly one path. Everything else gets a flat 404 — including
+	# The edge calls exactly one path. Everything else gets a flat 404 - including
 	# /health, which exists for the container healthcheck, not for the internet.
 	@send {
 		method POST

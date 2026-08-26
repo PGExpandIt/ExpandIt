@@ -1,9 +1,9 @@
-// Client for Infomaniak kChat — Infomaniak's hosted Mattermost. Two transports,
+// Client for Infomaniak kChat - Infomaniak's hosted Mattermost. Two transports,
 // picked by which secrets are configured (see config.ts):
 //
 //   • Incoming webhook (default). POST a JSON payload to the webhook URL:
 //       https://<org>.kchat.infomaniak.com/hooks/<id>
-//     Body: { text, channel?, username?, icon_emoji? }. No auth header — the URL
+//     Body: { text, channel?, username?, icon_emoji? }. No auth header - the URL
 //     itself is the secret. This is the Mattermost incoming-webhook contract.
 //
 //   • Bot / personal-access token. POST /api/v4/posts with a bearer token:

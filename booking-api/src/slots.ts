@@ -1,4 +1,4 @@
-// Slot generation. Pure functions — no network, no clock of their own — so the
+// Slot generation. Pure functions - no network, no clock of their own - so the
 // rules can be unit-tested without an Infomaniak account. See test/slots.test.mjs.
 
 import type { Config } from "./config.js";

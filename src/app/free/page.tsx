@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     alternates: { canonical: "/free/" },
 };
 
-// What the free tier grants — kept in sync with the free-key preset in
+// What the free tier grants - kept in sync with the free-key preset in
 // playwrightRunner-*/documentation-ignored/licenseGen.md and licensing-signup.md.
 const INCLUDED: { label: string; detail: string }[] = [
     { label: "2 users", detail: "Two accounts on the runner." },
@@ -21,7 +21,7 @@ const INCLUDED: { label: string; detail: string }[] = [
     { label: "1 concurrent run", detail: "One test run executes at a time." },
     {
         label: "Core runner",
-        detail: "Scheduling, containerised runs, reports and history — the full engine.",
+        detail: "Scheduling, containerised runs, reports and history - the full engine.",
     },
 ];
 
@@ -40,7 +40,7 @@ export default function FreePage() {
                         </h1>
                         <p className="mt-4 max-w-2xl text-muted">
                             A free key for small teams and evaluation. It is a 6-month term you
-                            can renew — never perpetual — and it grants the core runner without
+                            can renew - never perpetual - and it grants the core runner without
                             the gated integrations. Request one below; it arrives within 24
                             hours of confirming your e-mail.
                         </p>
@@ -69,7 +69,7 @@ export default function FreePage() {
                                     Not included
                                 </h2>
                                 <p className="mt-2 text-sm text-muted">
-                                    The gated integrations — Xray, SSO, Grafana and ReportPortal —
+                                    The gated integrations - Xray, SSO, Grafana and ReportPortal -
                                     are reserved for paid tiers. Need those or more capacity? See
                                     the{" "}
                                     <Link
@@ -87,7 +87,7 @@ export default function FreePage() {
                                     </h3>
                                     <ul className="mt-3 space-y-2 text-sm text-muted">
                                         <li>
-                                            The free licence lasts 6 months and can be renewed — it
+                                            The free licence lasts 6 months and can be renewed - it
                                             is never perpetual.
                                         </li>
                                         <li>
@@ -96,14 +96,14 @@ export default function FreePage() {
                                         </li>
                                         <li>
                                             We store your company name and e-mail because they are
-                                            needed to issue, deliver and renew the key — this is
+                                            needed to issue, deliver and renew the key - this is
                                             part of providing the licence, not a marketing opt-in.
                                         </li>
                                         <li>
                                             Having that data erased ends the free licence: the key
                                             may no longer be used and, on request, you confirm its
                                             removal. Product-update e-mails are separate and
-                                            optional — you can opt out at any time with no effect on
+                                            optional - you can opt out at any time with no effect on
                                             the licence.
                                         </li>
                                     </ul>

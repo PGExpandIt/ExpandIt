@@ -236,7 +236,7 @@ const DemoBooking = () => {
     };
 
     /**
-     * Ask the service to e-mail a code. Nothing is booked here — this only proves
+     * Ask the service to e-mail a code. Nothing is booked here - this only proves
      * the address exists, so a typo costs one e-mail rather than an event in the
      * calendar and an invitation nobody receives.
      */
@@ -380,7 +380,7 @@ const DemoBooking = () => {
                 const failed: { error?: string; reason?: string } =
                     await response.json().catch(() => ({}));
                 if (failed.error === "code_invalid") {
-                    // A wrong code must not throw away the code that was e-mailed —
+                    // A wrong code must not throw away the code that was e-mailed -
                     // mistyping one digit and being sent back to the start is the
                     // fastest way to lose someone who was ready to book.
                     if (failed.reason === "wrong_code") {

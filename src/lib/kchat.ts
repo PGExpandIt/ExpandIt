@@ -1,6 +1,6 @@
 // Shared client helpers for the kChat relay used by the contact and licence forms.
 // The relay advertises whether OTP e-mail verification is on (GET /config → otp),
-// so the forms pick a one-step or two-step flow at runtime — no rebuild needed to
+// so the forms pick a one-step or two-step flow at runtime - no rebuild needed to
 // switch once the mailer is wired up on the edge.
 
 export interface Challenge {
@@ -16,7 +16,7 @@ export interface KchatConfig {
 
 /**
  * Proof of work: find a counter whose SHA-256 starts with enough zero bits. Solved
- * in the background so the answer is ready before the visitor submits — a fraction
+ * in the background so the answer is ready before the visitor submits - a fraction
  * of a second, no third-party script, no cookie, no captcha.
  */
 export async function solveChallenge(challenge: Challenge): Promise<number> {
@@ -51,7 +51,7 @@ export async function errorFrom(res: Response, fallback: string): Promise<string
     const body = await res.json().catch(() => null);
     if (body?.error === "challenge_failed" || body?.error === "code_invalid") {
         return body.reason === "expired"
-            ? "That took too long — please request a new code."
+            ? "That took too long - please request a new code."
             : "Verification failed. Please try again.";
     }
     return (body?.message as string) ?? fallback;

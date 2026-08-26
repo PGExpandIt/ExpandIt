@@ -3,7 +3,7 @@
 // If next.config.ts sets a basePath, every asset in the exported HTML is requested
 // under that prefix, so serving out/ at "/" loads the page but 404s all CSS and JS.
 // The prefix is read back out of the built HTML rather than hardcoded, so this keeps
-// working whatever basePath is configured — including none at all.
+// working whatever basePath is configured - including none at all.
 
 import { createServer } from "node:http";
 import { createReadStream } from "node:fs";
@@ -18,7 +18,7 @@ const detectBasePath = async () => {
         const html = await readFile(join(ROOT, "index.html"), "utf8");
         return html.match(/(?:href|src)="([^"]*)\/_next\//)?.[1] ?? "";
     } catch {
-        console.error("out/ not found — run `npm run build` first.");
+        console.error("out/ not found - run `npm run build` first.");
         process.exit(1);
     }
 };
@@ -33,9 +33,12 @@ const CONTENT_TYPES = {
     ".svg": "image/svg+xml",
     ".png": "image/png",
     ".jpg": "image/jpeg",
+    ".avif": "image/avif",
+    ".webp": "image/webp",
     ".ico": "image/x-icon",
     ".woff2": "font/woff2",
     ".txt": "text/plain; charset=utf-8",
+    ".xml": "application/xml; charset=utf-8",
 };
 
 const resolveFile = async (urlPath) => {
@@ -74,7 +77,7 @@ const server = createServer(async (request, response) => {
     const file = await resolveFile(urlPath);
     if (!file) {
         response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-        response.end(`404 — not found in out/ (try ${BASE_PATH}/)`);
+        response.end(`404 - not found in out/ (try ${BASE_PATH}/)`);
         return;
     }
 

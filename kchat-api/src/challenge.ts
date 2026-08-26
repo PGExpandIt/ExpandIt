@@ -1,13 +1,13 @@
 // Proof-of-work challenge for the message form.
 //
 // Why this rather than a captcha: a captcha means a third-party script, a
-// third-party request on every page load, and — for the usual providers — sending
+// third-party request on every page load, and - for the usual providers - sending
 // visitor data to a US company. The privacy notice says the site makes no
 // third-party requests, and the whole product story is about data staying in
 // Europe. So the check is done here, with nothing loaded from outside.
 //
 // How it works. `GET /config` hands out a signed challenge. Before posting, the
-// browser must find a number whose hash starts with enough zero bits — a fraction
+// browser must find a number whose hash starts with enough zero bits - a fraction
 // of a second of work for one person, and a real cost for anyone hammering the
 // endpoint. `POST /message` then verifies the signature, the age and the solution.
 //
@@ -108,7 +108,7 @@ export type VerifyResult =
 
 /**
  * Solutions already accepted, so one challenge cannot be reused for a flood of
- * messages. In-memory and therefore best-effort at the edge — the signature and the
+ * messages. In-memory and therefore best-effort at the edge - the signature and the
  * short expiry are what bound the damage; this only closes the easy loop.
  */
 const spent = new Map<string, number>();

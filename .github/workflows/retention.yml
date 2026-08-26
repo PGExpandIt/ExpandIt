@@ -1,12 +1,12 @@
 # Monthly retention sweep: deletes demo bookings older than the period promised in
 # the privacy notice. The personal data lives in calendar events and nothing there
-# expires on its own, so something has to do this — and Bunny Edge Scripting has no
+# expires on its own, so something has to do this - and Bunny Edge Scripting has no
 # scheduler of its own.
 #
 # This workflow holds NO calendar credentials. It calls a single endpoint on the
 # booking API, which is guarded by its own secret. If that secret ever leaked, the
 # worst an attacker could do is trigger the deletion of already-expired bookings.
-# The Infomaniak token stays where it belongs — in the Bunny script's secrets.
+# The Infomaniak token stays where it belongs - in the Bunny script's secrets.
 #
 # Required repository secrets:
 #   BOOKING_ADMIN_TOKEN   the same value as BOOKING_ADMIN_TOKEN in the Bunny script env

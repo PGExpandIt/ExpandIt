@@ -15,12 +15,12 @@ const main = async () => {
     const to = process.argv[2];
     if (!to) throw new Error("Usage: node dist/probe.js <recipient-email>");
 
-    console.log(`— SMTP ${config.smtp.host}:${config.smtp.port} as ${config.smtp.user} —`);
+    console.log(`- SMTP ${config.smtp.host}:${config.smtp.port} as ${config.smtp.user} -`);
     await sender.verifyConnection();
     console.log("  login OK");
 
     const code = String(Math.floor(100000 + Math.random() * 900000));
-    console.log(`\n— sending code ${code} to ${to} —`);
+    console.log(`\n- sending code ${code} to ${to} -`);
     await sender.sendCode(to, code);
     console.log("  sent. Check the inbox (and spam).");
 };

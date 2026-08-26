@@ -35,7 +35,7 @@ const baseConfig = (over = {}) => ({
     port: 8788,
     allowedOrigins: [ORIGIN],
     rateLimitPerHour: 100,
-    challengeSecret: null, // challenge off — these tests exercise validation and relay
+    challengeSecret: null, // challenge off - these tests exercise validation and relay
     challengeDifficulty: 15,
     // OTP off by default (all three null) so otpEnabled() is false.
     otpSecret: null,
@@ -106,7 +106,7 @@ test("broadcast mentions are defanged before relay", async () => {
 
     await post(handler, { message: "ping @channel and @here now" });
     const text = kchat._state.sent[0].text;
-    // The literal "@channel"/"@here" must not survive — a zero-width space is inserted.
+    // The literal "@channel"/"@here" must not survive - a zero-width space is inserted.
     assert.doesNotMatch(text, /@channel\b/);
     assert.doesNotMatch(text, /@here\b/);
     assert.match(text, /@\u200Bchannel/);
@@ -136,7 +136,7 @@ test("the per-IP rate limit blocks the second message", async () => {
 
 test("input is validated before the challenge is spent", async () => {
     // With a challenge secret set, a mistyped e-mail must fail as invalid_email
-    // (400) — NOT challenge_failed (403). Otherwise a fixable error would burn the
+    // (400) - NOT challenge_failed (403). Otherwise a fixable error would burn the
     // single-use challenge and force a page reload.
     const kchat = fakeKchat();
     const handler = createHandler(baseConfig({ challengeSecret: "s3cr3t" }), kchat);
@@ -176,7 +176,7 @@ const postRegister = (handler, body, headers = {}) =>
     );
 
 test("/register relays a free-licence request (no proof-of-work needed)", async () => {
-    // Even with a challenge secret set, /register does not require the challenge —
+    // Even with a challenge secret set, /register does not require the challenge -
     // the /free form does not run the PoW flow.
     const kchat = fakeKchat();
     const handler = createHandler(baseConfig({ challengeSecret: "s3cr3t" }), kchat);
@@ -235,7 +235,7 @@ test("with OTP on, /message needs a valid code+token", async () => {
 test("a mistyped OTP code does not spend the per-IP budget", async () => {
     // The per-token cap in otp.ts is what bounds guessing. If the per-IP limit also
     // counted typos it would run out first, and a visitor fumbling six digits from
-    // their inbox would be told "rate_limited" — the wrong problem, for an hour.
+    // their inbox would be told "rate_limited" - the wrong problem, for an hour.
     const kchat = fakeKchat();
     const handler = createHandler(baseConfig({ ...OTP, rateLimitPerHour: 2 }), kchat);
     const email = "alex@acme.com";

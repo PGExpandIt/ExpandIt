@@ -11,7 +11,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   // `next lint` skipped these for us; the ESLint CLI does not. Without them the
-  // run lints the static export and the build cache — thousands of errors in
+  // run lints the static export and the build cache - thousands of errors in
   // generated bundles that no one can fix.
   {
     ignores: [

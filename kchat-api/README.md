@@ -4,7 +4,7 @@ A small service that relays a message from the website into an **Infomaniak kCha
 channel. The website calls it; the webhook URL (or bot token) never leaves this
 service.
 
-Runs on **Bunny Edge Scripting** (Deno) in production and under Node locally — the
+Runs on **Bunny Edge Scripting** (Deno) in production and under Node locally - the
 same entry point for both, via `@bunny.net/edgescript-sdk`. Node 20.6 or newer for
 local work. It is the sibling of `booking-api` and shares its shape, anti-abuse
 stack and deployment.
@@ -25,7 +25,7 @@ you control. That is this.
 
 | | |
 |---|---|
-| `src/kchat.ts` | the kChat client — webhook or bot-token transport, only `fetch` |
+| `src/kchat.ts` | the kChat client - webhook or bot-token transport, only `fetch` |
 | `src/challenge.ts` | proof-of-work challenge (identical to booking-api) |
 | `src/handler.ts` | the whole API as one `Request` → `Response` function |
 | `src/config.ts` | environment → `Config`; validates a transport is configured |
@@ -52,10 +52,10 @@ Pick one in `.env`:
 1. Create a webhook (above) or a bot token.
 2. `cp .env.example .env` and fill in `KCHAT_WEBHOOK_URL` (or the token trio).
 3. `npm install && npm run build`.
-4. `npm run probe` — sends one test message; check it lands in the channel.
-5. `npm start` — local server on `PORT` (default 8788).
+4. `npm run probe` - sends one test message; check it lands in the channel.
+5. `npm start` - local server on `PORT` (default 8788).
 
-**Deploying to Bunny Edge Scripting is identical to booking-api** — see
+**Deploying to Bunny Edge Scripting is identical to booking-api** - see
 [`../booking-api/DEPLOY-BUNNY.pl.md`](../booking-api/DEPLOY-BUNNY.pl.md). In short:
 `npm run deploy` builds the bundle (`dist/bundle.js`) and pushes it; set the same
 environment variables as secrets in the Bunny script settings.
@@ -74,14 +74,14 @@ environment variables as secrets in the Bunny script settings.
 
 ## Anti-abuse (same model as booking-api)
 
-- **CORS allowlist** — only exact `ALLOWED_ORIGINS` may call it; no wildcards.
-- **Honeypot** — a hidden `website` field; when filled, the API answers `ok` and
+- **CORS allowlist** - only exact `ALLOWED_ORIGINS` may call it; no wildcards.
+- **Honeypot** - a hidden `website` field; when filled, the API answers `ok` and
   relays nothing.
-- **Proof-of-work challenge** — `GET /config` issues a signed challenge the browser
+- **Proof-of-work challenge** - `GET /config` issues a signed challenge the browser
   must solve; unset `KCHAT_CHALLENGE_SECRET` to disable it. See `challenge.ts`.
-- **Per-IP rate limit** — best-effort at the edge (`KCHAT_RATE_LIMIT_PER_HOUR`).
+- **Per-IP rate limit** - best-effort at the edge (`KCHAT_RATE_LIMIT_PER_HOUR`).
   A wrong OTP code is refunded rather than charged against it; see below.
-- **Mention defanging** — `@channel` / `@here` / `@all` / `@user` in submitted text
+- **Mention defanging** - `@channel` / `@here` / `@all` / `@user` in submitted text
   are neutralised so a visitor cannot ping the team through the relay.
 
 ## OTP e-mail verification (optional)
@@ -103,8 +103,8 @@ browser ──POST /message|/register {…, code, token}──►  verified → 
 - **A mistyped code does not spend the per-IP budget.** Guessing is bounded by the
   per-token cap, so charging typos to the IP limit as well would only mean the
   looser limit ran out first: with the default `KCHAT_RATE_LIMIT_PER_HOUR=5` a
-  visitor fumbling six digits from their inbox got `rate_limited` — the wrong
-  problem, for an hour — before the OTP cap ever applied. Only `wrong_code` is
+  visitor fumbling six digits from their inbox got `rate_limited` - the wrong
+  problem, for an hour - before the OTP cap ever applied. Only `wrong_code` is
   refunded; `malformed`, `expired` and `too_many` still cost a slot, so posting junk
   without a real token is cut off as before. `/request-code` is charged normally,
   which caps a single IP at roughly 25 guesses an hour against a six-digit space.
@@ -112,7 +112,7 @@ browser ──POST /message|/register {…, code, token}──►  verified → 
   the **post**. With OTP on, the message endpoints no longer ask for the challenge.
 - Leave any of the three vars unset and OTP is off: `/request-code` returns 404 and
   the message endpoints fall back to the proof-of-work challenge. The edge **never**
-  opens SMTP — it only calls the mailer over HTTP.
+  opens SMTP - it only calls the mailer over HTTP.
 
 ## Tests
 
@@ -122,7 +122,7 @@ npm test
 
 Covers the challenge (accept/expire/replay/tamper) and the handler (validation,
 honeypot, mention defanging, truncation, rate limit and its OTP refund, challenge
-gate, routing) with a fake kChat client — no network, no real channel touched.
+gate, routing) with a fake kChat client - no network, no real channel touched.
 
 ## What never reaches the browser
 

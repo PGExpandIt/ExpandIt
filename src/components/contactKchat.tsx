@@ -48,7 +48,7 @@ export default function ContactKchat() {
                 }
             })
             .catch(() => {
-                /* offline — submit still works, one-step, or via mailto */
+                /* offline - submit still works, one-step, or via mailto */
             });
         return () => {
             cancelled = true;
@@ -103,7 +103,7 @@ export default function ContactKchat() {
         // No backend → mailto.
         if (!API) {
             const mailSubject = encodeURIComponent(subject || "Message from the vallus website");
-            const body = encodeURIComponent(`${message}\n\n— ${name || "(no name)"}${email ? ` <${email}>` : ""}`);
+            const body = encodeURIComponent(`${message}\n\n- ${name || "(no name)"}${email ? ` <${email}>` : ""}`);
             window.location.href = `mailto:${RECIPIENT}?subject=${mailSubject}&body=${body}`;
             setPhase("success");
             return;
@@ -114,7 +114,7 @@ export default function ContactKchat() {
         try {
             if (config?.otp) {
                 if (config.challenge && solution === null) {
-                    throw new Error("Still preparing — please try again in a second.");
+                    throw new Error("Still preparing - please try again in a second.");
                 }
                 const issued = await requestCode(API, { email, challenge: config.challenge, solution, website });
                 setDraft({ name, email, subject, message });
@@ -124,7 +124,7 @@ export default function ContactKchat() {
                 setPhase("code");
             } else {
                 if (config?.challenge && solution === null) {
-                    throw new Error("Still preparing — please try again in a second.");
+                    throw new Error("Still preparing - please try again in a second.");
                 }
                 await submitMessage({
                     name,
@@ -187,7 +187,7 @@ export default function ContactKchat() {
             <div className="rounded-lg border border-line bg-surface p-8">
                 <h3 className="text-lg font-semibold text-bone">Message sent</h3>
                 <p className="mt-4 max-w-2xl leading-relaxed text-muted">
-                    Thanks — it has reached our team. We will get back to you at the address you
+                    Thanks - it has reached our team. We will get back to you at the address you
                     left, usually within one business day.
                 </p>
             </div>
@@ -217,7 +217,7 @@ export default function ContactKchat() {
                         placeholder="123456"
                     />
                     <p className="mt-1.5 text-xs text-muted">
-                        {remaining > 0 ? `Valid for ${mmss}.` : "The code has expired — resend a new one."}
+                        {remaining > 0 ? `Valid for ${mmss}.` : "The code has expired - resend a new one."}
                     </p>
                 </div>
 

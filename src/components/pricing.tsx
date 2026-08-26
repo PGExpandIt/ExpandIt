@@ -113,7 +113,7 @@ const Pricing = () => (
                 })}
             </div>
 
-            {/* One shared footnote for the asterisked points above — the parallel-run
+            {/* One shared footnote for the asterisked points above - the parallel-run
                 figures are a licence ceiling, not a promise the host can meet without
                 a Docker daemon. */}
             <p className="mt-6 text-xs leading-relaxed text-muted/80">{prices.tiersNote}</p>
@@ -141,7 +141,7 @@ const Pricing = () => (
             </div>
 
             {/* Add-ons and services only. The discount grid is deliberately not
-    published — it is a negotiation lever, not a page a prospect reads
+    published - it is a negotiation lever, not a page a prospect reads
     before the first call. The figures live in the internal price list. */}
             <div className="mt-6 grid gap-6 sm:grid-cols-2">
                 <div className="rounded-lg border border-line bg-surface p-6">

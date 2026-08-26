@@ -1,5 +1,5 @@
 # Non-secret configuration. Everything here is readable by anyone with cluster
-# access — the mailbox password and the shared secret live in the Secret.
+# access - the mailbox password and the shared secret live in the Secret.
 apiVersion: v1
 kind: ConfigMap
 metadata:

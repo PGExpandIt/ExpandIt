@@ -1,4 +1,4 @@
-// Calls the off-edge mailer to deliver a code. Copy of kchat-api's client — see
+// Calls the off-edge mailer to deliver a code. Copy of kchat-api's client - see
 // the note at the top of otp.ts for why these are duplicated, not shared.
 //
 // Calls the off-edge mailer to deliver a code. The edge never opens SMTP itself

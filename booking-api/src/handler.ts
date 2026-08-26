@@ -44,7 +44,7 @@ const rateLimited = (ip: string, perHour: number): boolean => {
 /**
  * Hand back the slot `rateLimited` just took.
  *
- * Only for failures already bounded somewhere tighter — a mistyped code, capped
+ * Only for failures already bounded somewhere tighter - a mistyped code, capped
  * per token in `otp.ts`. Without this the two limits stack: the per-IP budget runs
  * out first, so a visitor fumbling six digits from their inbox is locked out for
  * an hour and told `rate_limited`, which says nothing about what they got wrong.
@@ -136,7 +136,7 @@ const handleSlots = async (
 
 /**
  * Step one of a verified booking: e-mail a code and hand back the token that goes
- * with it. The code itself is never in the response — the whole point is that only
+ * with it. The code itself is never in the response - the whole point is that only
  * whoever reads the inbox can complete the booking.
  *
  * Proof-of-work still guards this endpoint, because this is the step that costs us
@@ -290,19 +290,19 @@ const handleBook = async (
         "Booked from the vallus website.",
         "",
         `Name: ${name}`,
-        `Company: ${company || "—"}`,
+        `Company: ${company || "-"}`,
         `E-mail: ${email}`,
-        `Phone: ${field("phone", 60) || "—"}`,
-        `Team size: ${field("teamSize", 60) || "—"}`,
-        `Topic: ${field("topic", 200) || "—"}`,
+        `Phone: ${field("phone", 60) || "-"}`,
+        `Team size: ${field("teamSize", 60) || "-"}`,
+        `Topic: ${field("topic", 200) || "-"}`,
         "",
         "Message:",
-        field("message", 4000) || "—",
+        field("message", 4000) || "-",
     ].join("\n");
 
     const end = new Date(start.getTime() + config.slotMinutes * 60 * 1000);
     const created = await calendar.createEvent({
-        title: `${config.eventTitlePrefix} — ${company || name}`,
+        title: `${config.eventTitlePrefix} - ${company || name}`,
         start,
         end,
         description,
@@ -341,7 +341,7 @@ const secretsMatch = (given: string, expected: string): boolean => {
  *
  * Exists because the personal data lives in calendar events and nothing there
  * expires on its own, while the privacy notice promises six months. Bunny Edge
- * Scripting has no scheduler, so something outside has to call this — see the
+ * Scripting has no scheduler, so something outside has to call this - see the
  * retention workflow. It is guarded by its own secret rather than the Infomaniak
  * token, so whatever triggers it can delete stale bookings and nothing else.
  */
@@ -439,7 +439,7 @@ const handleRetention = async (
     from.setFullYear(from.getFullYear() - RETENTION_LOOKBACK_YEARS);
 
     const events = await calendar.listEvents(from, cutoff);
-    // Only ever touch what the booking flow created — the rest of the calendar is
+    // Only ever touch what the booking flow created - the rest of the calendar is
     // the owner's own life.
     const stale = events.filter((event) => {
         const title = String(event?.title ?? "");

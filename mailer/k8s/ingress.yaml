@@ -1,5 +1,5 @@
 # TLS termination for the one caller that exists: the kChat edge script. The
-# signature on the body is the real gate — this only gets the bytes there intact.
+# signature on the body is the real gate - this only gets the bytes there intact.
 #
 # Assumes ingress-nginx + cert-manager. On Infomaniak the ingress controller's
 # Service is what consumes the paid LoadBalancer and public IP; keep it to one.

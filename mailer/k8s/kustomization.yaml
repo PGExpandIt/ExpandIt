@@ -9,7 +9,7 @@ resources:
   - service.yaml
   - ingress.yaml
   - networkpolicy.yaml
-  # secret.example.yaml is deliberately NOT listed — create the real Secret out of
+  # secret.example.yaml is deliberately NOT listed - create the real Secret out of
   # band with `kubectl create secret`, so no password is ever in the repo.
 
 images:

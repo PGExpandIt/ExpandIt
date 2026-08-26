@@ -1,6 +1,6 @@
 # Wdrożenie booking-api na Bunny Edge Scripting
 
-Usługa działa jako skrypt na brzegu sieci bunny.net — bez serwera do utrzymania, bez Dockera,
+Usługa działa jako skrypt na brzegu sieci bunny.net - bez serwera do utrzymania, bez Dockera,
 bez certyfikatów do odnawiania. Ten sam dostawca co strona.
 
 Kalendarz nadal jest w Infomaniaku; tam potrzebny jest wyłącznie **token API**. Hosting WWW
@@ -15,9 +15,9 @@ generuje kilkanaście żądań dziennie, więc w praktyce płacisz to minimum.
 
 1. <https://manager.infomaniak.com/v3/ng/accounts/token/list> → **Create a token**
 2. Zakres **`workspace:calendar`**. Zakres `user_info` jest potrzebny **tylko** wtedy, gdy nie
-   ustawisz `BOOKING_ORGANIZER_EMAIL` — wtedy usługa pobiera adres organizatora z profilu konta.
+   ustawisz `BOOKING_ORGANIZER_EMAIL` - wtedy usługa pobiera adres organizatora z profilu konta.
    Skoro go ustawiasz, profil nie jest odpytywany i węższy token wystarczy.
-3. **Skopiuj token od razu** — pokazuje się jeden raz.
+3. **Skopiuj token od razu** - pokazuje się jeden raz.
 
 Traktuj go jak hasło do kalendarza.
 
@@ -35,13 +35,13 @@ surowy JSON pierwszego wydarzenia i terminy, które byłyby oferowane.
 
 **Trzy rzeczy do zweryfikowania:**
 
-- **Identyfikator kalendarza** — wpisz `INFOMANIAK_CALENDAR_ID` z listy. Uwaga: w odpowiedzi API
+- **Identyfikator kalendarza** - wpisz `INFOMANIAK_CALENDAR_ID` z listy. Uwaga: w odpowiedzi API
   jest też `account_id` i **to nie jest** identyfikator kalendarza. Wpisanie go daje mylące
   `403 access_denied`, wyglądające na problem z tokenem. Usługa sprawdza to teraz sama i mówi
   wprost, jeśli identyfikator nie należy do konta.
-- **Strefa czasowa** — godziny wypisane przez `probe` muszą zgadzać się z
+- **Strefa czasowa** - godziny wypisane przez `probe` muszą zgadzać się z
   <https://ksuite.infomaniak.com/calendar>.
-- **Wykrywanie zajętości** — wstaw wydarzenie w godzinach pracy, uruchom `probe` ponownie.
+- **Wykrywanie zajętości** - wstaw wydarzenie w godzinach pracy, uruchom `probe` ponownie.
   Musi trafić do sekcji *parsed as busy*, a odpowiadający termin zniknąć z oferty.
 
 Potem uruchom całość lokalnie (z katalogu strony): `npm run dev:all`.
@@ -50,22 +50,22 @@ Potem uruchom całość lokalnie (z katalogu strony): `npm run dev:all`.
 
 1. Panel bunny.net → **Edge Platform → Scripting → Add Script**
 2. Typ: **Standalone script** (skrypt ma własny adres `*.bunny.run`, nie jest origin dla pull zone)
-3. Zapisz **Script ID** — będzie potrzebny do wdrożenia.
+3. Zapisz **Script ID** - będzie potrzebny do wdrożenia.
 
 ### Zmienne i sekrety
 
 Panel skryptu → **Env Configuration**. Rozróżnienie jest istotne:
 
-- **Environment secrets** — szyfrowane, **nie da się ich odczytać po zapisaniu**. Tu wchodzi
+- **Environment secrets** - szyfrowane, **nie da się ich odczytać po zapisaniu**. Tu wchodzi
   `INFOMANIAK_TOKEN`.
-- **Environment variables** — zwykłe, odczytywalne. Cała reszta.
+- **Environment variables** - zwykłe, odczytywalne. Cała reszta.
 
 | Nazwa | Rodzaj | Wartość |
 |---|---|---|
 | `INFOMANIAK_TOKEN` | **secret** | token z kroku 1 |
 | `INFOMANIAK_CALENDAR_ID` | variable | identyfikator z `probe` |
 | `BOOKING_TIMEZONE` | variable | `Europe/Warsaw` |
-| `ALLOWED_ORIGINS` | variable | `https://vallus.eu` — dokładne adresy po przecinku, bez wildcardów |
+| `ALLOWED_ORIGINS` | variable | `https://vallus.eu` - dokładne adresy po przecinku, bez wildcardów |
 | `BOOKING_ORGANIZER_EMAIL` | variable | `sales@vallus.eu` |
 | `BOOKING_ORGANIZER_NAME` | variable | `vallus` |
 
@@ -75,7 +75,7 @@ Reguły rezerwacji (`BOOKING_SLOT_TIMES`, `BOOKING_WORKDAYS`, `BOOKING_LEAD_HOUR
 z wartościami domyślnymi: [`.env.example`](.env.example).
 
 **`PORT` zostaw nieustawiony.** Skrypt sprawdza tę zmienną, żeby odróżnić uruchomienie lokalne od
-edge'a — ustawiona wymusza tryb lokalny, w którym Bunny nie poda socketu.
+edge'a - ustawiona wymusza tryb lokalny, w którym Bunny nie poda socketu.
 
 ## 4. Wdrożenie
 
@@ -110,11 +110,11 @@ BOOKING_API_ORIGIN = https://api.vallus.eu      (albo adres *.bunny.run)
 ```
 
 Workflow `bunny.yml` przekaże to jako `NEXT_PUBLIC_BOOKING_API` do builda. To wartość publiczna
-i tak ma być. **Token nigdy nie trafia do repozytorium ani do GitHuba** — siedzi wyłącznie
+i tak ma być. **Token nigdy nie trafia do repozytorium ani do GitHuba** - siedzi wyłącznie
 w sekretach skryptu Bunny.
 
 Po wdrożeniu w sekcji demo powinno być **„Live availability from our calendar"** zamiast
-„Example availability". Jeśli widzisz przykładowy tekst, strona nie dobiła się do API — prawie
+„Example availability". Jeśli widzisz przykładowy tekst, strona nie dobiła się do API - prawie
 zawsze CORS albo adres.
 
 ---
@@ -127,22 +127,22 @@ npm test              # 17 testów: sloty, zmiana czasu, zajętość
 npm run deploy
 ```
 
-Zmiana samych reguł rezerwacji nie wymaga wdrożenia — edytujesz zmienne w panelu skryptu. Strony
+Zmiana samych reguł rezerwacji nie wymaga wdrożenia - edytujesz zmienne w panelu skryptu. Strony
 też nie trzeba przebudowywać, bo czyta reguły z `/slots` przy każdym wejściu.
 
 ## Uwagi eksploatacyjne
 
 - **Limit żądań jest orientacyjny.** Licznik 5 rezerwacji na godzinę z IP siedzi w pamięci
-  instancji, a na edge'u instancji jest wiele i są ulotne — rozproszony bot obejdzie go łatwiej niż
+  instancji, a na edge'u instancji jest wiele i są ulotne - rozproszony bot obejdzie go łatwiej niż
   na jednym serwerze. Realną ochroną są honeypot i to, że rezerwować można **wyłącznie termin
   z listy zwróconej przez `/slots`**. Jeśli spam stanie się problemem, następnym krokiem jest
   ochrona po stronie Bunny albo captcha.
-- **Strona degraduje się bezpiecznie** — gdy skrypt nie odpowiada, sekcja demo wraca do
+- **Strona degraduje się bezpiecznie** - gdy skrypt nie odpowiada, sekcja demo wraca do
   przykładowego kalendarza i wysyłki mailem. Odwiedzający nie zobaczy błędu, ale **Ty też nie**,
   więc warto od czasu do czasu sprawdzić `/health`.
-- **Podwójne rezerwacje są blokowane po stronie serwera** — `POST /book` sprawdza dostępność
+- **Podwójne rezerwacje są blokowane po stronie serwera** - `POST /book` sprawdza dostępność
   ponownie tuż przed utworzeniem wydarzenia i zwraca `409`.
-- **Dni wolne** to zwykłe wydarzenia w kalendarzu Infomaniaka — nie ma osobnego ustawienia.
+- **Dni wolne** to zwykłe wydarzenia w kalendarzu Infomaniaka - nie ma osobnego ustawienia.
 - **Organizatora ustala Infomaniak**, nie my. Sprawdzone: wysyłamy uczestnika z flagą
   `organizer: true`, a API zapisuje go jako zwykłego uczestnika i wstawia właściciela kalendarza.
   `BOOKING_ORGANIZER_EMAIL` decyduje o tym, **kogo dopisujemy**, a nie o adresie nadawcy

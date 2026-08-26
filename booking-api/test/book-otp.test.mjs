@@ -1,7 +1,7 @@
 // Booking with e-mail verification on: /book must refuse anything that is not a
 // code we actually e-mailed, and the calendar must stay untouched when it does.
 //
-// The calendar is a stub — these tests are about the gate in front of it, and a
+// The calendar is a stub - these tests are about the gate in front of it, and a
 // real Infomaniak account would make them untestable in CI. The mailer is stubbed
 // through globalThis.fetch for the same reason: the point is what the handler does
 // with the answer, not that SMTP works.
@@ -124,7 +124,7 @@ test("a code issued for one address does not book for another", async () => {
     assert.equal(calendar.created.length, 0);
 });
 
-test("a code books once — the second attempt is refused", async () => {
+test("a code books once - the second attempt is refused", async () => {
     const calendar = stubCalendar();
     const issued = await issueCode(OTP_SECRET, EMAIL, 10 * 60 * 1000);
     const handler = createHandler(config(), calendar);

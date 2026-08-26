@@ -2,7 +2,7 @@
 //
 // The point of all this: Infomaniak's event API takes a wall-clock string
 // ("2026-08-03 09:00:00") *plus* a separate timezone name. Send a UTC wall clock
-// with a non-UTC timezone name and the event silently lands at the wrong hour —
+// with a non-UTC timezone name and the event silently lands at the wrong hour -
 // the same class of bug as cal.com issue #18981, and the same bug Infomaniak's own
 // MCP client has (it formats with toISOString but labels the result with the
 // profile timezone). Everything below exists to keep those two in agreement.
@@ -78,7 +78,7 @@ export const wallClockParts = (instant: Date, timeZone: string) => {
 const pad = (value: number, width = 2) => String(value).padStart(width, "0");
 
 /**
- * "YYYY-MM-DD HH:MM:SS" as read on a clock in `timeZone` — the format the
+ * "YYYY-MM-DD HH:MM:SS" as read on a clock in `timeZone` - the format the
  * Infomaniak event API expects alongside `timezone_start` / `timezone_end`.
  */
 export const formatForInfomaniak = (instant: Date, timeZone: string): string => {
@@ -121,7 +121,7 @@ export const parseApiInstant = (value: unknown, timeZone: string): Date | null =
     const numeric = Number(value);
     if (/^\d+$/.test(value) && Number.isFinite(numeric)) return parseApiInstant(numeric, timeZone);
 
-    // Explicit offset or Z — trust it.
+    // Explicit offset or Z - trust it.
     if (/[zZ]$|[+-]\d{2}:?\d{2}$/.test(value)) {
         const date = new Date(value);
         return Number.isNaN(date.getTime()) ? null : date;
@@ -142,7 +142,7 @@ export const parseApiInstant = (value: unknown, timeZone: string): Date | null =
  *
  * Months are counted on the calendar, not as 30-day blocks, because retention is
  * promised in months. The clamp matters: `setMonth` on 31 August minus six months
- * lands on "31 February", which JavaScript silently rolls forward to 3 March —
+ * lands on "31 February", which JavaScript silently rolls forward to 3 March -
  * three days of data deleted earlier than promised. Clamping to the last day of
  * the target month gives 28 February, which is what "six months earlier" means.
  */

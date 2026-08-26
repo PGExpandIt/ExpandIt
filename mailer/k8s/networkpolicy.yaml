@@ -1,5 +1,5 @@
-# Optional but cheap: the mailer should reach exactly one thing outbound — the
-# Infomaniak SMTP server — and be reachable from exactly one thing inbound.
+# Optional but cheap: the mailer should reach exactly one thing outbound - the
+# Infomaniak SMTP server - and be reachable from exactly one thing inbound.
 # Requires a CNI that enforces policy (Cilium/Calico); on a CNI that ignores it
 # this file is a no-op, not an error, so verify before relying on it.
 apiVersion: networking.k8s.io/v1
@@ -32,7 +32,7 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-    # SMTP over STARTTLS. Port 25 is deliberately absent — it is blocked
+    # SMTP over STARTTLS. Port 25 is deliberately absent - it is blocked
     # upstream anyway, and this service has no reason to speak it.
     - to:
         - ipBlock:

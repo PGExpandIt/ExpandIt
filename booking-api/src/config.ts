@@ -9,7 +9,7 @@
 /**
  * Reads an environment variable on whichever runtime this is.
  *
- * Bunny's docs give two ways of doing it — `Deno.env.get` and `process.env` — and
+ * Bunny's docs give two ways of doing it - `Deno.env.get` and `process.env` - and
  * which one exists depends on the runtime the script ends up on. Checking both
  * means the same build works under Node locally and on the edge in production.
  */
@@ -56,7 +56,7 @@ export interface Config {
     rateLimitPerHour: number;
     /**
      * Address shown as the organiser on every booking. Leave empty to use the one
-     * on the token's Infomaniak profile — which is often a personal address rather
+     * on the token's Infomaniak profile - which is often a personal address rather
      * than the one you want prospects to see.
      */
     organizerEmail: string | null;
@@ -79,7 +79,7 @@ export interface Config {
      */
     holdTitle: string;
     /**
-     * Secret signing the proof-of-work challenges. Unset disables the challenge —
+     * Secret signing the proof-of-work challenges. Unset disables the challenge -
      * the honeypot and the rate limit still apply, but /book becomes reachable
      * without loading the page first. Must be identical across all edge instances,
      * so it has to come from the environment rather than be generated per process.
@@ -89,19 +89,19 @@ export interface Config {
      * Leading zero bits required. Measured at ~110k hashes/s through SubtleCrypto:
      * 15 averages 0.3 s and stays under a second in the bad case, which is invisible
      * because the browser solves it while the form is being filled in. 18 would
-     * average 2.4 s and occasionally take seven — too slow to hide.
+     * average 2.4 s and occasionally take seven - too slow to hide.
      */
     challengeDifficulty: number;
     /**
      * Signs the one-time e-mail codes. Set together with `mailerUrl` and
-     * `mailerSecret` — any one of the three missing leaves e-mail verification off,
+     * `mailerSecret` - any one of the three missing leaves e-mail verification off,
      * `/request-code` answering 404 and `/book` gated by the proof-of-work alone,
      * exactly as before this existed.
      */
     otpSecret: string | null;
     /** Base URL of the off-edge mailer (see ../mailer). The edge never opens SMTP. */
     mailerUrl: string | null;
-    /** Shared secret the mailer request is signed with — its `MAILER_AUTH_SECRET`. */
+    /** Shared secret the mailer request is signed with - its `MAILER_AUTH_SECRET`. */
     mailerSecret: string | null;
     /** How long an emailed code stays valid, in ms. */
     otpTtlMs: number;

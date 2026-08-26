@@ -50,7 +50,7 @@ export default function LicenseRequest() {
                 }
             })
             .catch(() => {
-                /* offline — submit still works, one-step, or via mailto */
+                /* offline - submit still works, one-step, or via mailto */
             });
         return () => {
             cancelled = true;
@@ -86,7 +86,7 @@ export default function LicenseRequest() {
         const data = new FormData(event.currentTarget);
         const website = ((data.get("website") as string) ?? "").trim();
         if (website) {
-            setPhase("success"); // honeypot — pretend
+            setPhase("success"); // honeypot - pretend
             return;
         }
 
@@ -100,7 +100,7 @@ export default function LicenseRequest() {
 
         // No backend → mailto.
         if (!API) {
-            const subject = encodeURIComponent(`Free licence request — ${company}`);
+            const subject = encodeURIComponent(`Free licence request - ${company}`);
             const body = encodeURIComponent(
                 `Company (exact, case-sensitive): ${company}\nWork e-mail: ${email}\n\n` +
                     `I request a free vallus licence and accept the free licence terms and privacy notice.`,
@@ -115,7 +115,7 @@ export default function LicenseRequest() {
         try {
             if (config?.otp) {
                 if (config.challenge && solution === null) {
-                    throw new Error("Still preparing — please try again in a second.");
+                    throw new Error("Still preparing - please try again in a second.");
                 }
                 const issued = await requestCode(API, { email, challenge: config.challenge, solution, website });
                 setDraft({ company, email, marketing });
@@ -178,7 +178,7 @@ export default function LicenseRequest() {
             <div className="rounded-lg border border-line bg-surface p-8">
                 <h3 className="text-lg font-semibold text-bone">Request received</h3>
                 <p className="mt-4 max-w-2xl leading-relaxed text-muted">
-                    Thanks — we have your request. Your free licence is delivered to the address
+                    Thanks - we have your request. Your free licence is delivered to the address
                     you gave us <span className="text-bone">within 24 hours</span>, with the exact
                     company name to enter.
                 </p>
@@ -209,7 +209,7 @@ export default function LicenseRequest() {
                         placeholder="123456"
                     />
                     <p className="mt-1.5 text-xs text-muted">
-                        {remaining > 0 ? `Valid for ${mmss}.` : "The code has expired — resend a new one."}
+                        {remaining > 0 ? `Valid for ${mmss}.` : "The code has expired - resend a new one."}
                     </p>
                 </div>
 
@@ -244,7 +244,7 @@ export default function LicenseRequest() {
             <h3 className="text-lg font-semibold text-bone">Request a free key</h3>
             <p className="mt-2 max-w-2xl text-sm text-muted">
                 Delivered within 24 hours of e-mail confirmation. The free licence runs for
-                6 months and is renewable — it is never perpetual.
+                6 months and is renewable - it is never perpetual.
             </p>
 
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
@@ -254,7 +254,7 @@ export default function LicenseRequest() {
                     </label>
                     <input id="company" name="company" required autoComplete="organization" className={fieldClass} placeholder="Acme Inc." />
                     <p className="mt-1.5 text-xs text-muted">
-                        Used exactly as typed — the key is bound to this name, matched case-sensitively.
+                        Used exactly as typed - the key is bound to this name, matched case-sensitively.
                     </p>
                 </div>
                 <div>
@@ -280,7 +280,7 @@ export default function LicenseRequest() {
                         privacy notice
                     </a>
                     . To issue, deliver and renew the key, ExpandIt stores my company name and
-                    e-mail — necessary to provide the licence. If I have this data erased, the
+                    e-mail - necessary to provide the licence. If I have this data erased, the
                     free licence ends: the key may no longer be used and, on request, I will
                     confirm its removal.
                 </span>
@@ -289,7 +289,7 @@ export default function LicenseRequest() {
             <label className="mt-4 flex items-start gap-3 text-sm text-muted">
                 <input type="checkbox" name="marketing" className="mt-1 shrink-0" />
                 <span>
-                    Optional: e-mail me product updates about vallus. I can withdraw this anytime —
+                    Optional: e-mail me product updates about vallus. I can withdraw this anytime -
                     it has no effect on my licence.
                 </span>
             </label>
