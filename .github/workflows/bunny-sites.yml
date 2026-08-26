@@ -30,6 +30,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # BUNNY_API_KEY and BOOKING_ADMIN_TOKEN live on this environment, not on the
+    # repository. Without naming it here `secrets.BUNNY_API_KEY` resolves to an empty
+    # string and the deploy step fails to authenticate, which is why every recent
+    # release went out by hand from the CLI instead of from CI.
+    environment: vallus-page
     # Fork PRs have no access to secrets; skip instead of failing.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
@@ -47,6 +52,29 @@ jobs:
       # failing on every run, which blocked the deploy. Build output and the
       # sibling services are excluded in eslint.config.mjs.
       - run: npm run lint
+
+      # The three origins below are baked into the bundle at build time. When one is
+      # missing the affected form does not fail - it quietly falls back to mailto, so
+      # the deploy looks healthy and books nothing. Catch that here instead of in
+      # production. Set them under Settings -> Secrets and variables -> Actions -> Variables.
+      - name: Check the API origins are configured
+        env:
+          BOOKING: ${{ vars.BOOKING_API_ORIGIN }}
+          KCHAT: ${{ vars.KCHAT_API_ORIGIN }}
+          LICENSE: ${{ vars.LICENSE_API_ORIGIN }}
+        run: |
+          missing=""
+          [ -z "$BOOKING" ] && missing="$missing BOOKING_API_ORIGIN"
+          [ -z "$KCHAT" ]   && missing="$missing KCHAT_API_ORIGIN"
+          [ -z "$LICENSE" ] && missing="$missing LICENSE_API_ORIGIN"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository variables:$missing"
+            echo "Without them the demo booking, the contact form and the free-licence"
+            echo "request silently fall back to mailto. Set them under"
+            echo "Settings -> Secrets and variables -> Actions -> Variables."
+            exit 1
+          fi
+          echo "All three API origins are set."
 
       - run: npm run build
         env:
@@ -74,6 +102,22 @@ jobs:
           fi
           test -f out/index.html && test -f out/404.html
           echo "Export looks right: assets at /_next/, index.html and 404.html present."
+
+      # A variable can be set and still not reach the bundle - a typo in the name, or a
+      # component that stopped reading it. Grep the built chunks for the values instead
+      # of trusting that the env made it through.
+      - name: Check the API origins reached the bundle
+        env:
+          BOOKING: ${{ vars.BOOKING_API_ORIGIN }}
+          KCHAT: ${{ vars.KCHAT_API_ORIGIN }}
+        run: |
+          for value in "$BOOKING" "$KCHAT"; do
+            if ! grep -rqF "$value" out/_next/static/chunks/; then
+              echo "::error::'$value' is not present in the built bundle."
+              exit 1
+            fi
+          done
+          echo "API origins are baked into the bundle."
 
       - uses: BunnyWay/actions/deploy-site@deploy-site_1.0.0
         with:
