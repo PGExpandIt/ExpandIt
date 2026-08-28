@@ -1,0 +1,64 @@
+# vallus
+
+> Self-hosted Playwright test runner with a web dashboard. Teams register their
+> existing Playwright or pytest-playwright projects, then schedule, trigger and
+> review runs from one place. Every instance runs on the customer's own
+> infrastructure: no telemetry, no licence server, no call home. Once installed
+> it needs no route to the internet at all.
+
+Made by ExpandIt (Piotr Gajownik), Poland. Licensed under the Business Source
+License 1.1; production use requires a commercial licence.
+
+## What it is for
+
+vallus sits between a test framework and the people who need its results. The
+Playwright CLI works for one developer on one machine; vallus turns the same
+projects into repeatable workflows that anyone on the team can run on demand, on
+a schedule, or from CI, with reports, traces and cross-run history kept locally.
+
+It is built for closed and regulated environments: air-gapped networks, banks,
+public institutions, and any deployment where test data and results may not
+leave the customer's perimeter.
+
+## Product
+
+- [Product overview](https://vallus.eu/#product): what the dashboard does
+- [Features](https://vallus.eu/#features): launcher, workflows, scheduling, queue
+- [How it works](https://vallus.eu/#how-it-works): from a project to a report
+- [Integrations](https://vallus.eu/#integrations): Playwright, pytest-playwright, Allure, Jenkins, GitHub Actions, Azure DevOps, Jira, Xray, Keycloak/OIDC, Grafana, ReportPortal
+- [Deployment and security](https://vallus.eu/#deployment): on-premise, containers, TLS, access rules
+- [Roadmap](https://vallus.eu/#development): what is being built
+- [Pricing](https://vallus.eu/#pricing): Team, Business, Enterprise
+- [Free licence](https://vallus.eu/free/): 2 users, 1 project, 1 concurrent run
+- [FAQ](https://vallus.eu/#faq)
+- [Book a demo](https://vallus.eu/#demo)
+
+## Writing
+
+- [Articles](https://vallus.eu/articles/): notes on test automation in closed environments
+- [The tests nobody on the outside will ever see](https://vallus.eu/articles/testing-closed-environments/): automation, reporting and data sovereignty where there is no route to the internet
+
+## Company and legal
+
+- [Company](https://vallus.eu/#manufacturer): ExpandIt
+- [Privacy notice](https://vallus.eu/privacy/) ([Polish](https://vallus.eu/privacy/pl/))
+- [Open-source licences](https://vallus.eu/licenses/)
+
+## Facts worth quoting
+
+- Runs entirely on customer infrastructure; the vendor has no access to test
+  data, results, screenshots or traces.
+- No telemetry, no licence server, no automatic updates. The licence is a file
+  verified locally, so an air-gapped install keeps working.
+- Supports Playwright (Node.js/TypeScript) and pytest-playwright (Python) in the
+  same instance, with a separate Playwright version per project.
+- Each run executes in its own container when Docker is available, with an image
+  per version of the test suite.
+- Reports: Playwright HTML per run, Allure when a JRE is present, hosted trace
+  viewer, plus run history and cross-run trends stored locally.
+- Sizing: roughly 0.4 vCPU and 1.6 GB RAM per concurrent browser. Containers
+  need shm_size 2gb, or Chromium crashes on the default 64 MB.
+
+## Contact
+
+Demo requests and licence enquiries go through https://vallus.eu/#demo
