@@ -46,8 +46,8 @@ export default function PrivacyPl() {
                     <p>
                         Administratorem danych osobowych jest <strong className="text-bone">Piotr
                         Gajownik - ExpandIt</strong>, ul. Paryska 20B, 44-240 Żory, Polska,
-                        NIP 5321875710 (VAT UE: PL5321875710), dalej „my&quot; lub
-                        „administrator&quot;.
+                        NIP 5321875710 (VAT UE: PL5321875710), dalej „my” lub
+                        „administrator”.
                     </p>
                     <p>
                         Kontakt w sprawach dotyczących danych osobowych:{" "}
@@ -67,22 +67,37 @@ export default function PrivacyPl() {
 
                 <Section title="2. Jakie dane zbieramy i skąd">
                     <p>
-                        Zbieramy wyłącznie dane, które sam nam podajesz, wypełniając formularz
-                        rezerwacji demonstracji na tej stronie. Nie kupujemy danych, nie pobieramy
-                        ich z zewnętrznych baz i nie profilujemy odwiedzających.
+                        Zbieramy wyłącznie dane, które sam nam podajesz, wypełniając jeden z trzech
+                        formularzy na tej stronie: rezerwację demonstracji, wniosek o darmową
+                        licencję albo formularz kontaktowy. Nie kupujemy danych, nie pobieramy ich
+                        z zewnętrznych baz i nie profilujemy odwiedzających.
                     </p>
                     <Table
-                        head={["Dane", "Czy wymagane"]}
+                        head={["Dane", "Rezerwacja demo", "Wniosek o licencję", "Kontakt"]}
                         rows={[
-                            ["Imię i nazwisko", "tak"],
-                            ["Służbowy adres e-mail", "tak"],
-                            ["Nazwa firmy", "nie"],
-                            ["Numer telefonu", "nie"],
-                            ["Liczba osób, które miałyby korzystać z produktu", "nie"],
-                            ["Temat rozmowy i treść wiadomości", "nie"],
-                            ["Wybrany termin spotkania", "nie"],
+                            ["Imię i nazwisko", "wymagane", "-", "opcjonalne"],
+                            ["Służbowy adres e-mail", "wymagane", "wymagane", "wymagane"],
+                            ["Nazwa firmy", "opcjonalne", "wymagane", "-"],
+                            ["Numer telefonu", "opcjonalne", "-", "-"],
+                            ["Liczba osób, które miałyby korzystać z produktu", "opcjonalne", "-", "-"],
+                            ["Temat rozmowy", "opcjonalne", "-", "opcjonalne"],
+                            ["Treść wiadomości", "opcjonalne", "-", "wymagane"],
+                            ["Wybrany termin spotkania", "opcjonalne", "-", "-"],
                         ]}
                     />
+                    <p>
+                        Wniosek o licencję jest jedynym miejscem, w którym nazwa firmy jest
+                        obowiązkowa. Trafia ona do samego klucza licencyjnego, który wystawiamy na
+                        oznaczonego licencjobiorcę, więc bez niej klucza nie da się wygenerować.
+                        Jeśli poprosisz o usunięcie tych danych, darmowa licencja wygasa: klucz
+                        przestaje być ważny, a na życzenie potwierdzimy jego usunięcie.
+                    </p>
+                    <p>
+                        W formularzu licencyjnym znajduje się też opcjonalne pole zgody na
+                        informacje o produkcie wysyłane e-mailem. Jest domyślnie niezaznaczone, nie ma
+                        wpływu na wydanie licencji i możesz je w każdej chwili wycofać, pisząc na
+                        adres z punktu 1.
+                    </p>
                     <p>
                         Jeśli usługa rezerwacji jest chwilowo niedostępna, formularz otwiera Twojego
                         własnego klienta poczty z przygotowaną treścią. W takim przypadku nic nie
@@ -110,6 +125,11 @@ export default function PrivacyPl() {
                                 "przez okres wymagany przepisami, co do zasady 5 lat od końca roku podatkowego",
                             ],
                             [
+                                "Wysyłka informacji o produkcie e-mailem, jeśli zaznaczysz zgodę",
+                                "art. 6 ust. 1 lit. a RODO - Twoja zgoda",
+                                "do czasu wycofania zgody",
+                            ],
+                            [
                                 "Obrona przed roszczeniami lub ich dochodzenie",
                                 "art. 6 ust. 1 lit. f RODO",
                                 "do upływu terminu przedawnienia roszczeń",
@@ -117,9 +137,12 @@ export default function PrivacyPl() {
                         ]}
                     />
                     <p>
-                        Podanie danych jest dobrowolne, ale bez imienia i adresu e-mail nie jesteśmy
-                        w stanie umówić spotkania ani odpowiedzieć na zapytanie. Pozostałe pola
-                        możesz zostawić puste.
+                        Podanie danych jest dobrowolne, ale każdy formularz ma minimum, bez którego
+                        nie możemy zrealizować Twojej prośby: imię i nazwisko oraz adres e-mail, aby
+                        umówić spotkanie, adres e-mail i treść wiadomości, aby odpowiedzieć na
+                        zapytanie, oraz nazwę firmy wraz z adresem e-mail, aby wystawić klucz
+                        licencyjny.
+                        Pozostałe pola możesz zostawić puste.
                     </p>
                 </Section>
 
@@ -140,14 +163,14 @@ export default function PrivacyPl() {
                             [
                                 "Infomaniak Network SA",
                                 "Szwajcaria",
-                                "kalendarz, w którym powstaje wydarzenie ze spotkaniem, oraz poczta e-mail",
+                                "kalendarz, w którym powstaje wydarzenie ze spotkaniem, poczta e-mail oraz wewnętrzny komunikator, do którego trafiają wiadomości z formularza kontaktowego",
                             ],
                         ]}
                     />
                     <p>
                         Szwajcaria jest objęta decyzją Komisji Europejskiej stwierdzającą odpowiedni
-                        stopień ochrony danych (art. 45 RODO), a dane Infomaniaka są przechowywane
-                        wyłącznie na terenie Szwajcarii. Nie przekazujemy danych do państw, wobec
+                        stopień ochrony danych (art. 45 RODO), a Infomaniak przechowuje powierzone
+                        dane wyłącznie na terenie Szwajcarii. Nie przekazujemy danych do państw, wobec
                         których taka decyzja nie obowiązuje, w szczególności do Stanów Zjednoczonych.
                     </p>
                     <p>
@@ -210,7 +233,7 @@ export default function PrivacyPl() {
                         Nie podejmujemy wobec Ciebie decyzji w sposób zautomatyzowany i nie
                         profilujemy Cię. Terminy spotkań, które widzisz w formularzu, wynikają
                         wyłącznie z tego, co jest wolne w naszym kalendarzu - nie zależą od tego, kim
-                        jesteś ani skąd wchodzisz.
+                        jesteś ani skąd pochodzisz.
                     </p>
                 </Section>
 

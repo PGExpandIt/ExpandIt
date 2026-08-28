@@ -181,7 +181,7 @@ Infomaniaka i te sloty przestają się pokazywać.
 | Secret `BUNNY_API_KEY` | klucz API konta bunny.net - jedyny sekret potrzebny do deployu strony |
 | Variable `BOOKING_API_ORIGIN` | `https://vallus-api-calendar-p498a.bunny.run`; **nieustawiony = sekcja demo po cichu przechodzi na mailto** i niczego nie rezerwuje |
 | Variable `LICENSE_API_ORIGIN` | `/api/kchat` - ta sama domena, przez regułę edge pull zone. **Nieustawiony = `/free` po cichu przechodzi na mailto**, mimo że formularz ma pełną obsługę kodu |
-| Variable `KCHAT_API_ORIGIN` | `/api/kchat` dla formularza kontaktowego. Obecnie **nieustawiony**, więc kontakt nadal używa mailto |
+| Variable `KCHAT_API_ORIGIN` | `/api/kchat` dla formularza kontaktowego. **Wymagany** - bez niego kontakt po cichu przechodzi na mailto. Deploy z GH Actions przerywa się, gdy zmiennej brakuje |
 
 Token Infomaniaka **nigdy nie trafia do GitHuba** - booking-api nie jest wdrażany
 przez Actions, więc GitHub nie ma powodu trzymać poświadczeń do Twojego kalendarza.

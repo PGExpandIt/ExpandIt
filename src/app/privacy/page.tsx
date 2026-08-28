@@ -65,21 +65,35 @@ export default function Privacy() {
 
             <Section title="2. What we collect, and where it comes from">
                 <p>
-                    We collect only what you type into the demo booking form on this site. We do not
-                    buy data, do not obtain it from external databases, and do not profile visitors.
+                    We collect only what you type into one of the three forms on this site: the
+                    demo booking form, the free licence request and the contact form. We do not buy
+                    data, do not obtain it from external databases, and do not profile visitors.
                 </p>
                 <Table
-                    head={["Data", "Required"]}
+                    head={["Data", "Demo booking", "Licence request", "Contact form"]}
                     rows={[
-                        ["Name", "yes"],
-                        ["Work e-mail address", "yes"],
-                        ["Company name", "no"],
-                        ["Phone number", "no"],
-                        ["Number of people who would use the product", "no"],
-                        ["Topic and message", "no"],
-                        ["Preferred meeting slot", "no"],
+                        ["Name", "required", "-", "optional"],
+                        ["Work e-mail address", "required", "required", "required"],
+                        ["Company name", "optional", "required", "-"],
+                        ["Phone number", "optional", "-", "-"],
+                        ["Number of people who would use the product", "optional", "-", "-"],
+                        ["Topic or subject", "optional", "-", "optional"],
+                        ["Message", "optional", "-", "required"],
+                        ["Preferred meeting slot", "optional", "-", "-"],
                     ]}
                 />
+                <p>
+                    The licence request is the one place where a company name is required. It is
+                    written into the licence key itself, which is issued to a named licensee, so a
+                    key cannot be produced without it. If you ask us to erase that data the free
+                    licence ends: the key may no longer be used, and we will confirm its removal on
+                    request.
+                </p>
+                <p>
+                    The licence form also carries an optional tick box for product updates by
+                    e-mail. It is off by default, it has no bearing on whether you get a licence,
+                    and you can withdraw it at any time by writing to the address in section 1.
+                </p>
                 <p>
                     If the booking service is temporarily unavailable, the form opens your own e-mail
                     client with the request filled in. In that case nothing leaves your device until
@@ -107,6 +121,11 @@ export default function Privacy() {
                             "the period required by law, as a rule 5 years from the end of the tax year",
                         ],
                         [
+                            "Sending product updates by e-mail, where you have ticked the box",
+                            "Art. 6(1)(a) GDPR - your consent",
+                            "until you withdraw consent",
+                        ],
+                        [
                             "Establishing or defending legal claims",
                             "Art. 6(1)(f) GDPR",
                             "until the claims become time-barred",
@@ -114,9 +133,10 @@ export default function Privacy() {
                     ]}
                 />
                 <p>
-                    Providing the data is voluntary, but without a name and an e-mail address we
-                    cannot arrange a meeting or reply to an enquiry. Every other field may be left
-                    empty.
+                    Providing the data is voluntary, but each form has a minimum without which we
+                    cannot act: a name and an e-mail address to arrange a meeting, an e-mail address
+                    and a message to reply to an enquiry, and a company name with an e-mail address
+                    to issue a licence key. Every other field may be left empty.
                 </p>
             </Section>
 
@@ -137,7 +157,7 @@ export default function Privacy() {
                         [
                             "Infomaniak Network SA",
                             "Switzerland",
-                            "the calendar the meeting is created in, and e-mail",
+                            "the calendar the meeting is created in, e-mail, and the internal chat that contact form messages are delivered to",
                         ],
                     ]}
                 />

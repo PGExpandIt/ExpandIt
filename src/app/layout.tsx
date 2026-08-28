@@ -31,12 +31,34 @@ export const metadata: Metadata = {
     "vallus",
   ],
   authors: [{ name: "ExpandIt" }],
+  // Without a canonical the exported HTML carries none at all, and every route
+  // that does not set its own inherits this one. `metadataBase` above makes it
+  // absolute, which is the form crawlers expect.
+  alternates: { canonical: "/" },
   openGraph: {
     title: "vallus - Schedule, run and analyze your Playwright tests from one dashboard",
     description:
       "Self-hosted Playwright automation: workflows, scheduling, CI webhooks, RBAC, Allure trends and the trace viewer. Runs on your own infrastructure.",
     type: "website",
     siteName: "vallus by ExpandIt",
+    url: "/",
+    locale: "en_GB",
+    // Every page inherits this unless it sets its own. Without an image, a link
+    // pasted into Slack, LinkedIn or iMessage unfurls as a bare title, which
+    // reads as an accident rather than a product.
+    images: [{
+      url: "/og.jpg",
+      width: 1200,
+      height: 630,
+      alt: "vallus - schedule, run and analyze your Playwright tests",
+    }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "vallus - Schedule, run and analyze your Playwright tests from one dashboard",
+    description:
+      "Self-hosted Playwright automation: workflows, scheduling, CI webhooks, RBAC, Allure trends and the trace viewer. Runs on your own infrastructure.",
+    images: ["/og.jpg"],
   },
 };
 
