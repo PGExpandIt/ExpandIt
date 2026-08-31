@@ -42,8 +42,9 @@ const Footer = () => (
             <div className="mt-8 border-t border-line pt-6 text-xs leading-relaxed text-muted">
                 <p>
                     &copy; {new Date().getFullYear()} ExpandIt. All rights reserved. vallus is
-                    licensed under the Business Source License 1.1; production use requires a
-                    commercial license from the licensor.
+                    proprietary software, distributed in binary form under its End User Licence
+                    Agreement. It is not open source, and a valid licence key is required to
+                    run it.
                 </p>
                 <p className="mt-2">
                     Playwright, Allure, Jira, Xray, Jenkins, GitHub, Azure, Keycloak, Grafana and

@@ -84,8 +84,9 @@ export default function Licenses() {
                 <>
                     This page lists what is actually served to your browser. Tools used only to
                     build the site never reach it and are not listed. vallus itself is not
-                    open-source software: it is licensed under the Business Source License 1.1, and
-                    production use requires a commercial licence from the licensor.
+                    open-source software: it is proprietary, distributed in binary form under
+                    its End User Licence Agreement, and needs a valid licence key to run. Its
+                    source code is not published.
                 </>
             }
         >
