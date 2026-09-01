@@ -382,6 +382,11 @@ footer h3{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:v
 footer ul{list-style:none;padding:0;margin:0 0 24px}
 footer li{margin:0 0 5px}
 footer .note{padding-top:20px;border-top:1px solid var(--line);color:#57534c;max-width:78ch}
+footer nav.flinks{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 26px;padding:0 0 22px;
+  border-bottom:1px solid var(--line)}
+footer nav.flinks a{color:var(--muted);text-decoration:none;border-bottom:0;font-size:13px}
+footer nav.flinks a:hover{color:var(--mint)}
+footer nav.flinks a.cta{color:var(--mint);font-weight:600}
 
 @media (max-width:680px){
   body{font-size:16.5px}
@@ -590,7 +595,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 <span class="c"># source afterwards - this layer changes on every commit</span>
-COPY . .</code></pre></div>
+COPY .. .</code></pre></div>
 <p><strong>Everything inside, nothing from outside.</strong> Browsers, system libraries, fonts (otherwise screenshots with non-ASCII characters come out looking like ciphertext), time zones, the customer&#x27;s CA certificates.</p>
 <p><strong>A version without version control.</strong> The image must build where there is no git repository - because in closed environments code very often arrives as an archive. If your build calls <code>git rev-parse HEAD</code> to stamp a version, provide a fallback: a content hash, or a version injected as a build argument. Otherwise the delivery to a customer without git simply won&#x27;t build.</p>
 <div class="code"><span class="lang">dockerfile</span><pre><code>ARG BUILD_VERSION=unknown
@@ -734,7 +739,7 @@ tcpdump -nr /tmp/egress.pcap | awk <span class="s">&#x27;{print $5}&#x27;</span>
 <blockquote><p><strong>Test results belong to whoever produced them.</strong> Neither the tool vendor nor anyone else should have access to them - not because they&#x27;re suspect, but because there is no reason for them to. Access that isn&#x27;t needed is purely risk.</p></blockquote>
 <hr>
 <h2 id="6-what-is-genuinely-hard-today"><span class="num">6</span>What is genuinely hard today</h2>
-<figure class="photo"><picture><source type="image/avif" srcset="/articles/testing-closed-environments/assets/img/cables-900.avif 900w, /articles/testing-closed-environments/assets/img/cables-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/testing-closed-environments/assets/img/cables-900.webp 900w, /articles/testing-closed-environments/assets/img/cables-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/testing-closed-environments/assets/img/cables-1440.jpg" srcset="/articles/testing-closed-environments/assets/img/cables-900.jpg 900w, /articles/testing-closed-environments/assets/img/cables-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="Most “unexplained” failures do not come from the test code, but from an environment nobody ever described." width="1440" height="1069" loading="lazy" decoding="async"></picture><figcaption>Most “unexplained” failures do not come from the test code, but from an environment nobody ever described.<span class="credit">Cable closet bh.jpg - author unknown, public domain (Wikimedia Commons)</span></figcaption></figure>
+<figure class="photo"><picture><source type="image/avif" srcset="/articles/testing-closed-environments/assets/img/cables-900.avif 900w, /articles/testing-closed-environments/assets/img/cables-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/testing-closed-environments/assets/img/cables-900.webp 900w, /articles/testing-closed-environments/assets/img/cables-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/testing-closed-environments/assets/img/cables-1440.jpg" srcset="/articles/testing-closed-environments/assets/img/cables-900.jpg 900w, /articles/testing-closed-environments/assets/img/cables-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="Most &quot;unexplained&quot; failures do not come from the test code, but from an environment nobody ever described." width="1440" height="1069" loading="lazy" decoding="async"></picture><figcaption>Most &quot;unexplained&quot; failures do not come from the test code, but from an environment nobody ever described.<span class="credit">Cable closet bh.jpg - author unknown, public domain (Wikimedia Commons)</span></figcaption></figure>
 <p>The list below isn&#x27;t theory - these are the things that routinely eat weeks of work.</p>
 <h3 id="6-1-flaky-tests-a-tax-nobody-puts-on-the-books"><span class="subnum">6.1</span>Flaky tests - a tax nobody puts on the books</h3>
 <p>A flaky test is worse than no test, because it actively destroys trust. Once a team learns that &quot;red sometimes just happens,&quot; it stops reacting to real regressions too.</p>
@@ -804,9 +809,10 @@ customer (rarely)     smoke + acceptance + configuration-specific tests</code></
 <footer>
   <div class="in">
     <a class="fbrand" href="https://www.vallus.eu/"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus · by ExpandIt</b></a>
+    <nav class="flinks" aria-label="vallus.eu"><a href="https://www.vallus.eu/#features">Features</a><a href="https://www.vallus.eu/#pricing">Pricing</a><a href="https://www.vallus.eu/free/">Free</a><a href="https://www.vallus.eu/articles/">Articles</a><a href="https://www.vallus.eu/#deployment">Security</a><a href="https://www.vallus.eu/#faq">FAQ</a><a href="https://www.vallus.eu/privacy/">Privacy</a><a href="https://www.vallus.eu/licenses/">Licences</a><a class="cta" href="https://www.vallus.eu/#demo">Book a demo</a></nav>
     <h3>Photographs</h3>
     <ul><li>CERN Computer Center 02.jpg - SimonWaldherr, CC BY-SA 4.0 (Wikimedia Commons)</li><li>19-inch rackmount Ethernet switches and patch panels.jpg - Dsimic, CC BY-SA 4.0 (Wikimedia Commons)</li><li>CERN Computer Center 11.jpg - SimonWaldherr, CC BY-SA 4.0 (Wikimedia Commons)</li><li>Eimskip container terminal at Port of Reykjavík.jpg - Quintin Soloviev, CC BY 4.0 (Wikimedia Commons)</li><li>Diagnostic monitors in the control room of Wendelstein 7-X.jpg - Siarhei Besarab, CC BY-SA 4.0 (Wikimedia Commons)</li><li>Code on computer monitor (Unsplash).jpg - Markus Spiske, CC0 (Wikimedia Commons)</li><li>Cable closet bh.jpg - author unknown, public domain (Wikimedia Commons)</li></ul>
-    <p class="note">This file is entirely self-contained: every photograph is embedded in the document and there is not a single reference to an external network. It opens identically on a machine with no internet access - exactly as this article recommends for test reports.</p>
+    <p class="note">An offline copy of this article is linked at the top: one file with the images, fonts and styles embedded, which opens on a machine with no network at all.</p>
   </div>
 </footer>
 

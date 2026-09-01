@@ -382,6 +382,11 @@ footer h3{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:v
 footer ul{list-style:none;padding:0;margin:0 0 24px}
 footer li{margin:0 0 5px}
 footer .note{padding-top:20px;border-top:1px solid var(--line);color:#57534c;max-width:78ch}
+footer nav.flinks{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 26px;padding:0 0 22px;
+  border-bottom:1px solid var(--line)}
+footer nav.flinks a{color:var(--muted);text-decoration:none;border-bottom:0;font-size:13px}
+footer nav.flinks a:hover{color:var(--mint)}
+footer nav.flinks a.cta{color:var(--mint);font-weight:600}
 
 @media (max-width:680px){
   body{font-size:16.5px}
@@ -653,9 +658,10 @@ npx playwright uninstall --all     <span class="c"># everything Playwright has i
 <footer>
   <div class="in">
     <a class="fbrand" href="https://www.vallus.eu/"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus · by ExpandIt</b></a>
+    <nav class="flinks" aria-label="vallus.eu"><a href="https://www.vallus.eu/#features">Features</a><a href="https://www.vallus.eu/#pricing">Pricing</a><a href="https://www.vallus.eu/free/">Free</a><a href="https://www.vallus.eu/articles/">Articles</a><a href="https://www.vallus.eu/#deployment">Security</a><a href="https://www.vallus.eu/#faq">FAQ</a><a href="https://www.vallus.eu/privacy/">Privacy</a><a href="https://www.vallus.eu/licenses/">Licences</a><a class="cta" href="https://www.vallus.eu/#demo">Book a demo</a></nav>
     <h3>Photographs</h3>
     <ul><li>Blue external USB hard drive 01.jpg - Coyau, CC BY-SA 3.0 (Wikimedia Commons)</li><li>U.S. Coast Guard Aviation Maintenance Technician 2nd Class Joseph Sippel, right, lifts part of an engine cowling on an HC-130 Hercules aircraft for Avionics Electrical Technician 2nd Class Michael Mckinney while 130729-G-ZV557-792.jpg - PO3 David Weydert, public domain (Wikimedia Commons)</li><li>110322-F-YC711-028 (5550420623).jpg - US Air Force from USA, public domain (Wikimedia Commons)</li></ul>
-    <p class="note">This file is entirely self-contained: every photograph is embedded in the document and there is not a single reference to an external network. It opens identically on a machine with no internet access - exactly as this article recommends for test reports.</p>
+    <p class="note">Every photograph and font is embedded in this document. Nothing is fetched when it opens, so it renders identically on a machine with no internet access - exactly as this article recommends for test reports. The links above are the only thing that needs a network, and only if you follow one.</p>
   </div>
 </footer>
 
