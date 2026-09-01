@@ -630,7 +630,7 @@ ls <span class="s">&quot;$PLAYWRIGHT_BROWSERS_PATH&quot;</span>           <span 
 <p>Then archive the whole directory once. The manifest should list every Playwright version the cache satisfies, not just the newest, because that list is what someone on the far side needs in order to know what they can install without asking for anything.</p>
 <h3 id="what-it-costs">What it costs</h3>
 <p>Roughly 1 GB per version for all three engines, or a few hundred megabytes for Chromium alone. Ten versions of all three engines is something like 10 GB in the transfer, which is a deliberate trade rather than an obvious win: cheap if your constraint is the approval process, expensive if it is the physical media.</p>
-<p>Two things worth knowing before you count directories. Chromium ships a separate headless shell (<code>chromium_headless_shell-<em></code>), so the number of directories is larger than the number of browsers you think you installed. And <code>ffmpeg-</em></code> appears once, shared, used for video recording.</p>
+<p>Chromium ships a separate headless shell (<code>chromium_headless_shell-&lt;revision&gt;</code>), so the number of directories is larger than the number of browsers you think you installed. And <code>ffmpeg-&lt;revision&gt;</code> appears once, shared, used for video recording.</p>
 <h3 id="pruning-deliberately">Pruning, deliberately</h3>
 <p>If you suppressed the collection, nothing is removed automatically any more, so a long-lived cache grows. Prune it on the same cadence you upgrade, and only against a written record of which project uses which version:</p>
 <div class="code"><span class="lang">bash</span><pre><code>npx playwright install --list      <span class="c"># browsers across all installations, grouped by version</span>
