@@ -34,6 +34,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
     {
+        slug: "playwright-offline-install",
+        title: "The browsers have to get there somehow",
+        summary:
+            "A complete procedure for installing Playwright browsers on a machine with no route to the internet: what to fetch, how to move it, how to verify it, and how to carry several versions so a rollback is not another transfer.",
+        published: "2026-09-01",
+        readingMinutes: 12,
+        topics: ["Closed environments", "Playwright", "Offline install"],
+        language: "en",
+        offlineSize: "1.1 MB",
+    },
+    {
         slug: "testing-closed-environments",
         title: "The tests nobody on the outside will ever see",
         summary:
