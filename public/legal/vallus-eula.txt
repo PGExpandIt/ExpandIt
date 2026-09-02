@@ -1,0 +1,202 @@
+                    vallus - End User Licence Agreement
+                          Binary distribution
+
+  Copyright (c) 2026 Piotr Gajownik. All rights reserved.
+  The Software is licensed, not sold. Source code is not distributed.
+
+  Version 0.1 - DRAFT. Complete, with no placeholders left, but not yet
+  reviewed by a lawyer. Do not ship a distribution archive containing this file
+  until it has been. Working copy and drafting notes: legal/EULA.draft.md.
+
+--------------------------------------------------------------------------------
+
+1. Definitions
+
+Software - vallus, in the object-code (binary) form distributed by the
+Licensor, including the bundled web interface, command-line tools,
+documentation and any updates supplied under this Agreement.
+
+Licensor - Piotr Gajownik, trading as ExpandIt, ul. Paryska 20B, 44-240 Zory,
+Poland, NIP 5321875710 (EU VAT PL5321875710)
+
+Licensee - the legal entity that obtained the Software.
+
+Licence Key - the signed key issued by the Licensor that enables the Software.
+See section 4.
+
+Commercial Agreement - a separate signed agreement between the parties
+covering fees, tier, support and service levels (for example the Annual
+Subscription Licence).
+
+Third-Party Components - open-source components distributed with the Software,
+listed in THIRD_PARTY_NOTICES.txt in the distribution archive.
+
+2. Grant
+
+2.1 Subject to the Licensee holding a valid Licence Key and complying with
+this Agreement, the Licensor grants a non-exclusive, non-transferable, non-
+sublicensable, revocable licence to install and use the Software:
+
+  - (a) in production and non-production environments;
+  - (b) within the Licensee's own organisation only, for its own internal
+    business purposes;
+  - (c) self-hosted on infrastructure the Licensee controls, on premises or in
+    a cloud tenancy of its own - including networks with no outbound
+    connectivity;
+  - (d) within the limits encoded in the Licence Key.
+
+2.2 No source code rights are granted. The Software is supplied in binary form
+only. Nothing in this Agreement gives the Licensee any right to obtain,
+receive, inspect or modify the source code. The Annual Subscription Licence
+says the same. The single exception is the Commercial Source Licence
+Agreement, a separate signed product: where it is in force, it governs source
+access and prevails over this clause to that extent.
+
+2.3 The Licensee may make a reasonable number of copies for backup and
+disaster recovery, subject to the same restrictions.
+
+3. Restrictions
+
+The Licensee shall not:
+
+  - (a) redistribute, resell, lease, lend, publish or otherwise make the
+    Software available to any third party;
+  - (b) sublicense the Software, or offer it or any part of it to third
+    parties as a service (SaaS, managed service, testing-as-a-service or
+    similar);
+  - (c) use the Software for the benefit of any entity other than the
+    Licensee, including subsidiaries and affiliates not covered by a
+    Commercial Agreement;
+  - (d) embed or incorporate the Software into a product or service the
+    Licensee distributes;
+  - (e) circumvent, disable, move, replace or tamper with the Licence Key
+    mechanism or the licence gate, or use the Software beyond the limits
+    encoded in a Licence Key, or use a key not issued to the Licensee;
+  - (f) remove, alter or obscure any copyright notice, licence text,
+    attribution or version identifier in the Software or its output;
+  - (g) decompile, disassemble or otherwise reverse engineer the Software,
+    except to the extent such an act cannot lawfully be prohibited. Within the
+    European Union, the rights under Articles 5(3) and 6 of Directive
+    2009/24/EC are unaffected by this Agreement, and the Licensee shall
+    request the interoperability information from the Licensor in writing
+    before exercising them;
+  - (h) publish benchmark or comparative results relating to the Software
+    without the Licensor's prior written consent.
+
+4. Licence Key
+
+4.1 The Software requires a valid Licence Key to operate. Without a valid key
+the Software performs no useful work: project dashboards do not start and
+queued runs do not execute.
+
+4.2 The key is issued to the Licensee by name and encodes the tier and its
+limits. It is confidential and shall not be shared, published or transferred.
+
+4.3 An expired, revoked or invalid key ends the right to use the Software
+under section 2. The Licensee may continue to hold the installed copy for the
+sole purpose of restoring service once a valid key is supplied.
+
+4.4 The Software performs no licence check over the network. Key verification
+is entirely local, by signature, so the Software runs in networks with no
+outbound connectivity.
+
+5. Ownership
+
+The Software is licensed, not sold. All intellectual property rights in the
+Software remain with the Licensor. Nothing in this Agreement transfers
+ownership of anything. Feedback the Licensee chooses to provide may be used by
+the Licensor without obligation or attribution.
+
+6. Third-Party Components
+
+The Software includes Third-Party Components licensed under their own terms,
+reproduced in THIRD_PARTY_NOTICES.txt. Those terms govern those components
+and, to the extent they conflict with this Agreement in respect of a
+component, they prevail for that component.
+
+7. Data
+
+The Software processes the Licensee's test results, environment variables and
+configuration on the Licensee's own infrastructure. It sends no telemetry,
+usage statistics or test data to the Licensor and makes no outbound connection
+except to systems the Licensee configures itself (a Git remote, a vault, a
+reporting or notification endpoint).
+
+8. Term and termination
+
+8.1 This Agreement takes effect when the Licensee first installs or uses the
+Software and continues while the Licensee holds a valid Licence Key.
+
+8.2 The Licensor may terminate this Agreement on written notice if the
+Licensee materially breaches it and, where the breach is capable of remedy,
+fails to remedy it within 30 days of notice. A breach of section 3(e) -
+tampering with the licence mechanism - is not capable of remedy.
+
+8.3 On termination the Licensee shall cease all use of the Software and delete
+all copies, other than copies it must retain by law. Sections 3, 5, 6, 9, 10
+and 11 survive.
+
+9. Warranty
+
+9.1 The Licensor warrants that it has the right to grant this licence.
+
+9.2 Otherwise the Software is provided "as is". To the fullest extent
+permitted by applicable law, the Licensor disclaims all other warranties,
+express or implied, including merchantability, fitness for a particular
+purpose, non-infringement and uninterrupted or error-free operation.
+
+9.3 Nothing in this Agreement excludes or limits liability that cannot
+lawfully be excluded, nor any mandatory statutory rights of a Licensee that is
+a consumer.
+
+10. Liability
+
+10.1 Neither party is liable for indirect or consequential loss, loss of
+profit, revenue, data or anticipated savings.
+
+10.2 To the fullest extent permitted by law, the Licensor's total aggregate
+liability arising out of or in connection with this Agreement is limited to the
+greater of:
+
+  (a) the fees paid by the Licensee to the Licensor for the Software in the
+      twelve months preceding the event giving rise to the claim; and
+
+  (b) EUR 5,000.
+
+10.3 Sections 10.1 and 10.2 do not apply to liability for death or personal
+injury caused by negligence, fraud, or anything else that cannot lawfully be
+limited.
+
+11. General
+
+11.1 Precedence. Where a Commercial Agreement is in force between the parties
+and conflicts with this Agreement, the Commercial Agreement prevails. This
+Agreement continues to govern anything the Commercial Agreement does not
+address, and governs in full where there is no Commercial Agreement.
+
+11.2 No conversion. This licence does not convert into any other licence, does
+not become an open-source licence, and is not time-limited other than as set
+out in section 8.
+
+11.3 Assignment. The Licensee may not assign or transfer this Agreement
+without the Licensor's prior written consent, which shall not be unreasonably
+withheld in the case of a merger or the sale of substantially all of its
+business.
+
+11.4 Export. The Licensee shall comply with applicable export control and
+sanctions law.
+
+11.5 Governing law and jurisdiction. This Agreement is governed by the law of
+Poland, excluding its conflict-of-laws rules and the United Nations Convention
+on Contracts for the International Sale of Goods. The courts competent for the
+Licensor's registered seat in Poland have exclusive jurisdiction.
+
+11.6 Entire agreement. Together with any Commercial Agreement, this document
+is the entire agreement between the parties concerning the Software and
+supersedes any prior licence terms distributed with earlier copies, including
+the Business Source License 1.1.
+
+11.7 Severability. If any provision is held unenforceable, the rest remains in
+force.
+
+---

@@ -9,7 +9,7 @@ import LicenseRequest from "@/components/licenseRequest";
 export const metadata: Metadata = {
     title: "Free licence - vallus | ExpandIt",
     description:
-        "Request a free vallus licence: 2 users, 1 project, 1 concurrent run. A 6-month renewable term, delivered within 24 hours of e-mail confirmation.",
+        "Request a free vallus licence: 2 users, 1 project, 1 concurrent run. A 6-month renewable term, delivered within one business day of e-mail confirmation.",
     alternates: { canonical: "/free/" },
 };
 
@@ -41,8 +41,8 @@ export default function FreePage() {
                         <p className="mt-4 max-w-2xl text-muted">
                             A free key for small teams and evaluation. It is a 6-month term you
                             can renew - never perpetual - and it grants the core runner without
-                            the gated integrations. Request one below; it arrives within 24
-                            hours of confirming your e-mail.
+                            the gated integrations. Request one below; it arrives within one
+                            business day of confirming your e-mail.
                         </p>
 
                         <div className="mt-10 grid gap-10 lg:grid-cols-2">
@@ -91,8 +91,8 @@ export default function FreePage() {
                                             is never perpetual.
                                         </li>
                                         <li>
-                                            Delivery is within 24 hours of confirming your e-mail
-                                            address.
+                                            Delivery is within one business day of confirming your
+                                            e-mail address.
                                         </li>
                                         <li>
                                             We store your company name and e-mail because they are

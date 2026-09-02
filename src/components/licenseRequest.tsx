@@ -179,8 +179,8 @@ export default function LicenseRequest() {
                 <h3 className="text-lg font-semibold text-bone">Request received</h3>
                 <p className="mt-4 max-w-2xl leading-relaxed text-muted">
                     Thanks - we have your request. Your free licence is delivered to the address
-                    you gave us <span className="text-bone">within 24 hours</span>, with the exact
-                    company name to enter.
+                    you gave us <span className="text-bone">within one business day</span>, with the
+                    exact company name to enter.
                 </p>
             </div>
         );
@@ -243,8 +243,8 @@ export default function LicenseRequest() {
         <form onSubmit={handleFormSubmit} className="rounded-lg border border-line bg-surface p-8">
             <h3 className="text-lg font-semibold text-bone">Request a free key</h3>
             <p className="mt-2 max-w-2xl text-sm text-muted">
-                Delivered within 24 hours of e-mail confirmation. The free licence runs for
-                6 months and is renewable - it is never perpetual.
+                Delivered within one business day of e-mail confirmation. The free licence runs
+                for 6 months and is renewable - it is never perpetual.
             </p>
 
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
