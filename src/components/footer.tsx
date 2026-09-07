@@ -27,6 +27,7 @@ const Footer = () => (
                         { href: "/#demo", label: "Book a demo" },
                         { href: "/privacy/", label: "Privacy" },
                         { href: "/licenses/", label: "Licences" },
+                        { href: "/legal/eula/", label: "EULA" },
                     ].map(({ href, label }) => (
                         <Link
                             key={href}
@@ -42,9 +43,14 @@ const Footer = () => (
             <div className="mt-8 border-t border-line pt-6 text-xs leading-relaxed text-muted">
                 <p>
                     &copy; {new Date().getFullYear()} ExpandIt. All rights reserved. vallus is
-                    proprietary software, distributed in binary form under its End User Licence
-                    Agreement. It is not open source, and a valid licence key is required to
-                    run it.
+                    proprietary software, distributed in binary form under its{" "}
+                    <Link
+                        href="/legal/eula/"
+                        className="underline decoration-line underline-offset-4 hover:decoration-accent"
+                    >
+                        End User Licence Agreement
+                    </Link>
+                    . It is not open source, and a valid licence key is required to run it.
                 </p>
                 <p className="mt-2">
                     Playwright, Allure, Jira, Xray, Jenkins, GitHub, Azure, Keycloak, Grafana and

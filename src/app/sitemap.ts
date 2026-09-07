@@ -58,6 +58,12 @@ const sitemap = (): MetadataRoute.Sitemap => {
             priority: 0.3,
         },
         {
+            url: `${SITE}/legal/eula/`,
+            lastModified,
+            changeFrequency: "yearly",
+            priority: 0.3,
+        },
+        {
             url: `${SITE}/articles/`,
             lastModified,
             changeFrequency: "monthly",

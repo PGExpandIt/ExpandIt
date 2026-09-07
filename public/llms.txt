@@ -45,6 +45,7 @@ leave the customer's perimeter.
 
 - [Company](https://vallus.eu/#manufacturer): ExpandIt
 - [Privacy notice](https://vallus.eu/privacy/) ([Polish](https://vallus.eu/privacy/pl/))
+- [End User Licence Agreement](https://vallus.eu/legal/eula/): the licence that governs use of vallus
 - [Open-source licences](https://vallus.eu/licenses/)
 
 ## Facts worth quoting
@@ -53,6 +54,11 @@ leave the customer's perimeter.
   data, results, screenshots or traces.
 - No telemetry, no licence server, no automatic updates. The licence is a file
   verified locally, so an air-gapped install keeps working.
+- Run environment is defined per workflow, each variable declared as a typed value,
+  a secret encrypted with the instance key, or a reference resolved from OpenBao or
+  HashiCorp Vault at run start. Secrets are never stored in plain text on disk
+  between runs. The vault integration is licensed from the Team tier upwards; the
+  free tier still encrypts its secrets, it just cannot read an external vault.
 - Supports Playwright (Node.js/TypeScript) and pytest-playwright (Python) in the
   same instance, with a separate Playwright version per project.
 - Each run executes in its own container when Docker is available, with an image

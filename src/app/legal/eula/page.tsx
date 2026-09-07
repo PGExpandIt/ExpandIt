@@ -6,18 +6,18 @@ import { readEula, isDraft } from "@/lib/eula";
 // The licence customers are bound by, rendered from the file that ships with the
 // product rather than transcribed. See src/lib/eula.ts for why.
 //
-// NOT LINKED FROM ANYWHERE YET, AND DELIBERATELY NOT INDEXED. Publishing a licence
-// is the act that makes it apply: anyone who obtains the Software after reading it
-// here is bound by these words, including the liability cap. While the file still
-// carries its DRAFT banner that has not been through a lawyer, so the page exists
-// to be reviewed, not to be found. Before linking it:
+// PUBLISHED: linked from the footer and listed in src/app/sitemap.ts. Publishing a
+// licence is the act that makes it apply - anyone who obtains the Software after
+// reading it here is bound by these words, including the liability cap in section
+// 10.2 - so this page is now findable on purpose rather than merely reachable.
 //
-//   1. remove the draft banner from the LICENSE files once the review is done,
-//   2. re-copy it to public/legal/vallus-eula.txt (the page reads that copy),
-//   3. drop the `robots` block below,
-//   4. add it to src/app/sitemap.ts and to the footer.
-//
-// Step 3 is the one to be deliberate about. The rest are reversible.
+// The `robots` gate below is kept rather than deleted, and it is not dead code. It
+// keys off the DRAFT banner in the licence text itself, so re-introducing that
+// banner de-indexes the page again without anyone having to remember this file.
+// That coupling works in the other direction too, and it is worth stating plainly:
+// removing the banner from public/legal/vallus-eula.txt is what published this
+// page, not any edit here. Whoever next edits that file is deciding whether a
+// draft licence is crawlable.
 
 const eula = readEula();
 const draft = isDraft(eula);

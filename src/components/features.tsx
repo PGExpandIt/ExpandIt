@@ -55,6 +55,10 @@ const FEATURES: Feature[] = [
         body: "Connect Keycloak, Entra ID or any OIDC provider with just-in-time account provisioning, and keep a break-glass local admin for emergencies.",
     },
     {
+        title: "Secrets from a vault, not from disk",
+        body: "Every workflow variable says where it comes from: a value typed in, a secret encrypted with the instance key, or a reference resolved from OpenBao or HashiCorp Vault when the run starts. Nothing sensitive sits in a .env file between runs, and a rotated credential takes effect on the next run without anyone editing a file.",
+    },
+    {
         title: "Python as well as TypeScript",
         body: "Node/TypeScript Playwright projects and Python pytest-playwright suites run side by side under the same dashboard, roles and history.",
     },
