@@ -71,7 +71,12 @@ export function readEula(): Eula {
         }
         const text = unwrap(block);
         if (text || items.length) {
-            const m = /^(\d+\.\d+)\s+(.*)$/.exec(text);
+            // The optional letter is for 9.1a, a clause inserted after 9.1 without
+            // renumbering the ones below it. Without it the clause matched nothing
+            // and rendered as a numberless paragraph - the same defect described
+            // above for 10.2, and worse here, because the text it loses its label
+            // on is a warranty.
+            const m = /^(\d+\.\d+[a-z]?)\s+(.*)$/.exec(text);
             section.clauses.push({
                 number: m ? m[1] : "",
                 text: m ? m[2] : text,

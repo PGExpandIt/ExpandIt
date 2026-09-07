@@ -34,6 +34,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
     {
+        slug: "internal-browser-mirror",
+        title: "One tarball is a procedure, twenty is a problem",
+        summary:
+            "Serving Playwright browser archives from your own artifact repository once copying tarballs stops scaling: the layout the installer expects, and what it costs to keep the mirror current.",
+        published: "2026-09-08",
+        readingMinutes: 10,
+        topics: ["Closed environments", "Playwright", "Artifact mirror"],
+        language: "en",
+        offlineSize: "1.3 MB",
+    },
+    {
         slug: "playwright-offline-install",
         title: "The browsers have to get there somehow",
         summary:

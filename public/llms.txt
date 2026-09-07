@@ -6,8 +6,9 @@
 > infrastructure: no telemetry, no licence server, no call home. Once installed
 > it needs no route to the internet at all.
 
-Made by ExpandIt (Piotr Gajownik), Poland. Licensed under the Business Source
-License 1.1; production use requires a commercial licence.
+Made by ExpandIt (Piotr Gajownik), Poland. Proprietary software, distributed in
+binary form under its End User Licence Agreement. It is not open source, and a
+valid licence key is required to run it.
 
 ## What it is for
 
@@ -36,6 +37,8 @@ leave the customer's perimeter.
 ## Writing
 
 - [Articles](https://vallus.eu/articles/): notes on test automation in closed environments
+- [One tarball is a procedure, twenty is a problem](https://vallus.eu/articles/internal-browser-mirror/): serving Playwright browser archives from your own artifact repository once copying tarballs stops scaling
+- [The browsers have to get there somehow](https://vallus.eu/articles/playwright-offline-install/): installing Playwright browsers on a machine with no route to the internet, and carrying several versions so a rollback is not another transfer
 - [The tests nobody on the outside will ever see](https://vallus.eu/articles/testing-closed-environments/): automation, reporting and data sovereignty where there is no route to the internet
 
 ## Company and legal

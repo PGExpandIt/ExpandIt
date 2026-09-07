@@ -4,9 +4,7 @@
   Copyright (c) 2026 Piotr Gajownik. All rights reserved.
   The Software is licensed, not sold. Source code is not distributed.
 
-  Version 0.1 - DRAFT. Complete, with no placeholders left, but not yet
-  reviewed by a lawyer. Do not ship a distribution archive containing this file
-  until it has been. Working copy and drafting notes: legal/EULA.draft.md.
+  Version 0.1
 
 --------------------------------------------------------------------------------
 
@@ -139,6 +137,12 @@ and 11 survive.
 9. Warranty
 
 9.1 The Licensor warrants that it has the right to grant this licence.
+
+9.1a The Licensor warrants that the Software transmits no test data, test
+results, configuration or usage telemetry to the Licensor or to any third
+party, and requires no network access to verify the Licence Key. This warranty
+is given to every Licensee, including one holding a free or evaluation key, and
+is verifiable at any time by observing the Software's outbound traffic.
 
 9.2 Otherwise the Software is provided "as is". To the fullest extent
 permitted by applicable law, the Licensor disclaims all other warranties,
