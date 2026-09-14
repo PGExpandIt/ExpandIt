@@ -23,6 +23,25 @@ function notes(entries: Priced[], idPrefix: string) {
     };
 }
 
+// The seat count is what makes the promotion finite, so it gates the promotional
+// pricing rather than merely describing it: at zero the cards fall back to the list
+// price on their own. A counter that only ever counts down, while the discounted
+// figure stays on sale, is the failure this avoids - the number on the page would
+// say "sold out" next to a price still being offered.
+// `until` is inclusive - the promotion runs through the end of that day, not up to
+// its midnight. Evaluated at BUILD time only: this is a server component and
+// next.config.ts sets output: 'export', so the verdict is baked into the exported
+// HTML and never recomputed in the browser. That is deliberate; a date compared in
+// the browser would disagree with the prerendered markup on the day it lapses, and
+// a hydration mismatch is exactly the "client-side exception" this site would then
+// show instead of a price list.
+//
+// The cost of build-time evaluation: an un-rebuilt site keeps offering the
+// promotion after the date. `seatsLeft` stays the control that acts immediately,
+// because it is edited by the same person who just made the sale.
+const promoExpired = new Date() > new Date(`${prices.promo.until}T23:59:59Z`);
+const promoOpen = prices.promo.seatsLeft > 0 && !promoExpired;
+
 const SERVICES: Priced[] = prices.services;
 const ADD_ONS: Priced[] = prices.addOns;
 const serviceNotes = notes(SERVICES, "service");
@@ -47,6 +66,15 @@ const Pricing = () => (
                     // to /free/ instead of the demo). Defaults keep the paid tiers as-is.
                     const cta = "cta" in tier && tier.cta ? tier.cta : "Talk to us";
                     const href = "href" in tier && tier.href ? tier.href : "/#demo";
+                    // A promotional tier shows the promo figure as THE price and keeps
+                    // the list price struck through beside it. Showing only the lower
+                    // number would leave nothing to say the promotion is a discount,
+                    // and the strike-through is what makes the saving legible without
+                    // a second line of copy.
+                    const promoPrice =
+                        promoOpen && "promoPrice" in tier && tier.promoPrice
+                            ? tier.promoPrice
+                            : null;
                     return (
                     <article
                         key={id}
@@ -62,8 +90,22 @@ const Pricing = () => (
                                 </span>
                             )}
                         </div>
-                        <p className="mt-4 text-3xl font-bold text-bone">{price}</p>
+                        <p className="mt-4 flex flex-wrap items-baseline gap-x-2.5">
+                            <span className="text-3xl font-bold text-bone">
+                                {promoPrice ?? price}
+                            </span>
+                            {promoPrice && (
+                                <span className="text-lg font-semibold text-muted/60 line-through">
+                                    {price}
+                                </span>
+                            )}
+                        </p>
                         <p className="text-sm text-muted">{cadence}</p>
+                        {promoPrice && (
+                            <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-accent">
+                                {prices.promo.label}
+                            </p>
+                        )}
                         <p className="mt-4 text-sm leading-relaxed text-muted">{summary}</p>
                         <ul className="mt-6 flex-1 space-y-2.5">
                             {points
@@ -116,7 +158,18 @@ const Pricing = () => (
             {/* One shared footnote for the asterisked points above - the parallel-run
                 figures are a licence ceiling, not a promise the host can meet without
                 a Docker daemon. */}
+            {promoOpen && (
+                // One line for every tier, not a badge per card: the places are a
+                // single pool shared by Team and Business, and a figure repeated on
+                // both cards would read as five of each.
+                <p className="mt-6 text-sm font-semibold text-accent">
+                    {prices.promo.seatsLeft} promotional places left
+                </p>
+            )}
             <p className="mt-6 text-xs leading-relaxed text-muted/80">{prices.tiersNote}</p>
+            {promoOpen && (
+                <p className="mt-2 text-xs leading-relaxed text-muted/80">{prices.promo.note}</p>
+            )}
 
             <div className="mt-6 rounded-lg border border-line bg-surface p-8 lg:flex lg:items-center lg:justify-between lg:gap-10">
                 <div>

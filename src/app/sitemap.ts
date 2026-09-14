@@ -21,29 +21,22 @@ const sitemap = (): MetadataRoute.Sitemap => {
             changeFrequency: "monthly",
             priority: 1,
         },
+        // No `alternates` here on purpose. Next emits xhtml:link before <lastmod>,
+        // which breaks the element order the sitemap 0.9 schema requires and makes
+        // the whole file fail validation. Both privacy pages already carry the same
+        // hreflang pair as <link rel="alternate"> in their <head>, so the sitemap
+        // was only repeating a signal Google reads there anyway.
         {
             url: `${SITE}/privacy/`,
             lastModified,
             changeFrequency: "yearly",
             priority: 0.3,
-            alternates: {
-                languages: {
-                    en: `${SITE}/privacy/`,
-                    pl: `${SITE}/privacy/pl/`,
-                },
-            },
         },
         {
             url: `${SITE}/privacy/pl/`,
             lastModified,
             changeFrequency: "yearly",
             priority: 0.3,
-            alternates: {
-                languages: {
-                    en: `${SITE}/privacy/`,
-                    pl: `${SITE}/privacy/pl/`,
-                },
-            },
         },
         {
             url: `${SITE}/free/`,

@@ -3,43 +3,43 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Running an internal Playwright browser mirror for a team</title>
-<meta name="description" content="When copying tarballs stops scaling: serving Playwright browser archives from your own artifact repository, the layout the installer expects, and what it costs to keep current.">
+<title>Keeping Playwright up to date behind an air gap</title>
+<meta name="description" content="Playwright ships monthly; a transfer into a closed environment takes weeks. How to choose a cadence, what breaks when you jump several versions, and how to make rollback a path change.">
 <meta name="color-scheme" content="dark">
 <meta name="author" content="Piotr Gajownik">
-<link rel="canonical" href="https://vallus.eu/articles/internal-browser-mirror/">
+<link rel="canonical" href="https://vallus.eu/articles/updating-playwright-behind-air-gap/">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="vallus by ExpandIt">
 <meta property="og:locale" content="en_GB">
-<meta property="og:url" content="https://vallus.eu/articles/internal-browser-mirror/">
-<meta property="og:title" content="One tarball is a procedure, twenty is a problem">
-<meta property="og:description" content="When copying tarballs stops scaling: serving Playwright browser archives from your own artifact repository, the layout the installer expects, and what it costs to keep current.">
-<meta property="og:image" content="https://vallus.eu/articles/internal-browser-mirror/assets/og-internal-browser-mirror-en.jpg">
+<meta property="og:url" content="https://vallus.eu/articles/updating-playwright-behind-air-gap/">
+<meta property="og:title" content="The version you are on is the version you are stuck with">
+<meta property="og:description" content="Playwright ships monthly; a transfer into a closed environment takes weeks. How to choose a cadence, what breaks when you jump several versions, and how to make rollback a path change.">
+<meta property="og:image" content="https://vallus.eu/articles/updating-playwright-behind-air-gap/assets/og-updating-playwright-behind-air-gap-en.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Running an internal Playwright browser mirror for a team">
-<meta property="article:published_time" content="2026-09-08">
-<meta property="article:modified_time" content="2026-09-08">
+<meta property="og:image:alt" content="Keeping Playwright up to date behind an air gap">
+<meta property="article:published_time" content="2026-09-14">
+<meta property="article:modified_time" content="2026-09-14">
 <meta property="article:author" content="Piotr Gajownik">
 <meta property="article:section" content="Test automation">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="One tarball is a procedure, twenty is a problem">
-<meta name="twitter:description" content="When copying tarballs stops scaling: serving Playwright browser archives from your own artifact repository, the layout the installer expects, and what it costs to keep current.">
-<meta name="twitter:image" content="https://vallus.eu/articles/internal-browser-mirror/assets/og-internal-browser-mirror-en.jpg">
-<meta name="twitter:image:alt" content="Running an internal Playwright browser mirror for a team">
+<meta name="twitter:title" content="The version you are on is the version you are stuck with">
+<meta name="twitter:description" content="Playwright ships monthly; a transfer into a closed environment takes weeks. How to choose a cadence, what breaks when you jump several versions, and how to make rollback a path change.">
+<meta name="twitter:image" content="https://vallus.eu/articles/updating-playwright-behind-air-gap/assets/og-updating-playwright-behind-air-gap-en.jpg">
+<meta name="twitter:image:alt" content="Keeping Playwright up to date behind an air gap">
 
-<link rel="preload" href="/articles/internal-browser-mirror/assets/fonts/geist-400-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/articles/internal-browser-mirror/assets/fonts/geist-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/articles/updating-playwright-behind-air-gap/assets/fonts/geist-400-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/articles/updating-playwright-behind-air-gap/assets/fonts/geist-700-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script type="application/ld+json">{
  "@context": "https://schema.org",
  "@type": "Article",
- "headline": "Running an internal Playwright browser mirror for a team",
- "alternativeHeadline": "One tarball is a procedure, twenty is a problem",
- "description": "When copying tarballs stops scaling: serving Playwright browser archives from your own artifact repository, the layout the installer expects, and what it costs to keep current.",
+ "headline": "Keeping Playwright up to date behind an air gap",
+ "alternativeHeadline": "The version you are on is the version you are stuck with",
+ "description": "Playwright ships monthly; a transfer into a closed environment takes weeks. How to choose a cadence, what breaks when you jump several versions, and how to make rollback a path change.",
  "inLanguage": "en",
- "datePublished": "2026-09-08",
- "dateModified": "2026-09-08",
+ "datePublished": "2026-09-14",
+ "dateModified": "2026-09-14",
  "author": {
   "@type": "Person",
   "name": "Piotr Gajownik",
@@ -60,24 +60,24 @@
   }
  },
  "image": [
-  "https://vallus.eu/articles/internal-browser-mirror/assets/og-internal-browser-mirror-en.jpg"
+  "https://vallus.eu/articles/updating-playwright-behind-air-gap/assets/og-updating-playwright-behind-air-gap-en.jpg"
  ],
  "mainEntityOfPage": {
   "@type": "WebPage",
-  "@id": "https://vallus.eu/articles/internal-browser-mirror/"
+  "@id": "https://vallus.eu/articles/updating-playwright-behind-air-gap/"
  },
  "articleSection": "Test automation",
  "keywords": "closed environments, air-gapped, test automation, Playwright, test reporting, data sovereignty"
 }</script>
 <style>
-@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/internal-browser-mirror/assets/fonts/geist-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
-@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/internal-browser-mirror/assets/fonts/geist-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
-@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/internal-browser-mirror/assets/fonts/geist-600-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
-@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/internal-browser-mirror/assets/fonts/geist-600-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
-@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/internal-browser-mirror/assets/fonts/geist-700-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
-@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/internal-browser-mirror/assets/fonts/geist-700-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
-@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/internal-browser-mirror/assets/fonts/geist-mono-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
-@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/internal-browser-mirror/assets/fonts/geist-mono-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/updating-playwright-behind-air-gap/assets/fonts/geist-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/updating-playwright-behind-air-gap/assets/fonts/geist-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/updating-playwright-behind-air-gap/assets/fonts/geist-600-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/updating-playwright-behind-air-gap/assets/fonts/geist-600-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/updating-playwright-behind-air-gap/assets/fonts/geist-700-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/updating-playwright-behind-air-gap/assets/fonts/geist-700-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/updating-playwright-behind-air-gap/assets/fonts/geist-mono-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/updating-playwright-behind-air-gap/assets/fonts/geist-mono-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
 
 :root {
   --ink:#100F0D; --ink-soft:#171613; --surface:#1C1A17; --line:#2C2925;
@@ -465,122 +465,88 @@ aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
       </svg>Back</a>
     <span class="sep" aria-hidden="true"></span>
     <a class="brand" href="https://www.vallus.eu/" title="vallus.eu"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus</b><span>by ExpandIt</span></a>
-    <span class="crumb">One tarball is a procedure, twenty is a problem</span>
+    <span class="crumb">The version you are on is the version you are stuck with</span>
   </div>
 </div>
 
 <header class="hero">
-  <picture><source type="image/avif" srcset="/articles/internal-browser-mirror/assets/img/p_shelves-900.avif 900w, /articles/internal-browser-mirror/assets/img/p_shelves-1440.avif 1440w" sizes="100vw"><source type="image/webp" srcset="/articles/internal-browser-mirror/assets/img/p_shelves-900.webp 900w, /articles/internal-browser-mirror/assets/img/p_shelves-1440.webp 1440w" sizes="100vw"><img src="/articles/internal-browser-mirror/assets/img/p_shelves-1440.jpg" srcset="/articles/internal-browser-mirror/assets/img/p_shelves-900.jpg 900w, /articles/internal-browser-mirror/assets/img/p_shelves-1440.jpg 1440w" sizes="100vw" alt="A library reading room lined with shelves of books" width="1440" height="957" fetchpriority="high" decoding="async"></picture>
+  <picture><source type="image/avif" srcset="/articles/updating-playwright-behind-air-gap/assets/img/p_airlock-900.avif 900w, /articles/updating-playwright-behind-air-gap/assets/img/p_airlock-1440.avif 1440w" sizes="100vw"><source type="image/webp" srcset="/articles/updating-playwright-behind-air-gap/assets/img/p_airlock-900.webp 900w, /articles/updating-playwright-behind-air-gap/assets/img/p_airlock-1440.webp 1440w" sizes="100vw"><img src="/articles/updating-playwright-behind-air-gap/assets/img/p_airlock-1440.jpg" srcset="/articles/updating-playwright-behind-air-gap/assets/img/p_airlock-900.jpg 900w, /articles/updating-playwright-behind-air-gap/assets/img/p_airlock-1440.jpg 1440w" sizes="100vw" alt="The ISS Quest airlock module being moved by transport aircraft" width="1440" height="950" fetchpriority="high" decoding="async"></picture>
   <div class="veil"></div>
   <div class="inner">
-    <p class="eyebrow">Closed environments · artifact mirror</p>
-    <h1>One tarball is a procedure, twenty is a problem</h1>
-    <p class="sub">Running an internal Playwright browser mirror for a team</p>
+    <p class="eyebrow">Closed environments · version management</p>
+    <h1>The version you are on is the version you are stuck with</h1>
+    <p class="sub">Keeping Playwright current when every upgrade crosses an air gap</p>
     <div class="byline">
       <span class="author">Piotr Gajownik</span>
       <i>·</i><span>ExpandIt</span>
-      <i>·</i><time datetime="2026-09-08">8 September 2026</time>
-      <i>·</i><span>about 10 min read</span>
+      <i>·</i><time datetime="2026-09-14">14 September 2026</time>
+      <i>·</i><span>about 5 min read</span>
     </div>
-    <p class="topics">Playwright · Nexus · Artifactory</p>
+    <p class="topics">Playwright · upgrades · air gap</p>
   </div>
-  <div class="hero-credit">Hamamatsu Municipal Sakuma Library reading room ac (1).jpg - Asturio Cantabrio, CC BY-SA 4.0 (Wikimedia Commons)</div>
+  <div class="hero-credit">ISS Quest Airlock Module transported by NASA Super Guppy Turbine (KSC-00PP-1345).jpg - NASA, public domain (Wikimedia Commons)</div>
 </header>
 
 <main>
 <article>
   <nav class="toc">
     <h2>In this article</h2>
-    <ol><li><a href="#1-what-playwright-download-host-changes"><span>1</span>What `PLAYWRIGHT_DOWNLOAD_HOST` changes</a></li><li><a href="#2-the-layout-the-installer-expects"><span>2</span>The layout the installer expects</a></li><li><a href="#3-versioning-the-decision-that-actually-matters"><span>3</span>Versioning: the decision that actually matters</a></li><li><a href="#4-feeding-it"><span>4</span>Feeding it</a></li><li><a href="#5-what-breaks-when-playwright-updates"><span>5</span>What breaks when Playwright updates</a></li><li><a href="#6-what-it-costs"><span>6</span>What it costs</a></li><li><a href="#7-where-the-mirror-ends"><span>7</span>Where the mirror ends</a></li><li><a href="#8-conclusion"><span>8</span>Conclusion</a></li></ol>
+    <ol><li><a href="#1-why-upgrading-is-not-optional"><span>1</span>Why upgrading is not optional</a></li><li><a href="#2-choosing-a-cadence"><span>2</span>Choosing a cadence</a></li><li><a href="#3-what-actually-breaks-when-you-jump-several-versions"><span>3</span>What actually breaks when you jump several versions</a></li><li><a href="#4-the-transfer-package"><span>4</span>The transfer package</a></li><li><a href="#5-the-upgrade-window-on-the-isolated-side"><span>5</span>The upgrade window on the isolated side</a></li><li><a href="#6-when-to-stay-where-you-are"><span>6</span>When to stay where you are</a></li><li><a href="#7-conclusion"><span>7</span>Conclusion</a></li></ol>
   </nav>
-  <h3 id="introduction-when-copying-archives-stops-scaling">Introduction: when copying archives stops scaling</h3>
-<p>Moving a browser cache by hand works for one machine. It keeps working for two. Somewhere around the fourth engineer asking where the current archive lives, and the second time somebody unpacks a cache built for a different Playwright version, it stops being a procedure and becomes a source of incidents.</p>
-<p>The fix is not a better naming convention for tarballs. It is to serve the archives from the same place your organisation already serves packages, and let Playwright fetch them the way it normally would, just from your host instead of the vendor&#x27;s.</p>
-<p>This is one piece of a larger constraint, covered in the pillar article on running test automation where there is no route to the internet. Here the scope is deliberately narrow: the browser archives, for a team rather than a machine.</p>
-<p>The specifics below - the path shapes, the retry behaviour, which environment variables the installer honours - were read from <code>playwright-core</code> 1.60.0, not from the documentation, which gives the download host three sentences. They are implementation details and can move between releases. <code>npx playwright install --dry-run</code> tells you what your own version does, and is the check worth repeating on every upgrade.</p>
+  <h3 id="introduction-monthly-releases-quarterly-transfers">Introduction: monthly releases, quarterly transfers</h3>
+<p>Playwright ships roughly every month. Getting a package into a closed environment takes somewhere between a fortnight and a quarter, depending on how the customer&#x27;s transfer process works and how many approvals sit in front of it.</p>
+<p>Those two rhythms do not fit together, and no amount of process improvement makes them fit. What you can do is decide deliberately how far behind you intend to run, and make the gap survivable. Teams that do not make that decision end up making it by accident: they stay on whatever version they installed first, until something forces an upgrade of eighteen months in one jump.</p>
 <hr>
-<h2 id="1-what-playwright-download-host-changes"><span class="num">1</span>What <code>PLAYWRIGHT_DOWNLOAD_HOST</code> changes</h2>
-<p>Playwright builds download URLs from a base host and a fixed path structure derived from the browser and its pinned revision. Point the base somewhere else and the installer behaves exactly as before:</p>
-<div class="code"><span class="lang">bash</span><pre><code>export PLAYWRIGHT_DOWNLOAD_HOST=https://nexus.internal/playwright
-npx playwright install chromium</code></pre></div>
-<p>Two properties make this the right shape for a team. Nothing about your test code changes, so nobody needs to learn anything. And the installer unpacks the archive into the standard cache layout, so a machine that used the mirror ends up with the same directory structure as one that used the CDN.</p>
-<p>Be precise about what that second property is not. The installer does <strong>not</strong> verify the archive against a published hash. It downloads, unzips, checks that the expected executable exists, and writes a marker file. There is no integrity check to inherit, so whatever assurance you want about the bytes in your mirror has to come from your own process: fetch over TLS from the vendor, checksum on the way in, and let the artifact repository hold the record. That matters more here than on the public CDN, because the mirror is a host inside your network that somebody can write to.</p>
-<p>There are per-browser overrides too, useful when only one engine comes from elsewhere:</p>
-<div class="code"><span class="lang">bash</span><pre><code>export PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST=https://nexus.internal/playwright
-export PLAYWRIGHT_FIREFOX_DOWNLOAD_HOST=https://nexus.internal/playwright
-export PLAYWRIGHT_WEBKIT_DOWNLOAD_HOST=https://nexus.internal/playwright</code></pre></div>
-<p>Those three do not cover everything the installer fetches. The variable is picked by matching the start of the component&#x27;s name, so the Chromium one also covers <code>chromium-headless-shell</code> and the tip-of-tree builds, and the Firefox one covers <code>firefox-beta</code>. But the installer knows ten downloadable components, and three of them - <code>ffmpeg</code>, <code>winldd</code> and <code>android</code> - have no per-browser variable at all. They read the generic <code>PLAYWRIGHT_DOWNLOAD_HOST</code> and nothing else. Set only the three per-browser hosts and FFmpeg still goes to the vendor&#x27;s CDN: harmless in an office, and in a closed network five attempts against a host that was never reachable.</p>
-<p>One more property of all four variables, easy to miss when a mirror misbehaves. The environment is not the only place they are read from. Playwright falls back to <code>npm_config_playwright_download_host</code>, and then to <code>npm_package_config_playwright_download_host</code>, so the value can arrive from an <code>.npmrc</code> or from a <code>config</code> block in <code>package.json</code>. A machine can be pointed at a mirror with no <code>export</code> anywhere in sight, which is worth knowing before you spend an afternoon reading the wrong <code>env</code>.</p>
+<h2 id="1-why-upgrading-is-not-optional"><span class="num">1</span>Why upgrading is not optional</h2>
+<p>The temptation in a closed environment is to freeze. Nothing can reach the machine, the suite passes, so why touch it. Three things eventually break that position.</p>
+<p><strong>The browsers age with the library.</strong> Playwright pins engine builds per release. Staying on an old Playwright means testing against browsers that are further and further from what your users run, which quietly reduces what your suite is evidence of.</p>
+<p><strong>Security review comes back.</strong> Dependencies accumulate CVEs, and the annual review will ask about them. &quot;We cannot upgrade&quot; is not an answer that survives that conversation.</p>
+<p><strong>The jump gets more expensive.</strong> Breaking changes compound. Four minor versions is an afternoon; eighteen months is a project with its own budget.</p>
 <hr>
-<h2 id="2-the-layout-the-installer-expects"><span class="num">2</span>The layout the installer expects</h2>
-<p>This is where most attempts fail. The mirror is not a directory of files you named yourself; it has to mirror the structure the installer constructs. The reliable way to discover it is to ask:</p>
-<div class="code"><span class="lang">bash</span><pre><code>npx playwright install --dry-run</code></pre></div>
-<p>Each entry prints the install location and the full URL that would be fetched. Take those URLs, strip the host, and you have the paths your mirror must serve. Do this once per Playwright version you support, and script it rather than transcribing by hand.</p>
-<p>Two things about that output decide whether the script works.</p>
-<p><strong>Most browsers print more than one URL.</strong> Firefox, WebKit and FFmpeg each list a primary and two fallbacks, and the fallbacks are the same archive on different hosts. Two of the three collapse to the same path once the host is stripped, so a naive <code>grep</code> fetches the same file twice and writes it over itself, while the third lands somewhere else entirely. Take the first URL per entry, or deduplicate on the destination path:</p>
-<div class="code"><span class="lang">bash</span><pre><code><span class="c"># Fetch on a connected machine, preserving the path structure.</span>
-<span class="c"># &quot;Download url:&quot; only - the fallback lines are the same archive elsewhere.</span>
-npx playwright install --dry-run \
-  | awk <span class="s">&#x27;/^ *Download url:/ {print $3}&#x27;</span> \
-  | while read -r url; do
-      path=<span class="s">&quot;${url#https://*/}&quot;</span>
-      mkdir -p <span class="s">&quot;staging/$(dirname &quot;</span>$path<span class="s">&quot;)&quot;</span>
-      [ -f <span class="s">&quot;staging/$path&quot;</span> ] || curl -sSL <span class="s">&quot;$url&quot;</span> -o <span class="s">&quot;staging/$path&quot;</span>
-    done</code></pre></div>
-<p><strong>Chromium does not follow the same path shape as the rest.</strong> Firefox, WebKit and FFmpeg sit under <code>builds/&lt;name&gt;/&lt;revision&gt;/</code>, keyed by Playwright&#x27;s own revision number. Chromium now ships as Chrome for Testing and sits under <code>builds/cft/&lt;browser-version&gt;/</code>, keyed by the Chrome version. Your mirror has to serve both shapes, and a script that assumes one of them will silently produce a mirror that works for two engines out of three.</p>
-<p>Upload <code>staging/</code> into a raw repository in Nexus or a generic repository in Artifactory, and set <code>PLAYWRIGHT_DOWNLOAD_HOST</code> to its base URL. A plain static file server works just as well; the artifact repository buys you authentication, retention and an audit trail rather than any special capability.</p>
-<h3 id="the-other-model-a-proxy-repository">The other model: a proxy repository</h3>
-<p>Everything above describes a mirror you fill yourself. The cheaper arrangement, and the one most teams reach for first, is a <strong>remote repository</strong> pointing at <code>https://cdn.playwright.dev</code>, caching each archive the first time somebody asks for it. Nexus calls it a proxy repository, Artifactory a remote repository, and the setup is a URL in a form.</p>
-<p>It costs almost nothing to run: a new Playwright version needs no action from anybody, because the first engineer to install it populates the cache for everyone else. You still get the retention, the authentication and the audit trail. If the question is only &quot;stop every laptop pulling three hundred megabytes from the public internet&quot;, this is the answer and the rest of this article is more machinery than you need.</p>
-<p>The catch is the one that decides it for a closed environment: <strong>the mirror itself needs a route to the vendor.</strong> In a network with a genuine air gap there is no such route, and a proxy repository has nothing to proxy. That is the point at which you go back to filling it yourself, and why the manual procedure is the one described here in full.</p>
+<h2 id="2-choosing-a-cadence"><span class="num">2</span>Choosing a cadence</h2>
+<p>Pick one deliberately and write it down. Three that work:</p>
+<div class="tablewrap"><table><thead><tr><th>Cadence</th><th>Fits</th><th>Cost</th></tr></thead><tbody><tr><td><strong>Every release</strong></td><td>Environments with a fast transfer path</td><td>Constant small effort, frequent regression runs</td></tr><tr><td><strong>Quarterly</strong></td><td>Most closed deployments</td><td>One planned upgrade window per quarter</td></tr><tr><td><strong>On trigger</strong></td><td>Very slow transfer processes</td><td>Upgrade only for a needed fix or a CVE, plus one scheduled catch-up a year</td></tr></tbody></table></div>
+<p>Quarterly is the default that fits most closed environments: it is frequent enough that each jump stays small, and rare enough to survive a transfer process measured in weeks.</p>
+<p>Whatever you choose, pin exactly and commit the lock. A caret range in <code>package.json</code> in an environment where you cannot see what was installed is a guarantee that two machines you believe are identical are not.</p>
+<div class="code"><span class="lang">json</span><pre><code>{ <span class="s">&quot;devDependencies&quot;</span>: { <span class="s">&quot;@playwright/test&quot;</span>: <span class="s">&quot;1.60.0&quot;</span> } }</code></pre></div>
 <hr>
-<h2 id="3-versioning-the-decision-that-actually-matters"><span class="num">3</span>Versioning: the decision that actually matters</h2>
-<figure class="photo"><picture><source type="image/avif" srcset="/articles/internal-browser-mirror/assets/img/p_tape-900.avif 900w, /articles/internal-browser-mirror/assets/img/p_tape-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/internal-browser-mirror/assets/img/p_tape-900.webp 900w, /articles/internal-browser-mirror/assets/img/p_tape-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/internal-browser-mirror/assets/img/p_tape-1440.jpg" srcset="/articles/internal-browser-mirror/assets/img/p_tape-900.jpg 900w, /articles/internal-browser-mirror/assets/img/p_tape-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="A mirror that holds one version is a tarball with extra steps. The value appears when it holds several." width="1440" height="1080" loading="lazy" decoding="async"></picture><figcaption>A mirror that holds one version is a tarball with extra steps. The value appears when it holds several.<span class="credit">Travan™TR-3 Magnetic Tape Cartridge (8744993952).jpg - Government &amp;amp; Heritage Library, State Library of NC from Raleigh, NC, United States, CC BY 2.0 (Wikimedia Commons)</span></figcaption></figure>
-<p>A mirror that holds one version is a tarball with extra steps. The value appears when it holds several, because that is what lets different projects move at different speeds.</p>
-<p>Keep every version you have a project on, plus the one you are migrating to. Delete nothing that a pipeline still references, and keep a file next to the tree recording which internal projects use which version. That file is what makes it safe to prune, and without it nobody ever dares to.</p>
-<p>The rule that prevents most incidents: <strong>the mirror is append-only.</strong> Never replace the contents of a revision directory in place. If an archive is wrong, publish a new version and migrate projects to it. Silently changing bytes under a path that machines have already cached produces failures that are close to undiagnosable.</p>
-<p>One thing the mirror does not solve, and it catches people who assume it does: holding four versions on the server does not mean a machine ends up with four versions in its cache. Playwright collects browser revisions that no live installation still claims, so an engineer who installs those four in sequence keeps only the last one. The earlier article in this series, on installing browsers with no route to the internet, covers that mechanism and the environment variable that suppresses it.</p>
+<h2 id="3-what-actually-breaks-when-you-jump-several-versions"><span class="num">3</span>What actually breaks when you jump several versions</h2>
+<p>The library itself is fairly disciplined about deprecations. Most upgrade pain comes from underneath it.</p>
+<p><strong>Browser behaviour.</strong> New engine builds change rendering, timing and occasionally default security behaviour. Suites with implicit timing assumptions surface this as new flakiness, and it looks like your tests broke rather than like the browser moved.</p>
+<p><strong>Selector and API deprecations.</strong> Individually small, collectively a day of work when several releases stack up.</p>
+<p><strong>Report and trace format changes.</strong> If you archive traces for audit, check that the viewer you have on the isolated side still opens them. This one bites specifically in closed environments, where the viewer is also a version you shipped.</p>
+<p><strong>System library requirements.</strong> New engine builds occasionally need newer system packages. On a machine that cannot reach a package repository, that turns a library upgrade into an operating system conversation.</p>
+<p>The practical consequence: <strong>upgrade in a connected environment first, on the same suite, and let it run for a week.</strong> The version that crosses the gap should be one you have already seen pass, not one you are about to find out about.</p>
 <hr>
-<h2 id="4-feeding-it"><span class="num">4</span>Feeding it</h2>
-<p>Whoever runs the mirror needs a repeatable way to add a version. In practice it is a short job on a connected build agent, run when a project wants to upgrade:</p>
-<ol><li>Install the target <code>@playwright/test</code> version in a scratch directory.</li><li>Run the dry-run capture from section 2 to fetch the archives.</li><li>Record a checksum of each archive as you fetch it, and keep it with the register. <code>--dry-run</code> prints locations and URLs, not hashes, so there is nothing published to compare against: the number you write down is your own, and its value is that it detects a change in your mirror later, not that it proves anything about the vendor.</li><li>Upload under the same path structure.</li><li>Record the version, the date and the requesting project in the register.</li></ol>
-<p>Two details worth building in from the start. Fetch for <strong>every platform your fleet runs</strong>, not just the one the build agent happens to be: a mirror that only serves Linux x64 will fail the first time somebody runs tests on an arm64 machine, and the error will point at the mirror rather than at the omission. And keep the fetch job&#x27;s output, so that when a download fails months later you can tell whether the archive was ever there.</p>
+<h2 id="4-the-transfer-package"><span class="num">4</span>The transfer package</h2>
+<figure class="photo"><picture><source type="image/avif" srcset="/articles/updating-playwright-behind-air-gap/assets/img/p_dock-900.avif 900w, /articles/updating-playwright-behind-air-gap/assets/img/p_dock-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/updating-playwright-behind-air-gap/assets/img/p_dock-900.webp 900w, /articles/updating-playwright-behind-air-gap/assets/img/p_dock-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/updating-playwright-behind-air-gap/assets/img/p_dock-1440.jpg" srcset="/articles/updating-playwright-behind-air-gap/assets/img/p_dock-900.jpg 900w, /articles/updating-playwright-behind-air-gap/assets/img/p_dock-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="Whatever the transfer mechanism is, what you hand over should be the same shape every time, including the roll" width="1440" height="960" loading="lazy" decoding="async"></picture><figcaption>Whatever the transfer mechanism is, what you hand over should be the same shape every time, including the rollback.<span class="credit">Imlay St Bowne St td (2018-07-07) 08 - 62 Imlay Street.jpg - Tdorante10, CC BY-SA 4.0 (Wikimedia Commons)</span></figcaption></figure>
+<p>Whatever the customer&#x27;s mechanism is, media, data diode or a supervised share, what you hand over should be the same shape every time:</p>
+<div class="code"><pre><code>playwright-1.60.0-linux-x64/
+  browsers/ms-playwright-1.60.0-linux-x64.tar.gz
+  packages/node_modules-1.60.0.tar.gz     <span class="c"># or the vendored tarballs</span>
+  deps/*.deb                              <span class="c"># system packages, if needed</span>
+  MANIFEST.txt                            <span class="c"># versions, platform, contents, date, author</span>
+  SHA256SUMS
+  SHA256SUMS.asc                          <span class="c"># detached signature</span></code></pre></div>
+<p>Sign it. Not because anyone expects tampering on the way in, but because the signature is what lets the receiving side accept the package without a conversation, and that conversation is often the slowest part of the transfer.</p>
+<p>Include the rollback in the same package: the previous version&#x27;s archive, or a written note of exactly where it still lives on the isolated side. An upgrade you cannot reverse inside the maintenance window is an upgrade nobody will approve twice.</p>
 <hr>
-<h2 id="5-what-breaks-when-playwright-updates"><span class="num">5</span>What breaks when Playwright updates</h2>
-<figure class="photo"><picture><source type="image/avif" srcset="/articles/internal-browser-mirror/assets/img/p_substation-900.avif 900w, /articles/internal-browser-mirror/assets/img/p_substation-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/internal-browser-mirror/assets/img/p_substation-900.webp 900w, /articles/internal-browser-mirror/assets/img/p_substation-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/internal-browser-mirror/assets/img/p_substation-1440.jpg" srcset="/articles/internal-browser-mirror/assets/img/p_substation-900.jpg 900w, /articles/internal-browser-mirror/assets/img/p_substation-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="Nothing announces that a mirror has gone stale. The archives simply stop being the ones the installer asks for" width="1440" height="1080" loading="lazy" decoding="async"></picture><figcaption>Nothing announces that a mirror has gone stale. The archives simply stop being the ones the installer asks for.<span class="credit">Substation in Vääksy at night.jpg - Unnerving duck, CC BY-SA 4.0 (Wikimedia Commons)</span></figcaption></figure>
-<p>A mirror is not a thing you build once. It is a thing that stops working, quietly, on a minor version bump, and the failure never says &quot;your mirror is out of date&quot;. Three mechanisms are worth knowing before you depend on one, and all three are visible in the installer&#x27;s own source rather than in any release note.</p>
-<h3 id="setting-the-download-host-removes-every-fallback">Setting the download host removes every fallback</h3>
-<p>Out of the box the installer carries three hosts for most browsers: a primary CDN, a second CDN, and the storage bucket directly. <code>--dry-run</code> prints them as <code>Download fallback 1</code> and <code>Download fallback 2</code>. It retries five times, rotating through that list, so a single host having a bad afternoon is invisible to everyone.</p>
-<p>The moment <code>PLAYWRIGHT_DOWNLOAD_HOST</code> is set, that list is replaced by exactly one entry: yours. The five retries remain, and all five go to the same place. You have not added a mirror in front of the vendor&#x27;s redundancy; you have swapped the vendor&#x27;s redundancy for a single host of your own.</p>
-<p>That is a fair trade in a closed network, where the vendor was never reachable anyway. It is a poor one in an office network where somebody set the variable to save bandwidth and inadvertently made a Nexus instance a hard dependency of every CI job.</p>
-<h3 id="the-path-shape-is-not-stable-across-versions">The path shape is not stable across versions</h3>
-<p>Chromium moved to Chrome for Testing and its archives moved with it: a different path prefix, and a key that is the Chrome version rather than Playwright&#x27;s revision number. Any mirror built before that move served paths nobody asked for any more, and the symptom was a 404 from an internal host on a version of Playwright that had worked the week before.</p>
-<p>Nothing prevents that happening again. The archives are an implementation detail of the installer, not a published interface, and they change when the browser vendors change.</p>
-<h3 id="the-consequence-what-to-actually-do">The consequence: what to actually do</h3>
-<p>Treat the mirror as <strong>version-scoped, not evergreen</strong>. Before a project upgrades Playwright, run the dry-run capture for the new version on a connected machine and compare the paths against what the mirror already serves. It takes a minute and it turns a broken CI pipeline into a task in the upgrade ticket.</p>
-<p>The check is one command and a diff:</p>
-<div class="code"><span class="lang">bash</span><pre><code><span class="c"># On a connected machine, against the version you are about to move to</span>
-npx playwright install --dry-run | awk <span class="s">&#x27;/^ *Download url:/ {print $3}&#x27;</span> \
-  | sed <span class="s">&#x27;s|^https://[^/]*/||&#x27;</span> | sort &gt; wanted.txt
-<span class="c"># Against what your mirror actually has</span>
-curl -s https://nexus.internal/playwright/manifest.txt | sort &gt; have.txt
-diff wanted.txt have.txt</code></pre></div>
-<p>Keep that manifest deliberately. A mirror that cannot answer &quot;what do you hold&quot; turns every upgrade into an archaeology exercise against a directory listing.</p>
+<h2 id="5-the-upgrade-window-on-the-isolated-side"><span class="num">5</span>The upgrade window on the isolated side</h2>
+<p>Sequence that survives contact with reality:</p>
+<ol><li><strong>Verify the package.</strong> Checksums and signature, before anything is unpacked.</li><li><strong>Install alongside, not over.</strong> Unpack the new browser cache to a path that includes the version, and switch by changing <code>PLAYWRIGHT_BROWSERS_PATH</code>. Both versions coexist until you delete one.</li><li><strong>Run the smoke suite.</strong> Ten minutes, covering login, one critical path and one report.</li><li><strong>Run the full regression once.</strong> Compare against the last known-good run, not against an expectation. New failures are the interesting output; unchanged failures are noise.</li><li><strong>Keep the old version for one cycle.</strong> Delete it when the next upgrade lands, not when this one succeeds.</li></ol>
+<p>Step 2 is what makes the whole thing reversible. Rolling back becomes an environment variable rather than a restore.</p>
 <hr>
-<h2 id="6-what-it-costs"><span class="num">6</span>What it costs</h2>
-<p>Be honest with whoever approves this, because underselling the cost is how mirrors end up unmaintained:</p>
-<div class="tablewrap"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>Initial setup</strong></td><td>Half a day, most of it spent discovering the path structure</td></tr><tr><td><strong>Adding a version</strong></td><td>20 to 30 minutes, mostly waiting for downloads</td></tr><tr><td><strong>Cadence</strong></td><td>Playwright releases roughly monthly; you will not follow every one</td></tr><tr><td><strong>Storage</strong></td><td>Around 1 GB per version for all three engines and one platform</td></tr><tr><td><strong>The real cost</strong></td><td>One named owner. Without one it rots and everyone reverts to tarballs</td></tr></tbody></table></div>
-<p>Storage is never the constraint. The constraint is that somebody has to notice when a project needs a version that is not there yet, and that somebody has to be a person rather than a policy.</p>
+<h2 id="6-when-to-stay-where-you-are"><span class="num">6</span>When to stay where you are</h2>
+<p>Deliberately staying behind is a legitimate decision, and worth writing down as one:</p>
+<ul><li>an upgrade that requires a system library your customer cannot install this quarter</li><li>a browser build with a known regression against the application under test</li><li>a release too close to a delivery deadline for a full regression to fit</li><li>an environment being decommissioned inside six months</li></ul>
+<p>What separates a decision from neglect is the record: which version, why, what would change it, and when it will be revisited. That record is also exactly what the security review will ask for when it notices you are four versions behind.</p>
 <hr>
-<h2 id="7-where-the-mirror-ends"><span class="num">7</span>Where the mirror ends</h2>
-<p>A browser mirror solves exactly one problem: getting engine binaries onto machines that cannot reach the CDN. It does not solve npm packages, system libraries, or container base images. Teams regularly discover this halfway through, when <code>npm ci</code> fails on a machine where the browsers are now perfectly available.</p>
-<p>If you are building this because your whole pipeline runs without internet access, the browser mirror is one of four things you need, alongside a package registry proxy, an image registry and a way to get distribution packages in. Plan for all four or the first one will look like a failure.</p>
-<hr>
-<h2 id="8-conclusion"><span class="num">8</span>Conclusion</h2>
-<p>The mirror is not a clever trick. It is the same archives, on your own host, in the layout the installer already expects. What makes it work over time is not the serving, which is trivial, but three habits:</p>
-<ol><li><strong>Discover the layout, do not guess it.</strong> <code>--dry-run</code> prints exactly what will be requested; script the capture from that output.</li><li><strong>Append, never replace.</strong> A revision directory whose contents change is a failure nobody will trace.</li><li><strong>Name an owner.</strong> Everything else here is a one-off; keeping the mirror current is not.</li></ol>
+<h2 id="7-conclusion"><span class="num">7</span>Conclusion</h2>
+<p>The mismatch between a monthly release cycle and a transfer process measured in weeks cannot be resolved. It can only be managed, and managing it comes down to three things:</p>
+<ol><li><strong>Choose a cadence and write it down.</strong> Quarterly fits most closed environments. Not choosing means freezing by accident.</li><li><strong>Prove the version somewhere connected first.</strong> The upgrade that crosses the gap should be one you have already watched pass for a week.</li><li><strong>Make rollback a path change, not a restore.</strong> Install alongside, switch by environment variable, delete only on the next cycle.</li></ol>
+<p>None of it removes the lag. It turns the lag into something you chose, with a date on it, which is the difference between an answer at the audit and an apology.</p>
   <aside class="byline-card"><span class="avatar" aria-hidden="true">PG</span><div><p class="who">About the author</p><p class="name">Piotr Gajownik <span>· ExpandIt</span></p><p class="bio">Senior Test Engineer. He has been testing software since 2007, working on delivery into regulated and network-isolated environments.</p></div></aside>
-  <p class="dl"><a href="/articles/internal-browser-mirror-offline.html" download><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>Download the offline copy</a><span>One HTML file with everything inside - opens with no internet at all.</span></p>
+  <p class="dl"><a href="/articles/updating-playwright-behind-air-gap-offline.html" download><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>Download the offline copy</a><span>One HTML file with everything inside - opens with no internet at all.</span></p>
   <aside class="cta"><p class="eyebrow">The runner behind this article</p><h2>These are the problems vallus was built to solve</h2><p class="lead">Everything above describes constraints we kept meeting at customer sites: no route to the internet, no access to the machine where a run failed, and a report that has to answer every question on its own. vallus is the Playwright runner written for exactly those conditions.</p><ul><li><b>Nothing leaves the network</b>No telemetry, no licence server, no call home. Once installed, the instance needs no route to the internet at all - the licence is a file verified locally. §5.4</li><li><b>Results stay on your disk</b>Reports, traces, screenshots and cross-run history live on your infrastructure, in formats that open without us. Nobody at the vendor can see your runs. §5.1</li><li><b>A container per run<em class="scope">Docker installs</em></b>On a Docker deployment each run gets its own container built from that project’s code and dependencies, with an image per version of your tests: a rollback is a tag, not a rebuild. Without Docker the runner executes suites directly on the host. §3.4</li><li><b>Reports built for absent engineers</b>Playwright HTML or Allure per run, traces served over HTTPS, plus run history and trends - the execution context the report has to carry when you cannot log in. §4.3</li><li><b>One dashboard, many environments</b>Scheduling, a run queue, per-project Playwright versions and access rules, so the same suite runs the same way on every environment you ship to. §3.3</li></ul><div class="acts"><a class="btn primary" href="https://www.vallus.eu/">Explore vallus<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="btn secondary" href="https://www.vallus.eu/#demo">Book a demo</a></div><p class="note">vallus is a product of ExpandIt · deployed on your own infrastructure.</p></aside>
 </article>
 </main>
@@ -590,7 +556,7 @@ diff wanted.txt have.txt</code></pre></div>
     <a class="fbrand" href="https://www.vallus.eu/"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus · by ExpandIt</b></a>
     <nav class="flinks" aria-label="vallus.eu"><a href="https://www.vallus.eu/#features">Features</a><a href="https://www.vallus.eu/#pricing">Pricing</a><a href="https://www.vallus.eu/free/">Free</a><a href="https://www.vallus.eu/articles/">Articles</a><a href="https://www.vallus.eu/#deployment">Security</a><a href="https://www.vallus.eu/#faq">FAQ</a><a href="https://www.vallus.eu/privacy/">Privacy</a><a href="https://www.vallus.eu/licenses/">Licences</a><a class="cta" href="https://www.vallus.eu/#demo">Book a demo</a></nav>
     <h3>Photographs</h3>
-    <ul><li>Hamamatsu Municipal Sakuma Library reading room ac (1).jpg - Asturio Cantabrio, CC BY-SA 4.0 (Wikimedia Commons)</li><li>Travan™TR-3 Magnetic Tape Cartridge (8744993952).jpg - Government &amp;amp; Heritage Library, State Library of NC from Raleigh, NC, United States, CC BY 2.0 (Wikimedia Commons)</li><li>Substation in Vääksy at night.jpg - Unnerving duck, CC BY-SA 4.0 (Wikimedia Commons)</li></ul>
+    <ul><li>ISS Quest Airlock Module transported by NASA Super Guppy Turbine (KSC-00PP-1345).jpg - NASA, public domain (Wikimedia Commons)</li><li>Imlay St Bowne St td (2018-07-07) 08 - 62 Imlay Street.jpg - Tdorante10, CC BY-SA 4.0 (Wikimedia Commons)</li></ul>
     <p class="note">An offline copy of this article is linked at the top: one file with the images, fonts and styles embedded, which opens on a machine with no network at all.</p>
   </div>
 </footer>

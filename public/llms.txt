@@ -29,7 +29,7 @@ leave the customer's perimeter.
 - [Integrations](https://vallus.eu/#integrations): Playwright, pytest-playwright, Allure, Jenkins, GitHub Actions, Azure DevOps, Jira, Xray, Keycloak/OIDC, Grafana, ReportPortal
 - [Deployment and security](https://vallus.eu/#deployment): on-premise, containers, TLS, access rules
 - [Roadmap](https://vallus.eu/#development): what is being built
-- [Pricing](https://vallus.eu/#pricing): Team, Business, Enterprise
+- [Pricing](https://vallus.eu/#pricing): Team, Business, Enterprise. Team and Business are on promotional pricing - 25% of the list price for the next five customers, on agreements concluded by 31 December 2026, covering the first year only; renewals are at the list price
 - [Free licence](https://vallus.eu/free/): 2 users, 1 project, 1 concurrent run
 - [FAQ](https://vallus.eu/#faq)
 - [Book a demo](https://vallus.eu/#demo)
@@ -37,6 +37,7 @@ leave the customer's perimeter.
 ## Writing
 
 - [Articles](https://vallus.eu/articles/): notes on test automation in closed environments
+- [The version you are on is the version you are stuck with](https://vallus.eu/articles/updating-playwright-behind-air-gap/): keeping Playwright current behind an air gap - choosing an upgrade cadence, what breaks when you jump several versions, and making a rollback a path change
 - [One tarball is a procedure, twenty is a problem](https://vallus.eu/articles/internal-browser-mirror/): serving Playwright browser archives from your own artifact repository once copying tarballs stops scaling
 - [The browsers have to get there somehow](https://vallus.eu/articles/playwright-offline-install/): installing Playwright browsers on a machine with no route to the internet, and carrying several versions so a rollback is not another transfer
 - [The tests nobody on the outside will ever see](https://vallus.eu/articles/testing-closed-environments/): automation, reporting and data sovereignty where there is no route to the internet

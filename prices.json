@@ -7,6 +7,12 @@
     "note": "Full functionality for 21 days, no card and no auto-renewal. The evaluation key is issued with an expiry date and can be extended once by agreement."
   },
   "intro": "All prices are net, in EUR, excluding VAT. Every tier is self-hosted on your own infrastructure.",
+  "promo": {
+    "label": "Promotion - first year",
+    "note": "Promotional pricing: 25% of the list price, on agreements concluded by 31 December 2026. It covers the first year of the subscription; renewals are at the list price. Free and Enterprise are not part of it.",
+    "until": "2026-08-31",
+    "seatsLeft": 5
+  },
   "tiersNote": "* Running tests in parallel requires a Docker daemon the runner can reach - each run then gets a container of its own. Without one vallus still runs every suite, one at a time.",
   "tiers": [
     {
@@ -33,6 +39,7 @@
       "id": "team",
       "name": "Team",
       "price": "€2,400",
+      "promoPrice": "€600",
       "cadence": "per year",
       "summary": "A single QA team putting its first suites behind a dashboard.",
       "highlight": false,
@@ -54,6 +61,7 @@
       "id": "business",
       "name": "Business",
       "price": "€6,000",
+      "promoPrice": "€1,500",
       "cadence": "per year",
       "summary": "Several teams sharing one instance, with Jira/Xray in the loop.",
       "highlight": true,

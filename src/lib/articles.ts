@@ -34,6 +34,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
     {
+        slug: "updating-playwright-behind-air-gap",
+        title: "The version you are on is the version you are stuck with",
+        summary:
+            "Playwright ships monthly while a transfer into a closed environment takes weeks: how to choose an upgrade cadence, what breaks when you jump several versions at once, and how to make a rollback a path change rather than another transfer.",
+        published: "2026-09-14",
+        readingMinutes: 5,
+        topics: ["Closed environments", "Playwright", "Upgrades"],
+        language: "en",
+        offlineSize: "0.9 MB",
+    },
+    {
         slug: "internal-browser-mirror",
         title: "One tarball is a procedure, twenty is a problem",
         summary:
