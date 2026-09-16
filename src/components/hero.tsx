@@ -63,14 +63,37 @@ const Hero = () => (
                 </a>
             </div>
 
-            <dl className="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3">
-                {STATS.map(({ value, label }) => (
-                    <div key={value} className="bg-ink-soft px-6 py-5">
-                        <dt className="text-base font-semibold text-bone">{value}</dt>
-                        <dd className="mt-1 text-sm text-muted">{label}</dd>
-                    </div>
-                ))}
-            </dl>
+            {/* Served from public/ with the rest of the site, so playing it contacts no
+                third party. preload="none" keeps the 14 MB file off the wire until play. */}
+            {/* On wide screens the stats stand in a column beside the video, and the grid
+                row stretches them to its height - the caption sits in a row of its own so
+                it does not count. Below lg the order puts the caption under the video and
+                the stats under both, as a row. */}
+            <div className="mx-auto mt-14 grid max-w-5xl gap-x-6 gap-y-3 lg:grid-cols-[1fr_17rem]">
+                <div className="order-1 overflow-hidden rounded-lg border border-line bg-surface shadow-2xl shadow-black/40">
+                    <video
+                        className="block aspect-video w-full"
+                        src="/video/vallus-demo.mp4"
+                        poster="/video/vallus-demo-poster.jpg"
+                        controls
+                        playsInline
+                        preload="none"
+                        aria-label="vallus product tour"
+                    />
+                </div>
+                <p className="order-2 text-sm text-muted lg:order-3">
+                    Product tour · 2 min · music only, captions in the video
+                </p>
+
+                <dl className="order-3 mt-5 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3 lg:order-2 lg:mt-0 lg:grid-cols-1 lg:grid-rows-3 lg:text-left">
+                    {STATS.map(({ value, label }) => (
+                        <div key={value} className="flex flex-col justify-center bg-ink-soft px-6 py-5">
+                            <dt className="text-base font-semibold text-bone">{value}</dt>
+                            <dd className="mt-1 text-sm text-muted">{label}</dd>
+                        </div>
+                    ))}
+                </dl>
+            </div>
         </div>
     </section>
 );

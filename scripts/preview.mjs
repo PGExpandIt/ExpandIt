@@ -39,6 +39,7 @@ const CONTENT_TYPES = {
     ".woff2": "font/woff2",
     ".txt": "text/plain; charset=utf-8",
     ".xml": "application/xml; charset=utf-8",
+    ".mp4": "video/mp4",
 };
 
 const resolveFile = async (urlPath) => {
@@ -81,10 +82,34 @@ const server = createServer(async (request, response) => {
         return;
     }
 
-    response.writeHead(200, {
+    const headers = {
         "Content-Type": CONTENT_TYPES[extname(file)] ?? "application/octet-stream",
         "Cache-Control": "no-store",
-    });
+        "Accept-Ranges": "bytes",
+    };
+
+    // The CDN answers byte ranges, and Safari refuses to play a video without them,
+    // so the preview has to as well - otherwise the hero video only works in Chrome.
+    const { size } = await stat(file);
+    const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.range ?? "");
+    if (range && (range[1] || range[2])) {
+        const start = range[1] ? Number(range[1]) : Math.max(size - Number(range[2]), 0);
+        const end = range[1] && range[2] ? Math.min(Number(range[2]), size - 1) : size - 1;
+        if (start > end || start >= size) {
+            response.writeHead(416, { "Content-Range": `bytes */${size}` });
+            response.end();
+            return;
+        }
+        response.writeHead(206, {
+            ...headers,
+            "Content-Length": end - start + 1,
+            "Content-Range": `bytes ${start}-${end}/${size}`,
+        });
+        createReadStream(file, { start, end }).pipe(response);
+        return;
+    }
+
+    response.writeHead(200, { ...headers, "Content-Length": size });
     createReadStream(file).pipe(response);
 });
 
