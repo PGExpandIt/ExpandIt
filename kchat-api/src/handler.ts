@@ -11,7 +11,7 @@ import { issueChallenge, verifyChallenge } from "./challenge.js";
 import type { Config } from "./config.js";
 import type { KChat } from "./kchat.js";
 import { issueCode, verifyCode } from "./otp.js";
-import { sendCodeViaMailer, sendLicenseViaMailer } from "./mailerClient.js";
+import { sendCodeViaMailer, sendLicenseViaMailer, type LicenseOutcome, type ManualReason } from "./mailerClient.js";
 
 /** OTP e-mail verification is on only when the secret, mailer URL and shared secret are all set. */
 const otpEnabled = (config: Config): config is Config & { otpSecret: string; mailerUrl: string; mailerSecret: string } =>
@@ -122,8 +122,22 @@ const defang = (value: string): string => value.replace(/@(?=[A-Za-z0-9_.-])/g, 
 const field = (body: any, key: string, max: number): string =>
     String(body?.[key] ?? "").trim().slice(0, max);
 
+/** Why a verified request still needs a human, as the channel reads it. */
+const MANUAL_NOTES: Record<ManualReason, string> = {
+    personal_email:
+        "_Personal or disposable mailbox - not issued automatically. Check the company is real before signing; one free licence per organisation._",
+    company_has_licence:
+        "_This company name already has a valid free licence, issued to another e-mail domain. Check before signing a second one._",
+};
+
 /** Assembles the kChat post for a free-licence request from the /free page. */
-const buildLicenseRequest = (parts: { company: string; email: string; marketing: boolean; autoFailed?: boolean }): string =>
+const buildLicenseRequest = (parts: {
+    company: string;
+    email: string;
+    marketing: boolean;
+    autoFailed?: boolean;
+    manual?: ManualReason;
+}): string =>
     [
         "**🔑 Free licence request**",
         "",
@@ -132,6 +146,7 @@ const buildLicenseRequest = (parts: { company: string; email: string; marketing:
         `**Product-update opt-in:** ${parts.marketing ? "yes" : "no"}`,
         "",
         ...(parts.autoFailed ? ["_Automatic issue failed - nothing was sent to the visitor. Check the mailer log._", ""] : []),
+        ...(parts.manual ? [MANUAL_NOTES[parts.manual], ""] : []),
         `_Sign the free key offline and send the licence to \`${parts.email}\` within 24 h._`,
     ].join("\n");
 
@@ -139,16 +154,18 @@ const buildLicenseRequest = (parts: { company: string; email: string; marketing:
  * The channel post for a key issued automatically. Doubles as the record of issued
  * free keys: the edge has no storage, and the key itself is deliberately not in it.
  */
-const buildLicenseIssued = (parts: { company: string; email: string; marketing: boolean; expires: string }): string =>
+const buildLicenseIssued = (parts: { company: string; email: string; marketing: boolean; expires: string; reissued: boolean }): string =>
     [
-        "**🔑 Free licence issued**",
+        parts.reissued ? "**🔑 Free licence re-sent**" : "**🔑 Free licence issued**",
         "",
         `**Company (exact, case-sensitive):** ${defang(parts.company)}`,
         `**E-mail:** \`${parts.email}\``,
         `**Expires:** ${parts.expires}`,
         `**Product-update opt-in:** ${parts.marketing ? "yes" : "no"}`,
         "",
-        "_Signed with the free key and e-mailed automatically. Nothing to do._",
+        parts.reissued
+            ? "_The organisation already had a valid free licence; the same key was e-mailed again. Nothing to do._"
+            : "_Signed with the free key and e-mailed automatically. Nothing to do._",
     ].join("\n");
 
 /** Assembles the Mattermost-markdown post from the submitted fields. */
@@ -375,9 +392,9 @@ const handleRegister = async (
         return json(200, { ok: true, transport, issued: false }, headers);
     }
 
-    let expires: string;
+    let outcome: LicenseOutcome;
     try {
-        ({ expires } = await sendLicenseViaMailer(config.mailerUrl, config.mailerSecret, email, company));
+        outcome = await sendLicenseViaMailer(config.mailerUrl, config.mailerSecret, email, company);
     } catch (error) {
         // The visitor has already proven the address and should not be told to start
         // over. Fall back to the manual path the form promised before automation: the
@@ -388,10 +405,19 @@ const handleRegister = async (
         return json(200, { ok: true, transport, issued: false }, headers);
     }
 
+    // The mailer's one-licence-per-organisation rule declined: answered by hand, like a
+    // request before automation, with the reason for whoever picks it up.
+    if (!outcome.sent) {
+        const text = buildLicenseRequest({ company, email, marketing, manual: outcome.reason });
+        const { transport } = await kchat.send({ text });
+        return json(200, { ok: true, transport, issued: false }, headers);
+    }
+    const { expires, reissued } = outcome;
+
     // The key is already in the visitor's inbox. A failed notification must not turn
     // that into an error page, or they would request - and be sent - a second key.
     try {
-        await kchat.send({ text: buildLicenseIssued({ company, email, marketing, expires }) });
+        await kchat.send({ text: buildLicenseIssued({ company, email, marketing, expires, reissued }) });
     } catch (error) {
         console.error(`[kchat-api] licence for ${email} issued, but the channel notification failed:`, error);
     }

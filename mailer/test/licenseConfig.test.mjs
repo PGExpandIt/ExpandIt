@@ -12,7 +12,7 @@ const { privateKey } = crypto.generateKeyPairSync("rsa", {
 });
 
 const BASE_ENV = { SMTP_HOST: "mail.example", SMTP_USER: "sales@vallus.eu", SMTP_PASS: "x", MAILER_AUTH_SECRET: "s" };
-const LICENSE_KEYS = ["FREE_LICENSE_KEY_B64", "FREE_LICENSE_TERM_DAYS", "FREE_LICENSE_MIN_VERSION", "LICENSE_SUBJECT", "LICENSE_BODY", "MAIL_SIGNATURE"];
+const LICENSE_KEYS = ["FREE_LICENSE_KEY_B64", "FREE_LICENSE_TERM_DAYS", "FREE_LICENSE_MIN_VERSION", "LICENSE_SUBJECT", "LICENSE_BODY", "MAIL_SIGNATURE", "DOWNLOADS_URL"];
 
 /** Runs `fn` with exactly these variables set, and puts the environment back after. */
 const withEnv = (vars, fn) => {
@@ -67,6 +67,8 @@ test("the licence e-mail carries company, key, expiry and version, placeholders 
         const sender = new SmtpSender(loadConfig());
         let sent;
         sender.transport = { sendMail: async (mail) => { sent = mail; } };
+        // No network in tests: the download section is covered in downloads.test.mjs.
+        sender.downloads = { section: async () => "Download vallus 9.9.9:\n- TypeScript (33 MB): https://downloads.vallus.eu/9.9.9/vallus-ts-9.9.9.zip" };
 
         await sender.sendLicense("alex@acme.com", { company: "Acme {key}", key: "KEY.SIG", expires: "2027-03-19" });
 
@@ -77,6 +79,7 @@ test("the licence e-mail carries company, key, expiry and version, placeholders 
         assert.match(sent.text, /valid until 2027-03-19/);
         assert.match(sent.text, /vallus 1\.5\.0 or newer/);
         assert.equal(sent.text.split("KEY.SIG").length, 2, "the key appears exactly once");
+        assert.match(sent.text, /KEY\.SIG\n\nDownload vallus 9\.9\.9:\n- TypeScript \(33 MB\): https:\/\/downloads\.vallus\.eu\/9\.9\.9\/vallus-ts-9\.9\.9\.zip\n/);
         assert.match(sent.text, /\n-- \nvallus\nsales@vallus\.eu\n$/);
     });
 });

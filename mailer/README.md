@@ -43,6 +43,27 @@ The payload is the generator's free preset, expiring after `FREE_LICENSE_TERM_DA
 works with that exact string. The edge calls this only after the visitor proved the
 e-mail with a one-time code; codes and licences share the per-recipient rate limit.
 
+The e-mail carries download links for the current release, read at send time from
+`latest.json` on `DOWNLOADS_URL` (default `https://downloads.vallus.eu`) and reused
+for five minutes. Only links on that host are mailed. When it cannot be read the
+e-mail still goes out, linking the downloads page (`DOWNLOADS_URL/`) instead.
+
+**One licence per organisation.** Every issued key is recorded in
+`LICENSE_LEDGER_PATH` (JSON lines: company, normalised company, e-mail, domain,
+expiry - never the key), and each request is checked against it first:
+
+| Request | Answer |
+|---|---|
+| Personal or disposable mailbox (gmail.com, wp.pl, mailinator.com...) | `409 manual_review` `personal_email` - no key |
+| Same e-mail domain or address, licence still valid | the **same** key again, `reissued: true` |
+| Same company name (case, accents, punctuation and legal form ignored) from another domain | `409 manual_review` `company_has_licence` - no key |
+| Within 14 days of expiry, or expired | a new licence |
+
+The existing key is not stored: RSA PKCS#1 v1.5 signatures are deterministic, so the
+recorded company and expiry sign to the same key again. The edge turns a `409` into a
+request answered by hand. Requests are serialised, so two arriving together cannot
+both be issued a key. One mailer instance only - the ledger is a file.
+
 Configuration fails at startup, not on the first request, when the key does not
 decode to an RSA private key, the term exceeds 190 days, or
 `FREE_LICENSE_MIN_VERSION` is missing.

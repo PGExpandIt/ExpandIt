@@ -29,6 +29,11 @@ COPY --from=deps  /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./
 
+# The licence ledger (src/ledger.ts) lives here, on a volume. Created and owned by
+# `node` in the image so a fresh named volume inherits that owner - otherwise Docker
+# creates it root-owned and the mailer cannot write the first licence.
+RUN mkdir -p /app/data && chown node:node /app/data
+
 # node:alpine ships an unprivileged `node` user (uid 1000).
 USER node
 EXPOSE 8790

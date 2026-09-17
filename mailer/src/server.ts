@@ -4,11 +4,14 @@
 import http from "node:http";
 import { loadConfig } from "./config.js";
 import { createHandler } from "./handler.js";
+import { LicenseLedger } from "./ledger.js";
 import { SmtpSender } from "./mailer.js";
 
 const config = loadConfig();
 const sender = new SmtpSender(config);
-const handler = createHandler(config, sender);
+// Only with licences on: a mailer that sends codes alone needs no writable storage.
+const ledger = config.freeLicense ? new LicenseLedger(config.freeLicense.ledgerPath) : undefined;
+const handler = createHandler(config, sender, undefined, ledger);
 
 const server = http.createServer(async (req, res) => {
     const chunks: Buffer[] = [];
@@ -30,6 +33,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(config.port, config.bindHost, () => {
     console.log(`[mailer] listening on http://${config.bindHost}:${config.port}`);
     console.log(`[mailer] SMTP ${config.smtp.host}:${config.smtp.port} as ${config.smtp.user}`);
+    if (ledger) console.log(`[mailer] free licences: ${ledger.size} on record in ${config.freeLicense?.ledgerPath}`);
     // Fail fast if the mailbox login is wrong - better here than on the first code.
     sender
         .verifyConnection()

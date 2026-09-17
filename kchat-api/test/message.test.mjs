@@ -458,6 +458,38 @@ test("when the mailer fails, the request falls back to the channel, flagged", as
     assert.match(text, /Sign the free key offline/);
 });
 
+test("a licence the mailer re-sent is posted as re-sent, and the visitor told it is on its way", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(AUTO), kchat);
+
+    await withMailer(() => new Response(JSON.stringify({ ok: true, expires: "2027-03-19", reissued: true }), { status: 200 }), async () => {
+        const res = await verifiedRegister(handler);
+        assert.deepEqual(await res.json(), { ok: true, issued: true, expires: "2027-03-19" });
+    });
+    const text = kchat._state.sent[0].text;
+    assert.match(text, /Free licence re-sent/);
+    assert.match(text, /same key was e-mailed again/);
+});
+
+test("a request the mailer sends to review lands in the channel with the reason, not as a failure", async () => {
+    for (const [reason, note] of [
+        ["personal_email", /Personal or disposable mailbox/],
+        ["company_has_licence", /already has a valid free licence/],
+    ]) {
+        const kchat = fakeKchat();
+        const handler = createHandler(baseConfig(AUTO), kchat);
+        await withMailer(() => new Response(JSON.stringify({ error: "manual_review", reason }), { status: 409 }), async () => {
+            const res = await verifiedRegister(handler);
+            assert.equal(res.status, 200);
+            assert.deepEqual(await res.json(), { ok: true, transport: "webhook", issued: false });
+        });
+        const text = kchat._state.sent[0].text;
+        assert.match(text, /Free licence request/, reason);
+        assert.match(text, note, reason);
+        assert.doesNotMatch(text, /Automatic issue failed/, reason);
+    }
+});
+
 test("a failed channel notification does not undo an issued key", async () => {
     const kchat = { transport: "webhook", async send() { throw new Error("kchat down"); } };
     const handler = createHandler(baseConfig(AUTO), kchat);

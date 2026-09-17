@@ -3,6 +3,7 @@
 
 import nodemailer, { type Transporter } from "nodemailer";
 import type { Config } from "./config.js";
+import { DownloadsDirectory } from "./downloads.js";
 
 /** What goes into a licence e-mail. */
 export interface LicenseMail {
@@ -21,9 +22,11 @@ export interface CodeSender {
 export class SmtpSender implements CodeSender {
     private readonly transport: Transporter;
     private readonly config: Config;
+    private readonly downloads: DownloadsDirectory | null;
 
     constructor(config: Config) {
         this.config = config;
+        this.downloads = config.freeLicense ? new DownloadsDirectory(config.freeLicense.downloadsUrl) : null;
         this.transport = nodemailer.createTransport({
             host: config.smtp.host,
             port: config.smtp.port,
@@ -58,8 +61,10 @@ export class SmtpSender implements CodeSender {
             expires: license.expires,
             minVersion: settings.minVersion,
             key: license.key,
+            // Links to the current release, read from the downloads host at send time.
+            downloads: this.downloads ? await this.downloads.section() : "",
         };
-        const body = settings.body.replace(/\{(company|expires|minVersion|key)\}/g, (_, name: string) => values[name]);
+        const body = settings.body.replace(/\{(company|expires|minVersion|key|downloads)\}/g, (_, name: string) => values[name]);
         await this.send(email, settings.subject, body);
     }
 

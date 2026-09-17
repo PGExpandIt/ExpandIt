@@ -91,8 +91,15 @@ export default function FreePage() {
                                             is never perpetual.
                                         </li>
                                         <li>
-                                            The key is e-mailed as soon as you confirm your e-mail
-                                            address.
+                                            One free licence per organisation. Asking again while it
+                                            is valid re-sends the same key; a new one can be requested
+                                            from 14 days before it ends.
+                                        </li>
+                                        <li>
+                                            The key is e-mailed as soon as you confirm your work
+                                            e-mail address. Requests from personal mailboxes (Gmail,
+                                            Outlook.com and the like) are reviewed by hand within one
+                                            business day.
                                         </li>
                                         <li>
                                             We store your company name and e-mail because they are

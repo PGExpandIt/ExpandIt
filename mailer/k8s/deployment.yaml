@@ -60,6 +60,14 @@ spec:
             # readOnlyRootFilesystem still needs a writable scratch dir for Node.
             - name: tmp
               mountPath: /tmp
+            # The free licence ledger (src/ledger.ts). An emptyDir forgets every issued
+            # licence when the pod goes, and with it the one-per-company rule: swap in a
+            # PersistentVolumeClaim before setting FREE_LICENSE_KEY_B64 here, and keep
+            # replicas at 1 - the ledger is a file, not a shared store.
+            - name: data
+              mountPath: /app/data
       volumes:
         - name: tmp
+          emptyDir: {}
+        - name: data
           emptyDir: {}

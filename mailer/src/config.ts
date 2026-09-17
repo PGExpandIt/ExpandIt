@@ -51,8 +51,12 @@ export interface FreeLicenseConfig {
     /** Days until expiry. The generator's free preset uses 183; the runners accept 190 at most. */
     termDays: number;
     subject: string;
-    /** Body template; {company}, {key}, {expires} and {minVersion} are substituted. */
+    /** Body template; {company}, {key}, {expires}, {minVersion} and {downloads} are substituted. */
     body: string;
+    /** Base of the downloads host; its latest.json supplies the {downloads} links. */
+    downloadsUrl: string;
+    /** JSON-lines record of issued licences - see src/ledger.ts. */
+    ledgerPath: string;
     /** Oldest vallus release that carries the free public key. Older ones reject the key. */
     minVersion: string;
 }
@@ -64,6 +68,8 @@ const DEFAULT_LICENSE_BODY = [
     "",
     "Licence key:",
     "{key}",
+    "",
+    "{downloads}",
     "",
     "Enter both in vallus under Setup > License, or Admin > System > Update license on a",
     "running instance. Type the company name exactly as above, including capital letters:",
@@ -97,6 +103,8 @@ const loadFreeLicense = (): FreeLicenseConfig | null => {
         subject: optional("LICENSE_SUBJECT", "Your free vallus licence"),
         body: optional("LICENSE_BODY", DEFAULT_LICENSE_BODY).replaceAll("\\n", "\n"),
         minVersion: required("FREE_LICENSE_MIN_VERSION"),
+        downloadsUrl: optional("DOWNLOADS_URL", "https://downloads.vallus.eu"),
+        ledgerPath: optional("LICENSE_LEDGER_PATH", "data/licenses.jsonl"),
     };
 };
 

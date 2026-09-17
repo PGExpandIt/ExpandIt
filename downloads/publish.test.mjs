@@ -14,7 +14,7 @@ import path from "node:path";
 
 import { execFileSync } from "node:child_process";
 
-import { formatSums, loadSettings, parseArgs, planFile, publish, readPackageVersion } from "./publish.mjs";
+import { compareVersionsDesc, formatSums, loadSettings, parseArgs, planFile, publish, readPackageVersion, renderIndex } from "./publish.mjs";
 
 const PASSWORD = "zone-password";
 const ZONE = "vallus-downloads";
@@ -51,16 +51,24 @@ const startFakeBunny = async () => {
                 res.writeHead(201).end('{"HttpCode":201}');
                 return;
             }
-            if (req.method === "GET" && key.endsWith("/")) {
-                const listing = [...objects.entries()]
-                    .filter(([name]) => name.startsWith(key) && !name.slice(key.length).includes("/"))
+            if (req.method === "GET" && (key.endsWith("/") || key === "")) {
+                const inside = [...objects.entries()].filter(([name]) => name.startsWith(key));
+                const listing = inside
+                    .filter(([name]) => !name.slice(key.length).includes("/"))
                     .map(([name, data]) => ({
                         ObjectName: name.slice(key.length),
                         Length: data.length,
                         Checksum: sha(data).toUpperCase(),
                         IsDirectory: false,
                     }));
+                // Subdirectories, as the real listing reports them.
+                const dirs = new Set(inside.map(([name]) => name.slice(key.length)).filter((rest) => rest.includes("/")).map((rest) => rest.split("/")[0]));
+                for (const dir of dirs) listing.push({ ObjectName: dir, Length: 0, Checksum: null, IsDirectory: true });
                 res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(listing));
+                return;
+            }
+            if (req.method === "GET" && objects.has(key)) {
+                res.writeHead(200).end(objects.get(key));
                 return;
             }
             res.writeHead(404).end();
@@ -114,6 +122,7 @@ test("a first publish uploads every package, then SHA256SUMS, then latest.json",
             "1.4.1/vallus-ts-1.4.1.zip",
             "1.4.1/SHA256SUMS",
             "latest.json",
+            "index.html",
         ]);
         assert.deepEqual(bunny.objects.get("1.4.1/vallus-ts-1.4.1.zip"), bytes(dir, "vallus-ts-dist.zip"));
 
@@ -141,8 +150,8 @@ test("running it again skips what is already there, so an interrupted run can re
         bunny.requests.length = 0;
 
         const { uploaded } = await publish(args, settingsFor(bunny, dir), quiet);
-        assert.deepEqual(uploaded, ["latest.json"]);
-        assert.deepEqual(puts(bunny), ["latest.json"]);
+        assert.deepEqual(uploaded, ["latest.json", "index.html"]);
+        assert.deepEqual(puts(bunny), ["latest.json", "index.html"]);
     } finally {
         await bunny.close();
     }
@@ -229,7 +238,9 @@ test("arguments and settings are validated", () => {
     assert.throws(() => parseArgs([]), /--version X\.Y\.Z is required/);
     assert.throws(() => parseArgs(["--version", "1.4"]), /--version X\.Y\.Z is required/);
     assert.throws(() => parseArgs(["--version", "1.4.1", "--yes"]), /unknown argument: --yes/);
-    assert.deepEqual(parseArgs(["--version=1.4.1", "--dry-run"]), { version: "1.4.1", dryRun: true, latest: true, force: false });
+    assert.deepEqual(parseArgs(["--version=1.4.1", "--dry-run"]), { version: "1.4.1", dryRun: true, latest: true, force: false, indexOnly: false });
+    assert.deepEqual(parseArgs(["--index-only"]).indexOnly, true);
+    assert.throws(() => parseArgs(["--index-only", "--version", "1.4.1"]), /--index-only takes no other option/);
     assert.throws(() => loadSettings({}), /BUNNY_STORAGE_ZONE and BUNNY_STORAGE_PASSWORD/);
     assert.equal(loadSettings({ BUNNY_STORAGE_ZONE: "z", BUNNY_STORAGE_PASSWORD: "p" }).storageUrl, "https://storage.bunnycdn.com");
 });
@@ -272,4 +283,53 @@ test("planFile compares checksums case-insensitively", () => {
     assert.equal(planFile(listing, "a.zip", "def", true), "upload");
     assert.equal(planFile(listing, "b.zip", "abc", false), "upload");
     assert.equal(formatSums([{ sha256: "AB", name: "x.zip" }]), "ab  x.zip\n");
+});
+
+test("index.html lists every published version, newest first, marking the one latest.json names", async () => {
+    const bunny = await startFakeBunny();
+    try {
+        await publish(parseArgs(["--version", "1.4.2"]), settingsFor(bunny, packagesDir("1.4.2")), quiet);
+        // An older line published afterwards, without taking over latest.json.
+        await publish(parseArgs(["--version", "1.4.1", "--no-latest"]), settingsFor(bunny, packagesDir("1.4.1")), quiet);
+
+        const html = bunny.objects.get("index.html").toString();
+        assert.ok(html.indexOf("vallus 1.4.2") < html.indexOf("vallus 1.4.1"), "newest first");
+        assert.match(html, /vallus 1\.4\.2 <span class="badge">latest<\/span>/);
+        assert.doesNotMatch(html, /vallus 1\.4\.1 <span class="badge">/);
+        assert.match(html, /href="1\.4\.1\/vallus-rs-slim-1\.4\.1\.zip"/);
+        assert.match(html, /href="1\.4\.2\/SHA256SUMS"/);
+        assert.match(html, /Rust, without browsers/);
+    } finally {
+        await bunny.close();
+    }
+});
+
+test("--index-only rebuilds the page and sends nothing else", async () => {
+    const bunny = await startFakeBunny();
+    try {
+        await publish(parseArgs(["--version", "1.4.1"]), settingsFor(bunny, packagesDir()), quiet);
+        bunny.objects.delete("index.html");
+        const before = puts(bunny).length;
+
+        await publish(parseArgs(["--index-only", "--dry-run"]), settingsFor(bunny, packagesDir()), quiet);
+        assert.equal(puts(bunny).length, before, "a dry run uploads nothing");
+
+        await publish(parseArgs(["--index-only"]), settingsFor(bunny, packagesDir()), quiet);
+        assert.deepEqual(puts(bunny).slice(before), ["index.html"]);
+        assert.match(bunny.objects.get("index.html").toString(), /vallus 1\.4\.1/);
+    } finally {
+        await bunny.close();
+    }
+});
+
+test("renderIndex sorts numerically, skips foreign files and escapes names", () => {
+    assert.deepEqual(["1.9.0", "1.10.0", "1.4.2"].sort(compareVersionsDesc), ["1.10.0", "1.9.0", "1.4.2"]);
+    const html = renderIndex({
+        releases: [{ version: "1.4.2", files: [{ name: "vallus-ts-1.4.2.zip", size: 34877871 }, { name: "<script>.zip", size: 1 }], sums: false }],
+        latest: null,
+    });
+    assert.match(html, /TypeScript[\s\S]*33 MB/);
+    assert.doesNotMatch(html, /<script>/);
+    assert.doesNotMatch(html, /SHA256SUMS<\/a>/);
+    assert.match(renderIndex({ releases: [], latest: null }), /No release has been published yet/);
 });

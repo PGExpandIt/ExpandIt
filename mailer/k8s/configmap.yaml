@@ -32,6 +32,8 @@ data:
   FREE_LICENSE_MIN_VERSION: "1.4.1"
   FREE_LICENSE_TERM_DAYS: "183"
   LICENSE_SUBJECT: Your free vallus licence
+  # latest.json there supplies the download links in the e-mail.
+  DOWNLOADS_URL: https://downloads.vallus.eu
 
   PORT: "8790"
   # The code defaults to loopback, which would make the port unreachable from the

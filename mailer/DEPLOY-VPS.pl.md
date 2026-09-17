@@ -210,8 +210,12 @@ trzeba jednostki systemd.
   wysyłka kodów nie działa.
 - **Zmiana hasła skrzynki** wymaga podmiany `SMTP_PASS` i restartu - mailer loguje się
   do SMTP przy każdym wysłaniu, więc stare hasło objawi się jako `502` na każdej próbie.
-- **Kopia zapasowa sprowadza się do `.env`.** Reszta odtwarza się z repozytorium jedną
-  komendą.
+- **Kopia zapasowa to `.env` i rejestr licencji.** Rejestr leży w wolumenie
+  `license_data` (`/app/data/licenses.jsonl` w kontenerze) i pilnuje zasady „jedna
+  licencja Free na firmę”; skasowany (`docker compose down -v`) oznacza, że każda
+  firma może dostać klucz od nowa. Kopia:
+  `sudo docker compose exec -T mailer cat /app/data/licenses.jsonl > licenses-$(date +%F).jsonl`.
+  Reszta odtwarza się z repozytorium jedną komendą.
 
 ---
 

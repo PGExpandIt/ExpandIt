@@ -4,7 +4,8 @@
 
 import type { Config } from "./config.js";
 import { verify } from "./hmac.js";
-import { issueFreeLicense } from "./license.js";
+import { LicenseLedger } from "./ledger.js";
+import { buildFreePayload, issueFreeLicense, signLicense } from "./license.js";
 import type { CodeSender } from "./mailer.js";
 
 const MAX_BODY_BYTES = 4 * 1024;
@@ -55,7 +56,13 @@ const readSigned = async (config: Config, request: Request): Promise<{ body: any
     }
 };
 
-export const createHandler = (config: Config, sender: CodeSender, now: () => Date = () => new Date()) => {
+export const createHandler = (
+    config: Config,
+    sender: CodeSender,
+    now: () => Date = () => new Date(),
+    // In memory unless the server passes the one on disk.
+    ledger: LicenseLedger = new LicenseLedger(null),
+) => {
     return async (request: Request): Promise<Response> => {
         const url = new URL(request.url);
 
@@ -64,7 +71,7 @@ export const createHandler = (config: Config, sender: CodeSender, now: () => Dat
         }
 
         if (request.method === "POST" && url.pathname === "/send-license") {
-            return sendLicense(config, sender, request, now());
+            return sendLicense(config, sender, ledger, request, now());
         }
 
         if (request.method !== "POST" || url.pathname !== "/send-code") {
@@ -106,7 +113,13 @@ export const createHandler = (config: Config, sender: CodeSender, now: () => Dat
  * The key is not returned: the edge needs only the expiry for its notification, and a
  * key that never leaves this process cannot end up in an edge log.
  */
-const sendLicense = async (config: Config, sender: CodeSender, request: Request, now: Date): Promise<Response> => {
+const sendLicense = async (
+    config: Config,
+    sender: CodeSender,
+    ledger: LicenseLedger,
+    request: Request,
+    now: Date,
+): Promise<Response> => {
     // Off unless the free key is configured, so a mailer deployed ahead of the runner
     // release that carries the free public key cannot issue keys nobody can use.
     if (!config.freeLicense) return json(404, { error: "not_found" });
@@ -130,14 +143,36 @@ const sendLicense = async (config: Config, sender: CodeSender, request: Request,
         return json(429, { error: "rate_limited" });
     }
 
-    const license = issueFreeLicense(company, config.freeLicense.privateKeyPem, config.freeLicense.termDays, now);
+    const settings = config.freeLicense;
+    return ledger.exclusive(async () => {
+        const decision = ledger.decide(email, company, now);
 
-    try {
-        await sender.sendLicense(email, { company, key: license.key, expires: license.payload.expires });
-    } catch (error) {
-        console.error(`[mailer] licence to ${email} failed:`, error);
-        return json(502, { error: "send_failed" });
-    }
+        // Not issued automatically; the edge relays the request to the channel instead.
+        if (decision.action === "manual") return json(409, { error: "manual_review", reason: decision.reason });
 
-    return json(200, { ok: true, expires: license.payload.expires });
+        if (decision.action === "resend") {
+            // The key it already has, rebuilt rather than stored: RSA PKCS#1 v1.5 is
+            // deterministic, so the same company and expiry sign to the same key.
+            const { company: signedCompany, expires } = decision.entry;
+            const key = signLicense({ ...buildFreePayload(signedCompany, now, 1), expires }, settings.privateKeyPem);
+            try {
+                await sender.sendLicense(email, { company: signedCompany, key, expires });
+            } catch (error) {
+                console.error(`[mailer] licence re-send to ${email} failed:`, error);
+                return json(502, { error: "send_failed" });
+            }
+            return json(200, { ok: true, expires, reissued: true });
+        }
+
+        const license = issueFreeLicense(company, settings.privateKeyPem, settings.termDays, now);
+        try {
+            await sender.sendLicense(email, { company, key: license.key, expires: license.payload.expires });
+        } catch (error) {
+            // Not recorded: nothing reached the visitor, so asking again must issue.
+            console.error(`[mailer] licence to ${email} failed:`, error);
+            return json(502, { error: "send_failed" });
+        }
+        ledger.record(email, company, license.payload.expires, now);
+        return json(200, { ok: true, expires: license.payload.expires, reissued: false });
+    });
 };

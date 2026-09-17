@@ -10,7 +10,8 @@ downloads.vallus.eu/
 │   ├── vallus-rs-slim-1.4.1.zip     Rust, without browsers
 │   ├── vallus-ts-1.4.1.zip          TypeScript
 │   └── SHA256SUMS                   sha256sum -c format
-└── latest.json                      the current version, sizes, hashes, URLs
+├── latest.json                      the current version, sizes, hashes, URLs
+└── index.html                       the page at downloads.vallus.eu/, every version
 ```
 
 ## Releasing
@@ -47,6 +48,12 @@ Node 20.6 or newer, `unzip` on the PATH. No npm install.
 - **latest.json goes last**, after every package and SHA256SUMS is in place, so it
   never announces a release that is half uploaded. With `BUNNY_API_KEY` set it is
   also purged from the CDN cache.
+
+**index.html is rebuilt last**, from the storage listing, so the page at
+`downloads.vallus.eu/` lists every version on the server - also ones published with
+`--no-latest` or from another machine. Bunny Storage serves `index.html` for `/` and
+lists nothing on its own. `--index-only` rebuilds just the page (with `--dry-run`,
+only prints what it would list).
 
 Options: `--dry-run` hashes, checks versions and lists the plan without sending;
 `--no-latest` publishes a version without making it the current one (a hotfix

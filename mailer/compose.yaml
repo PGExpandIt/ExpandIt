@@ -1,6 +1,7 @@
 # Deployment for a single VPS (Infomaniak VPS Lite or anything similar): the mailer
 # plus a TLS terminator in front of it. Two containers, no orchestrator - the
-# service is stateless and the edge calls it a handful of times a day.
+# service keeps one small file (the free licence ledger) and is called a handful of
+# times a day.
 name: vallus-mailer
 
 services:
@@ -33,6 +34,10 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    volumes:
+      # The record of issued free licences - the one thing here that is not rebuilt
+      # from the repository. `down -v` deletes it, and with it the one-per-company rule.
+      - license_data:/app/data
     cap_drop: ["ALL"]
     security_opt:
       - no-new-privileges:true
@@ -81,5 +86,6 @@ networks:
     driver: bridge
 
 volumes:
+  license_data:
   caddy_data:
   caddy_config:
