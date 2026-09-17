@@ -122,8 +122,8 @@ operational notes - is [DEPLOY-VPS.pl.md](DEPLOY-VPS.pl.md). In short: point
 docker compose up -d --build
 ```
 
-Caddy issues the certificate on first start and publishes exactly one route,
-`POST /send-code`. Everything else - including `/health`, which serves the
+Caddy issues the certificate on first start and publishes exactly two routes,
+`POST /send-code` and `POST /send-license`. Everything else - including `/health`, which serves the
 container healthcheck - answers 404 from the proxy. The mailer itself is never
 published to the host; only Caddy can reach it.
 

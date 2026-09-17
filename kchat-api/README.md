@@ -65,7 +65,7 @@ environment variables as secrets in the Bunny script settings.
 | Method | Path | Purpose |
 |---|---|---|
 | `GET` | `/health` | Liveness; reports the active transport. |
-| `GET` | `/config` | Hands out the message-length cap and, if a secret is set, a proof-of-work challenge to solve before posting. |
+| `GET` | `/config` | Hands out the message-length cap, whether e-mail verification (`otp`) and automatic free licences (`licenseAuto`) are on, and, if a secret is set, a proof-of-work challenge to solve before posting. |
 | `POST` | `/message` | Relays a message. Body: `{ message, name?, email?, subject?, website?, challenge?, solution? }`. |
 
 `POST /message` returns `{ ok: true, transport }` on success, or `400`
@@ -116,8 +116,13 @@ browser ──POST /message|/register {…, code, token}──►  verified → 
 
 ## Automatic free licences (optional)
 
-With `KCHAT_FREE_LICENSE_AUTO=true` and OTP on, `POST /register` no longer queues a
-request for a human. Once the code verifies it calls the mailer's `/send-license`,
+With `KCHAT_FREE_LICENSE_AUTO=true` and OTP on, `POST /register` usually no longer
+queues a request for a human - the mailer signs the key and sends it. It still queues
+one when the mailer declines (`409 manual_review`): a personal or disposable mailbox
+(`personal_email`), or a company name that already holds a valid licence on another
+e-mail domain (`company_has_licence`). The request then lands in the channel with that
+reason attached and the answer carries `issued: false`, so the page promises a reply
+rather than a key. Once the code verifies it calls the mailer's `/send-license`,
 which signs a free-tier key with the free key and mails it; the channel gets a
 "Free licence issued" post with company, e-mail and expiry - the record of issued
 keys, since the edge stores nothing. The key itself never passes through here.

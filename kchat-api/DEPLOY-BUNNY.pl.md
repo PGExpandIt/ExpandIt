@@ -26,7 +26,7 @@ cd kchat-api
 cp .env.example .env          # wklej URL do KCHAT_WEBHOOK_URL
 npm install && npm run build
 npm run probe                 # wysyła JEDNĄ testową wiadomość - sprawdź kanał
-npm test                      # 19 testów: challenge + walidacja handlera
+npm test                      # 46 testów: challenge, OTP, wiadomości i licencje Free
 ```
 
 ## 3. Utworzenie skryptu w bunny.net
@@ -53,6 +53,16 @@ Panel skryptu → **Env Configuration**. Rozróżnienie jest istotne:
 | `KCHAT_MESSAGE_PREFIX` | variable | np. `New message from the vallus website` |
 | `KCHAT_RATE_LIMIT_PER_HOUR` | variable | `5` (opcjonalnie) |
 | `KCHAT_CHALLENGE_DIFFICULTY` | variable | `15` (opcjonalnie) |
+| `KCHAT_BASE_PATH` | variable | `/api/kchat` przy proxy same-origin (sekcja niżej) |
+| `KCHAT_OTP_SECRET` | **secret** | losowe 32 bajty; włącza weryfikację adresu kodem |
+| `KCHAT_MAILER_URL` | variable | `https://mailer.vallus.eu` |
+| `KCHAT_MAILER_SECRET` | **secret** | co do bajtu to samo, co `MAILER_AUTH_SECRET` w mailerze |
+| `KCHAT_FREE_LICENSE_AUTO` | variable | `true` - klucz Free wysyłany od razu po potwierdzeniu adresu |
+
+Cztery ostatnie działają tylko razem: bez `KCHAT_OTP_SECRET` skrypt nie wyda klucza,
+bo nie ma potwierdzonego adresu. Nieustawione oznaczają, że formularz `/free` zbiera
+zgłoszenia do ręcznej obsługi, a formularz kontaktowy i tak działa. Szczegóły w
+[`../mailer/DEPLOY-VPS.pl.md`](../mailer/DEPLOY-VPS.pl.md).
 
 **`KCHAT_CHALLENGE_SECRET` włącza proof-of-work.** Bez niego formularz nadal ma
 honeypot i limit żądań, ale challenge jest wyłączony - ustaw go w produkcji.

@@ -10,8 +10,8 @@ edge (kchat-api)  ──POST /send-code──►  VPS: Caddy → mailer  ──S
 ```
 
 Dwa kontenery, bez orkiestratora: `compose.yaml` uruchamia mailera i Caddy'ego, który
-kończy TLS i publikuje **dokładnie jedną trasę** - `POST /send-code`. Reszta, łącznie
-z `/health`, zwraca z proxy 404. Wariant kubernetesowy leży w `k8s/` i ma sens tylko
+kończy TLS i publikuje **dokładnie dwie trasy** - `POST /send-code` i
+`POST /send-license`. Reszta, łącznie z `/health`, zwraca z proxy 404. Wariant kubernetesowy leży w `k8s/` i ma sens tylko
 wtedy, gdy klaster i tak już płacisz z innego powodu.
 
 ## Czy VPS Lite wystarczy
@@ -142,17 +142,18 @@ widzisz 401 na każdym żądaniu, sprawdzaj sekret, nie kod.
 
 ---
 
-## 6. Automatyczne licencje Free (opcjonalnie)
+## 6. Automatyczne licencje Free
 
-Włączać dopiero po wydaniu vallus 1.4.1 - pierwszej wersji z kluczem publicznym Free.
-Starsze wersje odrzucają klucze podpisane kluczem Free.
+Działa na produkcji od 17.09.2026. Tak się to stawia od zera:
 
 1. Na VPS-ie dopisz do `/opt/vallus-mailer/.env`:
    ```
    FREE_LICENSE_KEY_B64=<wynik: base64 < free-private.pem | tr -d '\n'>
-   FREE_LICENSE_MIN_VERSION=1.4.1
+   FREE_LICENSE_MIN_VERSION=1.4.2
    ```
-   Tylko `free-private.pem`, nigdy `private.pem`.
+   Tylko `free-private.pem`, nigdy `private.pem`. `FREE_LICENSE_MIN_VERSION` idzie
+   do treści maila: to najstarsze wydanie, które klient może pobrać i które przyjmuje
+   klucze Free (na downloads.vallus.eu jest 1.4.2 i nowsze).
 2. Wgraj nową wersję (sekcja niżej, razem z restartem Caddy'ego) - `Caddyfile`
    przepuszcza już `/send-license`.
 3. Sprawdź z zewnątrz: `curl -i -X POST https://mailer.vallus.eu/send-license`
@@ -160,8 +161,12 @@ Starsze wersje odrzucają klucze podpisane kluczem Free.
    ma stary `Caddyfile`.
 4. W panelu skryptu `kchat-api` ustaw `KCHAT_FREE_LICENSE_AUTO` = `true` i wdróż
    nową wersję skryptu.
-5. Na stronie `/free/` zmień teksty o dostarczeniu w ciągu dnia roboczego
-   (`src/app/free/page.tsx`) - formularz sam przełącza swoje komunikaty.
+
+Mailer trzyma rejestr wydanych licencji w wolumenie `license_data`
+(`/app/data/licenses.jsonl`). To on pilnuje zasady „jedna licencja Free na
+organizację": prywatna skrzynka dostaje `409 manual_review` i zgłoszenie idzie do
+kanału, ta sama domena dostaje z powrotem ten sam klucz, a nowy dopiero 14 dni przed
+końcem ważności. Reguły opisuje [`README.md`](./README.md).
 
 ---
 
@@ -230,9 +235,12 @@ Postawione i sprawdzone z zewnątrz:
 | Certyfikat | Let's Encrypt dla `mailer.vallus.eu`, ważny do 16.11.2026 |
 | `https://…/health` | `404` - zgodnie z zamysłem, trasa nie jest publikowana |
 | `https://…/send-code` | `401 bad_signature` bez podpisu HMAC |
+| `https://…/send-license` | `401 bad_signature` bez podpisu (od 17.09.2026, z kluczem Free) |
+| Wolumeny | `license_data` (rejestr licencji), `caddy_data` (certyfikaty) |
 | `http://…` | `308` na HTTPS |
 | Zużycie | mailer 13 MiB RAM, Caddy 13,2 MiB, dysk 3,0/19 GB |
 | Wysyłka | `probe` z kontenera dostarczył kod na Gmaila |
 
-Zostało jedno: ustawić `KCHAT_MAILER_URL`, `KCHAT_MAILER_SECRET` i `KCHAT_OTP_SECRET`
-w panelu skryptu `kchat-api` (punkt 5), żeby edge zaczął z tego korzystać.
+Edge korzysta z tego od 17.09.2026: `KCHAT_MAILER_URL`, `KCHAT_MAILER_SECRET`,
+`KCHAT_OTP_SECRET` i `KCHAT_FREE_LICENSE_AUTO=true` są ustawione w panelu skryptu
+`kchat-api`, a `/api/kchat/config` zwraca `otp: true` i `licenseAuto: true`.
