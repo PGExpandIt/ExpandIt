@@ -135,6 +135,13 @@ export const loadSettings = (env) => {
     };
 };
 
+/**
+ * The oldest version the page lists. Older ones stay on the server - customers may
+ * hold links to them - but are not offered: before 1.4.2 no build accepts the free
+ * keys the website hands out, and a 1.4.1 package shipped a free key nobody could sign.
+ */
+export const MIN_LISTED_VERSION = "1.4.2";
+
 /** Newest first, numerically: 1.10.0 above 1.9.0. */
 export const compareVersionsDesc = (a, b) => {
     const [x, y] = [a, b].map((v) => v.split(".").map(Number));
@@ -157,7 +164,9 @@ const labelFor = (name, version) => PACKAGES.find((pkg) => pkg.remote(version) =
  * Links are relative, so the page works under any host name the zone is served from.
  */
 export const renderIndex = ({ releases, latest }) => {
-    const sorted = [...releases].sort((a, b) => compareVersionsDesc(a.version, b.version));
+    const sorted = releases
+        .filter((release) => compareVersionsDesc(release.version, MIN_LISTED_VERSION) <= 0)
+        .sort((a, b) => compareVersionsDesc(a.version, b.version));
     const section = (release) => {
         const rows = release.files
             .map((file) => ({ ...file, label: labelFor(file.name, release.version) }))
@@ -334,7 +343,8 @@ export const publish = async (args, settings, log = console.log) => {
     if (args.indexOnly) {
         if (args.dryRun) {
             const { releases, latest } = await readReleases(settings);
-            log(`index.html would list: ${releases.map((r) => r.version).sort(compareVersionsDesc).join(", ") || "nothing"} (latest: ${latest ?? "none"})`);
+            const listed = releases.map((r) => r.version).filter((v) => compareVersionsDesc(v, MIN_LISTED_VERSION) <= 0);
+            log(`index.html would list: ${listed.sort(compareVersionsDesc).join(", ") || "nothing"} (latest: ${latest ?? "none"}, from ${MIN_LISTED_VERSION})`);
             log("\nDry run - nothing was sent.");
             return { uploaded: [] };
         }

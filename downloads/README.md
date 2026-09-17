@@ -51,7 +51,8 @@ Node 20.6 or newer, `unzip` on the PATH. No npm install.
 
 **index.html is rebuilt last**, from the storage listing, so the page at
 `downloads.vallus.eu/` lists every version on the server - also ones published with
-`--no-latest` or from another machine. Bunny Storage serves `index.html` for `/` and
+`--no-latest` or from another machine - from `MIN_LISTED_VERSION` (1.4.2) up. Older
+versions stay on the server for existing links but are not offered. Bunny Storage serves `index.html` for `/` and
 lists nothing on its own. `--index-only` rebuilds just the page (with `--dry-run`,
 only prints what it would list).
 

@@ -285,20 +285,24 @@ test("planFile compares checksums case-insensitively", () => {
     assert.equal(formatSums([{ sha256: "AB", name: "x.zip" }]), "ab  x.zip\n");
 });
 
-test("index.html lists every published version, newest first, marking the one latest.json names", async () => {
+test("index.html lists published versions from 1.4.2, newest first, marking the one latest.json names", async () => {
     const bunny = await startFakeBunny();
     try {
-        await publish(parseArgs(["--version", "1.4.2"]), settingsFor(bunny, packagesDir("1.4.2")), quiet);
-        // An older line published afterwards, without taking over latest.json.
+        await publish(parseArgs(["--version", "1.4.3"]), settingsFor(bunny, packagesDir("1.4.3")), quiet);
+        // Older lines published afterwards, without taking over latest.json.
+        await publish(parseArgs(["--version", "1.4.2", "--no-latest"]), settingsFor(bunny, packagesDir("1.4.2")), quiet);
         await publish(parseArgs(["--version", "1.4.1", "--no-latest"]), settingsFor(bunny, packagesDir("1.4.1")), quiet);
 
         const html = bunny.objects.get("index.html").toString();
-        assert.ok(html.indexOf("vallus 1.4.2") < html.indexOf("vallus 1.4.1"), "newest first");
-        assert.match(html, /vallus 1\.4\.2 <span class="badge">latest<\/span>/);
-        assert.doesNotMatch(html, /vallus 1\.4\.1 <span class="badge">/);
-        assert.match(html, /href="1\.4\.1\/vallus-rs-slim-1\.4\.1\.zip"/);
-        assert.match(html, /href="1\.4\.2\/SHA256SUMS"/);
+        assert.ok(html.indexOf("vallus 1.4.3") < html.indexOf("vallus 1.4.2"), "newest first");
+        assert.match(html, /vallus 1\.4\.3 <span class="badge">latest<\/span>/);
+        assert.doesNotMatch(html, /vallus 1\.4\.2 <span class="badge">/);
+        assert.match(html, /href="1\.4\.2\/vallus-rs-slim-1\.4\.2\.zip"/);
+        assert.match(html, /href="1\.4\.3\/SHA256SUMS"/);
         assert.match(html, /Rust, without browsers/);
+        // Below MIN_LISTED_VERSION: on the server, not on the page.
+        assert.ok(bunny.objects.has("1.4.1/vallus-ts-1.4.1.zip"));
+        assert.doesNotMatch(html, /1\.4\.1/);
     } finally {
         await bunny.close();
     }
@@ -307,7 +311,7 @@ test("index.html lists every published version, newest first, marking the one la
 test("--index-only rebuilds the page and sends nothing else", async () => {
     const bunny = await startFakeBunny();
     try {
-        await publish(parseArgs(["--version", "1.4.1"]), settingsFor(bunny, packagesDir()), quiet);
+        await publish(parseArgs(["--version", "1.4.2"]), settingsFor(bunny, packagesDir("1.4.2")), quiet);
         bunny.objects.delete("index.html");
         const before = puts(bunny).length;
 
@@ -316,7 +320,7 @@ test("--index-only rebuilds the page and sends nothing else", async () => {
 
         await publish(parseArgs(["--index-only"]), settingsFor(bunny, packagesDir()), quiet);
         assert.deepEqual(puts(bunny).slice(before), ["index.html"]);
-        assert.match(bunny.objects.get("index.html").toString(), /vallus 1\.4\.1/);
+        assert.match(bunny.objects.get("index.html").toString(), /vallus 1\.4\.2/);
     } finally {
         await bunny.close();
     }
@@ -332,4 +336,5 @@ test("renderIndex sorts numerically, skips foreign files and escapes names", () 
     assert.doesNotMatch(html, /<script>/);
     assert.doesNotMatch(html, /SHA256SUMS<\/a>/);
     assert.match(renderIndex({ releases: [], latest: null }), /No release has been published yet/);
+    assert.match(renderIndex({ releases: [{ version: "1.4.1", files: [{ name: "vallus-ts-1.4.1.zip", size: 1 }], sums: true }], latest: "1.4.1" }), /No release has been published yet/, "nothing below the minimum is listed");
 });
