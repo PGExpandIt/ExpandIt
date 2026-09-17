@@ -25,6 +25,8 @@ const eslintConfig = [
       "booking-api/**",
       "kchat-api/**",
       "mailer/**",
+      // Release tooling, run by hand from a workstation - not part of the site.
+      "downloads/**",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),

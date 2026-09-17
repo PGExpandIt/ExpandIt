@@ -1,0 +1,3 @@
+.env
+# The root .gitignore has `.env*`, which would also hide the template. Deeper rules win.
+!.env.example
