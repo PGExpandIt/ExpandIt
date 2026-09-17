@@ -4,6 +4,11 @@
 //   node --env-file=.env publish.mjs --version 1.4.1 [--dry-run] [--no-latest] [--force]
 //   node --env-file=.env publish.mjs --index-only [--dry-run]
 //
+// The packages are whatever the pack scripts left in PACKAGES_DIR under the names they
+// give them - vallus-rs-playwright-<pw>-<arch>-dist.zip, vallus-rs-slim-<arch>-dist.zip,
+// vallus-ts-dist.zip, vallus-browsers-playwright-<from>-<to>-linux-<arch>.tar.gz - and
+// they keep those names on the server, under /<version>/.
+//
 // For each package it computes the SHA-256, uploads to /<version>/ with Bunny's
 // `Checksum` header (the storage rejects a body that does not match), then lists the
 // directory back and compares. After the packages it writes SHA256SUMS for the
@@ -30,17 +35,63 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+/**
+ * The site's own favicon (src/app/icon.svg), embedded in index.html as a data URI:
+ * the downloads host serves nothing but what publish.mjs uploads, and one copy of the
+ * icon means the two sites cannot drift. Null when the file is not there.
+ */
+const readIcon = () => {
+    try {
+        return fs.readFileSync(path.resolve(HERE, "..", "src", "app", "icon.svg"), "utf8");
+    } catch {
+        return null;
+    }
+};
+
 /** The workspace root, where both runners' pack scripts write their archives. */
 const WORKSPACE = path.resolve(HERE, "..", "..");
 
-/** Local archive (as the pack scripts name it) -> name on the download server. */
-export const PACKAGES = [
-    { local: "vallus-rs-dist.zip", remote: (v) => `vallus-rs-${v}.zip`, label: "Rust, browsers included" },
-    { local: "vallus-rs-slim-dist.zip", remote: (v) => `vallus-rs-slim-${v}.zip`, label: "Rust, without browsers" },
-    { local: "vallus-ts-dist.zip", remote: (v) => `vallus-ts-${v}.zip`, label: "TypeScript" },
+const VERSION = /^\d+\.\d+\.\d+$/;
+const ARCHES = ["amd64", "arm64"];
+
+/** What each CPU architecture means to someone choosing a download. */
+export const ARCH_LABELS = {
+    amd64: { name: "AMD64 / x86_64", hint: "Intel and AMD: most servers and VPSs, Windows and Linux PCs with Docker Desktop, Intel Macs." },
+    arm64: { name: "ARM64", hint: "AWS Graviton, Ampere, Raspberry Pi 64-bit, Apple Silicon Macs, Windows on ARM." },
+};
+
+/**
+ * What a file is, from its name alone, or null when it is not a package. The names are
+ * the pack scripts' own, so the server listing describes itself and the page needs no
+ * record of what was uploaded. Order is the order the page lists them in.
+ */
+export const describePackage = (name) => {
+    let m = name.match(/^vallus-rs-playwright-(\d+\.\d+\.\d+)-(amd64|arm64)-dist\.zip$/);
+    if (m) return { kind: "rs", order: 1, arch: m[2], playwright: m[1], label: "Rust runner with browsers", note: `Playwright ${m[1]}` };
+    m = name.match(/^vallus-rs-slim-(amd64|arm64)-dist\.zip$/);
+    if (m) return { kind: "rs-slim", order: 2, arch: m[1], playwright: null, label: "Rust runner (slim)", note: "no browsers - install separately" };
+    if (name === "vallus-ts-dist.zip") {
+        return { kind: "ts", order: 0, arch: "any", playwright: null, label: "TypeScript runner", note: "any CPU - no browsers, install separately" };
+    }
+    m = name.match(/^vallus-browsers-playwright-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-linux-(amd64|arm64)\.tar\.gz$/);
+    if (m) return { kind: "browsers", order: 3, arch: m[3], playwright: null, label: "Browsers only, no vallus", note: `Playwright ${m[1]} - ${m[2]}` };
+    return null;
+};
+
+/** The groups the page's table is split into, in order, by package kind. */
+const FAMILIES = [
+    { title: "Node", kinds: ["ts"] },
+    { title: "Rust", kinds: ["rs", "rs-slim"] },
+    { title: "Browsers", kinds: ["browsers"] },
 ];
 
-const VERSION = /^\d+\.\d+\.\d+$/;
+/** Packages first by kind, then newest Playwright first. */
+const comparePackages = (a, b) => {
+    const [x, y] = [describePackage(a.name), describePackage(b.name)];
+    if (x.order !== y.order) return x.order - y.order;
+    if (x.playwright && y.playwright && x.playwright !== y.playwright) return compareVersionsDesc(x.playwright, y.playwright);
+    return a.name.localeCompare(b.name);
+};
 
 // ── pure helpers (exported for the tests) ─────────────────────────────────────
 
@@ -78,6 +129,37 @@ export const readPackageVersion = (zipPath) => {
     } catch {
         return null;
     }
+};
+
+/**
+ * The Playwright version a full Rust package carries browsers for. PLAYWRIGHT (written
+ * by pack-rs.sh) when present, else the "carries Playwright v1.60.0-jammy" sentence of
+ * README-PACKAGE.md, which packages from before that file have. Null when neither
+ * names one - the slim and TypeScript packages carry no browsers.
+ */
+/** One small text file from inside a zip, or null. */
+const readZipEntry = (zipPath, entry) => {
+    try {
+        return execFileSync("unzip", ["-p", zipPath, entry], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1024 * 1024 });
+    } catch {
+        return null;
+    }
+};
+
+/** The architecture a Rust package's image was built for (PLATFORM, e.g. linux/amd64), or null. */
+export const readPackagePlatform = (zipPath) => readZipEntry(zipPath, "PLATFORM")?.trim() || null;
+
+export const readPlaywrightVersion = (zipPath) => {
+    const read = (entry) => {
+        try {
+            return execFileSync("unzip", ["-p", zipPath, entry], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1024 * 1024 });
+        } catch {
+            return null;
+        }
+    };
+    const plain = read("PLAYWRIGHT")?.trim();
+    if (plain && VERSION.test(plain)) return plain;
+    return read("README-PACKAGE.md")?.match(/carries Playwright v?(\d+\.\d+\.\d+)/)?.[1] ?? null;
 };
 
 /** `sha256sum -c` format: lowercase hash, two spaces, file name. */
@@ -152,33 +234,53 @@ export const compareVersionsDesc = (a, b) => {
 const escapeHtml = (text) =>
     String(text).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
-const humanSize = (bytes) => (bytes >= 1024 * 1024 ? `${Math.round(bytes / 1024 / 1024)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
+const humanSize = (bytes) => {
+    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+    if (bytes >= 1024 ** 2) return `${Math.round(bytes / 1024 ** 2)} MB`;
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+};
 
-/** The label of a package file, from its name on the server, or null when it is not one. */
-const labelFor = (name, version) => PACKAGES.find((pkg) => pkg.remote(version) === name)?.label ?? null;
 
 /**
  * The page at downloads.vallus.eu/: every published version, newest first, each with
- * its packages, sizes and SHA256SUMS. `releases` is [{ version, files: [{ name, size }],
- * sums }] as read from the storage listing; `latest` is the version latest.json names.
- * Links are relative, so the page works under any host name the zone is served from.
+ * its packages, sizes and SHA256SUMS, and a switch between CPU architectures - AMD64 by
+ * default, because that is what most servers are. `releases` is [{ version, files:
+ * [{ name, size }], sums }] as read from the storage listing; `latest` is the version
+ * latest.json names. Links are relative, so the page works under any host name.
+ *
+ * The switch is two radio buttons and CSS (:has), so it works without JavaScript; a few
+ * lines of script only keep the choice in the address (#arm64) so a link can carry it.
  */
-export const renderIndex = ({ releases, latest }) => {
+export const renderIndex = ({ releases, latest, icon = readIcon() }) => {
     const sorted = releases
         .filter((release) => compareVersionsDesc(release.version, MIN_LISTED_VERSION) <= 0)
         .sort((a, b) => compareVersionsDesc(a.version, b.version));
     const section = (release) => {
-        const rows = release.files
-            .map((file) => ({ ...file, label: labelFor(file.name, release.version) }))
-            .filter((file) => file.label)
-            .map(
-                (file) => `        <tr>
-          <td>${escapeHtml(file.label)}</td>
+        const packages = release.files.filter((file) => describePackage(file.name)).sort(comparePackages);
+        const row = (file) => {
+            const info = describePackage(file.name);
+            const cls = info.arch === "any" ? "" : ` class="only-${info.arch}"`;
+            return `        <tr${cls}>
+          <td>${escapeHtml(info.label)}<br><span class="note">${escapeHtml(info.note)}</span></td>
           <td><a href="${escapeHtml(`${release.version}/${file.name}`)}">${escapeHtml(file.name)}</a></td>
           <td class="size">${escapeHtml(humanSize(file.size))}</td>
-        </tr>`,
-            )
-            .join("\n");
+        </tr>`;
+        };
+        // One titled group per runner - Node, then Rust - each heading its own rows.
+        const rows = FAMILIES.map((family) => {
+            const members = packages.filter((file) => family.kinds.includes(describePackage(file.name).kind));
+            if (members.length === 0) return "";
+            const arches = new Set(members.map((file) => describePackage(file.name).arch));
+            // A group present for one architecture only (the browsers) hides with it;
+            // a runner group stays and says what is missing for the other.
+            const only = !arches.has("any") && arches.size === 1 && family.title === "Browsers" ? ` class="only-${[...arches][0]}"` : "";
+            const missing = arches.has("any") || only
+                ? ""
+                : ARCHES.filter((arch) => !arches.has(arch))
+                      .map((arch) => `\n        <tr class="only-${arch}"><td colspan="3" class="none">No ${escapeHtml(ARCH_LABELS[arch].name)} ${escapeHtml(family.title)} packages in this release.</td></tr>`)
+                      .join("");
+            return `        <tr${only}><th colspan="3" class="group">${escapeHtml(family.title)}</th></tr>\n${members.map(row).join("\n")}${missing}`;
+        }).filter(Boolean).join("\n");
         const badge = release.version === latest ? ' <span class="badge">latest</span>' : "";
         const sums = release.sums
             ? `\n      <p class="sums"><a href="${escapeHtml(`${release.version}/SHA256SUMS`)}">SHA256SUMS</a> - verify with <code>sha256sum -c SHA256SUMS</code></p>`
@@ -194,31 +296,47 @@ ${rows}
     </section>`;
     };
     const body = sorted.length ? sorted.map(section).join("\n") : "    <p>No release has been published yet.</p>";
+    const switchHtml = ARCHES.map(
+        (arch, i) => `      <input type="radio" name="arch" id="arch-${arch}" value="${arch}"${i === 0 ? " checked" : ""}>
+      <label for="arch-${arch}">${escapeHtml(ARCH_LABELS[arch].name)}</label>`,
+    ).join("\n");
+    const hints = ARCHES.map((arch) => `    <p class="hint only-${arch}">${escapeHtml(ARCH_LABELS[arch].hint)}</p>`).join("\n");
     return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>vallus downloads</title>
-  <meta name="description" content="Download vallus, the self-hosted Playwright test runner: every release with checksums.">
+  <title>vallus downloads</title>${icon ? `\n  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${escapeHtml(encodeURIComponent(icon.trim()))}">` : ""}
+  <meta name="description" content="Download vallus, the self-hosted Playwright test runner: every release for AMD64 and ARM64, with checksums.">
   <style>
     :root { color-scheme: dark; }
     body { margin: 0; background: #100f0d; color: #f2f0ea; font: 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
-    main { max-width: 860px; margin: 0 auto; padding: 48px 20px 64px; }
+    main { max-width: 900px; margin: 0 auto; padding: 48px 20px 64px; }
     h1 { font-size: 28px; margin: 0 0 8px; }
     h2 { font-size: 18px; margin: 40px 0 12px; }
     p { color: #a29c91; margin: 8px 0; }
     a { color: #7dd3a0; }
     a:hover { color: #4ea87a; }
     table { width: 100%; border-collapse: collapse; background: #1c1a17; border: 1px solid #2c2925; border-radius: 8px; overflow: hidden; }
-    th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #2c2925; }
+    th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #2c2925; vertical-align: top; }
     th { color: #a29c91; font-weight: 500; font-size: 13px; }
     tr:last-child td { border-bottom: 0; }
+    td a { white-space: nowrap; }
     .size { text-align: right; white-space: nowrap; color: #a29c91; }
     .badge { font-size: 12px; color: #100f0d; background: #7dd3a0; border-radius: 999px; padding: 2px 8px; vertical-align: middle; }
-    .sums { font-size: 13px; }
+    .sums, .hint { font-size: 13px; }
+    .note { font-size: 12px; color: #7dd3a0; }
+    .none { color: #a29c91; font-style: italic; }
+    th.group { color: #f2f0ea; background: #171613; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
     code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; color: #f2f0ea; }
-    @media (max-width: 600px) { td:first-child, th:first-child { display: none; } }
+    .arch { display: inline-flex; margin: 24px 0 4px; border: 1px solid #2c2925; border-radius: 999px; padding: 3px; background: #1c1a17; }
+    .arch input { position: absolute; opacity: 0; pointer-events: none; }
+    .arch label { cursor: pointer; padding: 6px 16px; border-radius: 999px; font-size: 14px; color: #a29c91; }
+    .arch input:checked + label { background: #7dd3a0; color: #100f0d; font-weight: 600; }
+    .arch input:focus-visible + label { outline: 2px solid #7dd3a0; outline-offset: 2px; }
+    body:has(#arch-amd64:checked) .only-arm64,
+    body:has(#arch-arm64:checked) .only-amd64 { display: none; }
+    @media (max-width: 600px) { td:first-child, th:first-child:not(.group) { display: none; } td a { white-space: normal; word-break: break-all; } }
   </style>
 </head>
 <body>
@@ -227,8 +345,22 @@ ${rows}
     <p>Every vallus release, newest first. vallus needs a licence key to start -
       <a href="https://vallus.eu/free/">request a free one</a> or see <a href="https://vallus.eu/">vallus.eu</a>.
       Machine-readable: <a href="latest.json">latest.json</a>.</p>
+    <p>The Rust runner with browsers comes once per Playwright version. The slim and TypeScript
+      runners come without browsers.</p>
+    <div class="arch" role="radiogroup" aria-label="CPU architecture">
+${switchHtml}
+    </div>
+${hints}
 ${body}
   </main>
+  <script>
+    (() => {
+      const pick = (arch) => { const input = document.getElementById("arch-" + arch); if (input) input.checked = true; };
+      pick(location.hash.slice(1));
+      document.querySelectorAll('input[name="arch"]').forEach((input) =>
+        input.addEventListener("change", () => history.replaceState(null, "", "#" + input.value)));
+    })();
+  </script>
 </body>
 </html>
 `;
@@ -300,7 +432,7 @@ export const readReleases = async (settings) => {
         const listing = await listDirectory(settings, version);
         releases.push({
             version,
-            files: listing.filter((entry) => !entry.IsDirectory && entry.ObjectName !== "SHA256SUMS").map((entry) => ({ name: entry.ObjectName, size: entry.Length })),
+            files: listing.filter((entry) => !entry.IsDirectory && describePackage(entry.ObjectName)).map((entry) => ({ name: entry.ObjectName, size: entry.Length })),
             sums: listing.some((entry) => !entry.IsDirectory && entry.ObjectName === "SHA256SUMS"),
         });
     }
@@ -313,7 +445,7 @@ export const readReleases = async (settings) => {
             latest = null;
         }
     }
-    return { releases: releases.filter((release) => release.files.some((file) => labelFor(file.name, release.version))), latest };
+    return { releases: releases.filter((release) => release.files.length > 0), latest };
 };
 
 /** Rebuilds and uploads index.html from what the storage now holds. */
@@ -337,6 +469,14 @@ const purge = async (settings, url) => {
 
 // ── the run ───────────────────────────────────────────────────────────────────
 
+/** The newest-Playwright AMD64 runner, the AMD64 slim runner and TypeScript, when present. */
+export const recommended = (packages) =>
+    [
+        packages.filter((pkg) => pkg.kind === "rs" && pkg.arch === "amd64").sort(comparePackages)[0],
+        packages.find((pkg) => pkg.kind === "rs-slim" && pkg.arch === "amd64"),
+        packages.find((pkg) => pkg.kind === "ts"),
+    ].filter(Boolean);
+
 const mib = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
 
 export const publish = async (args, settings, log = console.log) => {
@@ -354,20 +494,35 @@ export const publish = async (args, settings, log = console.log) => {
     }
     const { version } = args;
 
-    const packages = PACKAGES.map((pkg) => ({ ...pkg, path: path.join(settings.packagesDir, pkg.local), name: pkg.remote(version) }));
-    const missing = packages.filter((pkg) => !fs.existsSync(pkg.path));
-    if (missing.length) {
-        throw new Error(`missing packages - run the pack scripts first:\n  ${missing.map((pkg) => pkg.path).join("\n  ")}`);
+    // Every package the pack scripts left in the directory, by the names they give them.
+    const found = fs.existsSync(settings.packagesDir) ? fs.readdirSync(settings.packagesDir) : [];
+    const packages = found
+        .filter((name) => describePackage(name))
+        .map((name) => ({ name, path: path.join(settings.packagesDir, name), ...describePackage(name) }))
+        .sort(comparePackages);
+    if (packages.length === 0) {
+        throw new Error(`no packages in ${settings.packagesDir} - run the pack scripts first`);
     }
 
-    const wrongVersion = packages
-        .map((pkg) => ({ pkg, found: readPackageVersion(pkg.path) }))
-        .filter(({ found }) => found !== version);
-    if (wrongVersion.length) {
-        throw new Error(
-            `these archives are not ${version} - repack them first:\n  ` +
-                wrongVersion.map(({ pkg, found }) => `${pkg.local}: ${found ?? "no VERSION or package.json inside"}`).join("\n  "),
-        );
+    // What each archive says about itself must agree with its name and the release: a
+    // 1.4.0 build filed under /1.4.1/, or an arm64 image named amd64, is a download that
+    // does not work, and the name is all a customer chooses by.
+    const problems = [];
+    for (const pkg of packages) {
+        if (pkg.kind === "browsers") continue; // no vallus inside, nothing versioned to check
+        const inside = readPackageVersion(pkg.path);
+        if (inside !== version) problems.push(`${pkg.name}: ${inside ?? "no VERSION or package.json inside"}, not ${version}`);
+        if (pkg.kind === "rs" || pkg.kind === "rs-slim") {
+            const platform = readPackagePlatform(pkg.path);
+            if (platform !== `linux/${pkg.arch}`) problems.push(`${pkg.name}: built for ${platform ?? "an unknown platform (no PLATFORM inside)"}, not linux/${pkg.arch}`);
+        }
+        if (pkg.kind === "rs") {
+            const playwright = readPlaywrightVersion(pkg.path);
+            if (playwright !== pkg.playwright) problems.push(`${pkg.name}: carries Playwright ${playwright ?? "unknown"}, not ${pkg.playwright}`);
+        }
+    }
+    if (problems.length) {
+        throw new Error(`these archives do not match their names or ${version} - repack them first:\n  ${problems.join("\n  ")}`);
     }
 
     log(`vallus ${version} -> ${settings.storageUrl}/${settings.zone}/${version}/${args.dryRun ? "  (dry run)" : ""}\n`);
@@ -375,7 +530,7 @@ export const publish = async (args, settings, log = console.log) => {
     for (const pkg of packages) {
         pkg.size = fs.statSync(pkg.path).size;
         pkg.sha256 = await sha256File(pkg.path);
-        log(`  ${pkg.name.padEnd(28)} ${mib(pkg.size).padStart(11)}  sha256 ${pkg.sha256.slice(0, 16)}...`);
+        log(`  ${pkg.name.padEnd(60)} ${mib(pkg.size).padStart(11)}  sha256 ${pkg.sha256.slice(0, 16)}...`);
     }
 
     const listing = await listDirectory(settings, version);
@@ -396,10 +551,27 @@ export const publish = async (args, settings, log = console.log) => {
         throw new Error(`${version}/SHA256SUMS already exists with different content; pass --force to replace it`);
     }
 
+    // The release's packages described, for tools: added to a published version too, as it
+    // describes the packages rather than changing them.
+    const describe = (pkg) => ({
+        name: pkg.name,
+        description: pkg.label,
+        kind: pkg.kind,
+        arch: pkg.arch,
+        playwright: pkg.playwright,
+        size: pkg.size,
+        sha256: pkg.sha256,
+        url: `${settings.publicUrl}/${version}/${pkg.name}`,
+    });
+    const releaseJson = JSON.stringify({ version, files: packages.map(describe) }, null, 2) + "\n";
+    const releaseSha = crypto.createHash("sha256").update(releaseJson).digest("hex");
+    const releasePlan = planFile(listing, "release.json", releaseSha, true);
+
     log("");
     const verb = (action) => (action === "skip" ? "already there" : "upload").padEnd(13);
     for (const { pkg, action } of plans) log(`  ${verb(action)}  ${pkg.name}`);
     log(`  ${verb(sumsPlan)}  SHA256SUMS`);
+    log(`  ${verb(releasePlan)}  release.json`);
     if (args.latest) log(`  ${verb("upload")}  latest.json`);
     log(`  ${verb("upload")}  index.html`);
 
@@ -431,19 +603,24 @@ export const publish = async (args, settings, log = console.log) => {
         await upload(settings, `${version}/SHA256SUMS`, { content: sums, sha256: sumsSha });
         uploaded.push("SHA256SUMS");
     }
+    if (releasePlan !== "skip") {
+        await upload(settings, `${version}/release.json`, { content: releaseJson, sha256: releaseSha });
+        uploaded.push("release.json");
+    }
 
     if (args.latest) {
         const latest = JSON.stringify(
             {
                 version,
                 published_at: new Date().toISOString(),
-                files: packages.map((pkg) => ({
-                    name: pkg.name,
-                    description: pkg.label,
-                    size: pkg.size,
-                    sha256: pkg.sha256,
-                    url: `${settings.publicUrl}/${version}/${pkg.name}`,
+                // The short list - what the licence e-mail offers: for AMD64, the runner
+                // with the newest Playwright, the slim one and TypeScript. Descriptions
+                // carry the architecture, as the mail has no switch.
+                files: recommended(packages).map((pkg) => ({
+                    ...describe(pkg),
+                    description: `${pkg.label} (${pkg.arch === "any" ? "any CPU" : ARCH_LABELS[pkg.arch].name}${pkg.playwright ? `, Playwright ${pkg.playwright}` : ""})`,
                 })),
+                all_files: packages.map(describe),
                 sha256sums: `${settings.publicUrl}/${version}/SHA256SUMS`,
             },
             null,
