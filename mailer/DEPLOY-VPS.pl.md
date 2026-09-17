@@ -153,7 +153,8 @@ Starsze wersje odrzucają klucze podpisane kluczem Free.
    FREE_LICENSE_MIN_VERSION=1.4.1
    ```
    Tylko `free-private.pem`, nigdy `private.pem`.
-2. Wgraj nową wersję (sekcja niżej) - `Caddyfile` przepuszcza już `/send-license`.
+2. Wgraj nową wersję (sekcja niżej, razem z restartem Caddy'ego) - `Caddyfile`
+   przepuszcza już `/send-license`.
 3. Sprawdź z zewnątrz: `curl -i -X POST https://mailer.vallus.eu/send-license`
    ma dać `401 bad_signature`. `404` znaczy, że klucz nie jest ustawiony albo Caddy
    ma stary `Caddyfile`.
@@ -172,6 +173,17 @@ rsync -a --delete --exclude node_modules --exclude dist --exclude .git --exclude
       mailer/ ubuntu@179.237.100.147:/opt/vallus-mailer/
 ssh ubuntu@179.237.100.147 'cd /opt/vallus-mailer && sudo docker compose up -d --build'
 ```
+
+Jeśli zmienił się `Caddyfile`, dołóż restart Caddy'ego:
+
+```bash
+ssh ubuntu@179.237.100.147 'cd /opt/vallus-mailer && sudo docker compose restart caddy'
+```
+
+`caddy reload` tu nie wystarczy. `rsync` podmienia plik (nowy plik, potem zmiana nazwy),
+a zamontowany pojedynczy plik dalej wskazuje w kontenerze starą wersję - reload wczyta
+starą konfigurację i nowa trasa, np. `/send-license`, odpowie `404`. Restart montuje
+plik od nowa; certyfikaty są w wolumenie `caddy_data`, więc nic nie jest wydawane ponownie.
 
 `restart: unless-stopped` w `compose.yaml` załatwia start po reboocie serwera - nie
 trzeba jednostki systemd.
