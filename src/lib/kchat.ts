@@ -12,6 +12,8 @@ export interface Challenge {
 export interface KchatConfig {
     challenge: Challenge | null;
     otp: boolean;
+    /** /register mails a signed free key itself instead of queueing a request. */
+    licenseAuto: boolean;
 }
 
 /**
@@ -43,7 +45,7 @@ export async function fetchKchatConfig(api: string): Promise<KchatConfig> {
     const res = await fetch(`${api}/config`, { headers: { Accept: "application/json" } });
     if (!res.ok) throw new Error(`config ${res.status}`);
     const body = await res.json();
-    return { challenge: body?.challenge ?? null, otp: body?.otp === true };
+    return { challenge: body?.challenge ?? null, otp: body?.otp === true, licenseAuto: body?.licenseAuto === true };
 }
 
 /** Turns a failed response into a readable message, preferring the server's own. */

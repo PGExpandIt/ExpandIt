@@ -83,6 +83,14 @@ export interface Config {
     mailerSecret: string | null;
     /** How long an issued code stays valid, in ms. */
     otpTtlMs: number;
+    /**
+     * Issue free licences on /register instead of relaying a request for one. Takes
+     * effect only with OTP on, because the key goes to the address the visitor typed
+     * and that address has to be proven first; the mailer must have its free key set.
+     * Off by default: turn it on only once a vallus release that carries the free
+     * public key is out, or the keys mailed are ones nobody can use.
+     */
+    freeLicenseAuto: boolean;
 }
 
 export { readEnv };
@@ -123,5 +131,6 @@ export const loadConfig = (): Config => {
         mailerUrl: readEnv("KCHAT_MAILER_URL")?.trim().replace(/\/$/, "") || null,
         mailerSecret: readEnv("KCHAT_MAILER_SECRET")?.trim() || null,
         otpTtlMs: Number(optional("KCHAT_OTP_TTL_MINUTES", "10")) * 60 * 1000,
+        freeLicenseAuto: optional("KCHAT_FREE_LICENSE_AUTO", "false").trim().toLowerCase() === "true",
     };
 };

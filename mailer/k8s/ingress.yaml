@@ -31,3 +31,11 @@ spec:
                 name: mailer
                 port:
                   name: http
+          # Answers 404 from the mailer until FREE_LICENSE_KEY_B64 is set.
+          - path: /send-license
+            pathType: Exact
+            backend:
+              service:
+                name: mailer
+                port:
+                  name: http

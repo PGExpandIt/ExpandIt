@@ -4,9 +4,17 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import type { Config } from "./config.js";
 
+/** What goes into a licence e-mail. */
+export interface LicenseMail {
+    company: string;
+    key: string;
+    expires: string;
+}
+
 /** What the handler needs from a sender - a real one, or a fake in tests. */
 export interface CodeSender {
     sendCode(email: string, code: string): Promise<void>;
+    sendLicense(email: string, license: LicenseMail): Promise<void>;
     verifyConnection?(): Promise<void>;
 }
 
@@ -37,7 +45,25 @@ export class SmtpSender implements CodeSender {
         const body = this.config.codeBody
             .replaceAll("{code}", code)
             .replaceAll("{minutes}", String(this.config.codeTtlMinutes));
+        await this.send(email, this.config.codeSubject, body);
+    }
 
+    async sendLicense(email: string, license: LicenseMail): Promise<void> {
+        const settings = this.config.freeLicense;
+        if (!settings) throw new Error("free licence issuing is not configured");
+        // One pass, so text substituted in is never scanned again: a company typed as
+        // "{key}" stays those five characters instead of becoming a second copy of the key.
+        const values: Record<string, string> = {
+            company: license.company,
+            expires: license.expires,
+            minVersion: settings.minVersion,
+            key: license.key,
+        };
+        const body = settings.body.replace(/\{(company|expires|minVersion|key)\}/g, (_, name: string) => values[name]);
+        await this.send(email, settings.subject, body);
+    }
+
+    private async send(email: string, subject: string, body: string): Promise<void> {
         // `-- ` on its own line is the RFC 3676 signature delimiter: mail clients
         // fold what follows and leave it out of quoted replies. The trailing space
         // is part of it, not a stray one.
@@ -46,7 +72,7 @@ export class SmtpSender implements CodeSender {
         await this.transport.sendMail({
             from: { address: this.config.from, name: this.config.fromName },
             to: email,
-            subject: this.config.codeSubject,
+            subject,
             text,
         });
     }

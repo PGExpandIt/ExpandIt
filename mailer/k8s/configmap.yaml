@@ -27,6 +27,12 @@ data:
 
   SEND_RATE_LIMIT_PER_HOUR: "5"
 
+  # Free licences (used only when FREE_LICENSE_KEY_B64 is in the Secret). The
+  # version goes into the e-mail: older vallus builds reject free-signed keys.
+  FREE_LICENSE_MIN_VERSION: "1.4.1"
+  FREE_LICENSE_TERM_DAYS: "183"
+  LICENSE_SUBJECT: Your free vallus licence
+
   PORT: "8790"
   # The code defaults to loopback, which would make the port unreachable from the
   # Service. Inside the pod the network boundary is the NetworkPolicy, not the bind.

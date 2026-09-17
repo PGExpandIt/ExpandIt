@@ -3,11 +3,12 @@
 }
 
 {$MAILER_DOMAIN} {
-	# The edge calls exactly one path. Everything else gets a flat 404 - including
+	# The edge calls exactly these paths. Everything else gets a flat 404 - including
 	# /health, which exists for the container healthcheck, not for the internet.
+	# /send-license answers 404 from the mailer itself until FREE_LICENSE_KEY_B64 is set.
 	@send {
 		method POST
-		path /send-code
+		path /send-code /send-license
 	}
 	handle @send {
 		# A ceiling in front of the one in handler.ts, so an oversized body never

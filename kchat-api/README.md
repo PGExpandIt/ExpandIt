@@ -114,6 +114,21 @@ browser ──POST /message|/register {…, code, token}──►  verified → 
   the message endpoints fall back to the proof-of-work challenge. The edge **never**
   opens SMTP - it only calls the mailer over HTTP.
 
+## Automatic free licences (optional)
+
+With `KCHAT_FREE_LICENSE_AUTO=true` and OTP on, `POST /register` no longer queues a
+request for a human. Once the code verifies it calls the mailer's `/send-license`,
+which signs a free-tier key with the free key and mails it; the channel gets a
+"Free licence issued" post with company, e-mail and expiry - the record of issued
+keys, since the edge stores nothing. The key itself never passes through here.
+
+`/register` then answers `{ ok: true, issued: true, expires }`, and `GET /config`
+reports `licenseAuto: true` so the `/free` page can promise the key now. If the
+mailer call fails, the request goes to the channel as before, marked as a failed
+automatic issue, and the answer is `issued: false` - the visitor is not sent back to
+start over. A failed channel post after a successful issue is logged, not returned
+as an error, so nobody requests a second key for one that already arrived.
+
 ## Tests
 
 ```

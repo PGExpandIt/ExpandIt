@@ -11,11 +11,15 @@ import { issueChallenge, verifyChallenge } from "./challenge.js";
 import type { Config } from "./config.js";
 import type { KChat } from "./kchat.js";
 import { issueCode, verifyCode } from "./otp.js";
-import { sendCodeViaMailer } from "./mailerClient.js";
+import { sendCodeViaMailer, sendLicenseViaMailer } from "./mailerClient.js";
 
 /** OTP e-mail verification is on only when the secret, mailer URL and shared secret are all set. */
 const otpEnabled = (config: Config): config is Config & { otpSecret: string; mailerUrl: string; mailerSecret: string } =>
     config.otpSecret !== null && config.mailerUrl !== null && config.mailerSecret !== null;
+
+/** /register issues the key itself only behind a verified e-mail - see Config.freeLicenseAuto. */
+const licenseAutoEnabled = (config: Config): config is Config & { otpSecret: string; mailerUrl: string; mailerSecret: string } =>
+    otpEnabled(config) && config.freeLicenseAuto === true;
 
 const MAX_BODY_BYTES = 16 * 1024;
 /** A form filled in faster than this was not filled in by a person. */
@@ -119,7 +123,7 @@ const field = (body: any, key: string, max: number): string =>
     String(body?.[key] ?? "").trim().slice(0, max);
 
 /** Assembles the kChat post for a free-licence request from the /free page. */
-const buildLicenseRequest = (parts: { company: string; email: string; marketing: boolean }): string =>
+const buildLicenseRequest = (parts: { company: string; email: string; marketing: boolean; autoFailed?: boolean }): string =>
     [
         "**🔑 Free licence request**",
         "",
@@ -127,7 +131,24 @@ const buildLicenseRequest = (parts: { company: string; email: string; marketing:
         `**E-mail:** \`${parts.email}\``,
         `**Product-update opt-in:** ${parts.marketing ? "yes" : "no"}`,
         "",
+        ...(parts.autoFailed ? ["_Automatic issue failed - nothing was sent to the visitor. Check the mailer log._", ""] : []),
         `_Sign the free key offline and send the licence to \`${parts.email}\` within 24 h._`,
+    ].join("\n");
+
+/**
+ * The channel post for a key issued automatically. Doubles as the record of issued
+ * free keys: the edge has no storage, and the key itself is deliberately not in it.
+ */
+const buildLicenseIssued = (parts: { company: string; email: string; marketing: boolean; expires: string }): string =>
+    [
+        "**🔑 Free licence issued**",
+        "",
+        `**Company (exact, case-sensitive):** ${defang(parts.company)}`,
+        `**E-mail:** \`${parts.email}\``,
+        `**Expires:** ${parts.expires}`,
+        `**Product-update opt-in:** ${parts.marketing ? "yes" : "no"}`,
+        "",
+        "_Signed with the free key and e-mailed automatically. Nothing to do._",
     ].join("\n");
 
 /** Assembles the Mattermost-markdown post from the submitted fields. */
@@ -160,6 +181,8 @@ const handleConfig = async (config: Config, headers: Record<string, string>): Pr
             challenge,
             // Lets the form pick its flow: one-step, or the two-step OTP exchange.
             otp: otpEnabled(config),
+            // Lets /free promise a key in the inbox now rather than within a business day.
+            licenseAuto: licenseAutoEnabled(config),
         },
         headers,
     );
@@ -346,10 +369,33 @@ const handleRegister = async (
     const gate = await verifyHumanGate(config, body, email, headers, false, ip);
     if (gate) return gate;
 
-    const text = buildLicenseRequest({ company, email, marketing });
-    const { transport } = await kchat.send({ text });
+    if (!licenseAutoEnabled(config)) {
+        const text = buildLicenseRequest({ company, email, marketing });
+        const { transport } = await kchat.send({ text });
+        return json(200, { ok: true, transport, issued: false }, headers);
+    }
 
-    return json(200, { ok: true, transport }, headers);
+    let expires: string;
+    try {
+        ({ expires } = await sendLicenseViaMailer(config.mailerUrl, config.mailerSecret, email, company));
+    } catch (error) {
+        // The visitor has already proven the address and should not be told to start
+        // over. Fall back to the manual path the form promised before automation: the
+        // request lands in the channel, flagged, and is answered by hand.
+        console.error(`[kchat-api] /register automatic licence failed:`, error);
+        const text = buildLicenseRequest({ company, email, marketing, autoFailed: true });
+        const { transport } = await kchat.send({ text });
+        return json(200, { ok: true, transport, issued: false }, headers);
+    }
+
+    // The key is already in the visitor's inbox. A failed notification must not turn
+    // that into an error page, or they would request - and be sent - a second key.
+    try {
+        await kchat.send({ text: buildLicenseIssued({ company, email, marketing, expires }) });
+    } catch (error) {
+        console.error(`[kchat-api] licence for ${email} issued, but the channel notification failed:`, error);
+    }
+    return json(200, { ok: true, issued: true, expires }, headers);
 };
 
 /** Builds the request handler. One kChat client instance is reused. */

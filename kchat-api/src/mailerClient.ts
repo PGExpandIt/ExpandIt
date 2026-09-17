@@ -22,3 +22,29 @@ export const sendCodeViaMailer = async (
         throw new Error(`mailer /send-code → ${res.status}: ${detail.slice(0, 200)}`);
     }
 };
+
+/**
+ * Asks the mailer to sign a free licence for `company` and mail it to `email`. The key
+ * never comes back here - only its expiry, for the notification in the channel.
+ */
+export const sendLicenseViaMailer = async (
+    mailerUrl: string,
+    mailerSecret: string,
+    email: string,
+    company: string,
+): Promise<{ expires: string }> => {
+    const raw = JSON.stringify({ email, company });
+    const signature = await hmacHex(mailerSecret, raw);
+    const res = await fetch(`${mailerUrl}/send-license`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-signature": signature },
+        body: raw,
+    });
+    if (!res.ok) {
+        const detail = await res.text().catch(() => "");
+        throw new Error(`mailer /send-license → ${res.status}: ${detail.slice(0, 200)}`);
+    }
+    const body = (await res.json()) as { expires?: unknown };
+    if (typeof body.expires !== "string") throw new Error("mailer /send-license answered without an expiry");
+    return { expires: body.expires };
+};

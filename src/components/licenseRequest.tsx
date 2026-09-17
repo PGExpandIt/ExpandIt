@@ -20,8 +20,15 @@ interface Draft {
 
 type Phase = "form" | "code" | "success";
 
+/** What /register answered: a key already on its way, or a request answered by hand. */
+interface Outcome {
+    issued: boolean;
+    expires?: string;
+}
+
 export default function LicenseRequest() {
     const [phase, setPhase] = useState<Phase>("form");
+    const [outcome, setOutcome] = useState<Outcome>({ issued: false });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -78,6 +85,14 @@ export default function LicenseRequest() {
             body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error(await errorFrom(res, `The request failed (${res.status}).`));
+        // Read from the answer, not from /config: when the automatic issue fails the relay
+        // falls back to a manual request, and the page must not promise a key that is not
+        // in the inbox.
+        const body = await res.json().catch(() => null);
+        setOutcome({
+            issued: body?.issued === true,
+            expires: typeof body?.expires === "string" ? body.expires : undefined,
+        });
     }
 
     async function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -173,6 +188,25 @@ export default function LicenseRequest() {
         }
     }
 
+    if (phase === "success" && outcome.issued) {
+        return (
+            <div className="rounded-lg border border-line bg-surface p-8">
+                <h3 className="text-lg font-semibold text-bone">Your key is on its way</h3>
+                <p className="mt-4 max-w-2xl leading-relaxed text-muted">
+                    We have e-mailed your free licence to{" "}
+                    <span className="text-bone">{draft?.email}</span>, with the exact company name to
+                    enter.{" "}
+                    {outcome.expires && (
+                        <>
+                            It is valid until <span className="text-bone">{outcome.expires}</span>.{" "}
+                        </>
+                    )}
+                    If it is not in your inbox within a few minutes, check the spam folder.
+                </p>
+            </div>
+        );
+    }
+
     if (phase === "success") {
         return (
             <div className="rounded-lg border border-line bg-surface p-8">
@@ -192,7 +226,8 @@ export default function LicenseRequest() {
                 <h3 className="text-lg font-semibold text-bone">Enter the code</h3>
                 <p className="mt-2 max-w-2xl text-sm text-muted">
                     We e-mailed a code to <span className="text-bone">{draft?.email}</span>. Enter it
-                    to confirm the address and send your request.
+                    to confirm the address and{" "}
+                    {config?.licenseAuto ? "receive your key." : "send your request."}
                 </p>
 
                 <div className="mt-6">
@@ -224,7 +259,7 @@ export default function LicenseRequest() {
                     disabled={submitting || remaining === 0}
                     className="mt-6 w-full cursor-pointer rounded-md bg-accent px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                    {submitting ? "Verifying…" : "Confirm and send"}
+                    {submitting ? "Verifying…" : config?.licenseAuto ? "Confirm and get the key" : "Confirm and send"}
                 </button>
 
                 <button
@@ -243,8 +278,10 @@ export default function LicenseRequest() {
         <form onSubmit={handleFormSubmit} className="rounded-lg border border-line bg-surface p-8">
             <h3 className="text-lg font-semibold text-bone">Request a free key</h3>
             <p className="mt-2 max-w-2xl text-sm text-muted">
-                Delivered within one business day of e-mail confirmation. The free licence runs
-                for 6 months and is renewable - it is never perpetual.
+                {config?.licenseAuto
+                    ? "Delivered by e-mail as soon as you confirm the address."
+                    : "Delivered within one business day of e-mail confirmation."}{" "}
+                The free licence runs for 6 months and is renewable - it is never perpetual.
             </p>
 
             <div className="mt-6 grid gap-5 sm:grid-cols-2">

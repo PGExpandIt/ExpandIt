@@ -24,9 +24,28 @@ small VPS, your server, or Infomaniak's own hosting to keep everything in-house)
 |---|---|---|
 | `GET` | `/health` | Liveness. |
 | `POST` | `/send-code` | Sends a code. Body `{ email, code }`; requires header `X-Signature` = HMAC-SHA256 of the raw body under `MAILER_AUTH_SECRET`. |
+| `POST` | `/send-license` | Signs a free-tier licence for `company` and mails it. Body `{ email, company }`, same signature. `404` unless `FREE_LICENSE_KEY_B64` is set. |
 
-Returns `{ ok: true }`, or `401 bad_signature`, `400 invalid_email` / `invalid_code`,
+Returns `{ ok: true }` (`/send-license`: `{ ok: true, expires }`, never the key), or
+`401 bad_signature`, `400 invalid_email` / `invalid_code` / `invalid_company`,
 `429 rate_limited`, `502 send_failed`.
+
+## Free licences
+
+`/send-license` signs with the **free** key (`free-private.pem` from
+`playwrightRunner-license-gen`), never the main one. Both runners hold a key signed
+with it to the free tier - 2 users, 1 project, one run at a time, no gated
+integrations - whatever its payload says, and reject one expiring more than 190 days
+out. So a leak of this key costs a free licence, which the website hands out anyway.
+
+The payload is the generator's free preset, expiring after `FREE_LICENSE_TERM_DAYS`
+(183). The company name is signed byte for byte as the edge sends it: the key only
+works with that exact string. The edge calls this only after the visitor proved the
+e-mail with a one-time code; codes and licences share the per-recipient rate limit.
+
+Configuration fails at startup, not on the first request, when the key does not
+decode to an RSA private key, the term exceeds 190 days, or
+`FREE_LICENSE_MIN_VERSION` is missing.
 
 ## Security
 

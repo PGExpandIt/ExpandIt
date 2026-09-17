@@ -142,6 +142,28 @@ widzisz 401 na każdym żądaniu, sprawdzaj sekret, nie kod.
 
 ---
 
+## 6. Automatyczne licencje Free (opcjonalnie)
+
+Włączać dopiero po wydaniu vallus 1.4.1 - pierwszej wersji z kluczem publicznym Free.
+Starsze wersje odrzucają klucze podpisane kluczem Free.
+
+1. Na VPS-ie dopisz do `/opt/vallus-mailer/.env`:
+   ```
+   FREE_LICENSE_KEY_B64=<wynik: base64 < free-private.pem | tr -d '\n'>
+   FREE_LICENSE_MIN_VERSION=1.4.1
+   ```
+   Tylko `free-private.pem`, nigdy `private.pem`.
+2. Wgraj nową wersję (sekcja niżej) - `Caddyfile` przepuszcza już `/send-license`.
+3. Sprawdź z zewnątrz: `curl -i -X POST https://mailer.vallus.eu/send-license`
+   ma dać `401 bad_signature`. `404` znaczy, że klucz nie jest ustawiony albo Caddy
+   ma stary `Caddyfile`.
+4. W panelu skryptu `kchat-api` ustaw `KCHAT_FREE_LICENSE_AUTO` = `true` i wdróż
+   nową wersję skryptu.
+5. Na stronie `/free/` zmień teksty o dostarczeniu w ciągu dnia roboczego
+   (`src/app/free/page.tsx`) - formularz sam przełącza swoje komunikaty.
+
+---
+
 ## Aktualizacja później
 
 ```bash

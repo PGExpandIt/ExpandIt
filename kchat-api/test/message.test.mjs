@@ -183,7 +183,7 @@ test("/register relays a free-licence request (no proof-of-work needed)", async 
 
     const res = await postRegister(handler, { company: "Acme Inc.", email: "alex@acme.com", marketing: true });
     assert.equal(res.status, 200);
-    assert.deepEqual(await res.json(), { ok: true, transport: "webhook" });
+    assert.deepEqual(await res.json(), { ok: true, transport: "webhook", issued: false });
 
     const text = kchat._state.sent[0].text;
     assert.match(text, /Free licence request/);
@@ -366,4 +366,118 @@ test("an unknown route is 404 and OPTIONS is a 204 preflight", async () => {
     );
     assert.equal(preflight.status, 204);
     assert.equal(preflight.headers.get("access-control-allow-origin"), ORIGIN);
+});
+
+// ── automatic free licences (KCHAT_FREE_LICENSE_AUTO) ──
+
+const AUTO = { ...OTP, freeLicenseAuto: true };
+
+/** Swaps global fetch for the mailer stand-in for the duration of `fn`. */
+const withMailer = async (answer, fn) => {
+    const calls = [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async (url, init) => {
+        calls.push({ url: String(url), init, body: JSON.parse(init.body) });
+        return answer(String(url));
+    };
+    try {
+        return await fn(calls);
+    } finally {
+        globalThis.fetch = realFetch;
+    }
+};
+
+const mailerIssues = () => new Response(JSON.stringify({ ok: true, expires: "2027-03-19" }), { status: 200 });
+
+const verifiedRegister = async (handler, extra = {}) => {
+    const email = "buyer@acme.com";
+    const { code, token } = await issueCode(OTP.otpSecret, email, 60_000);
+    return postRegister(handler, { company: "Acme Inc.", email, marketing: true, code, token, ...extra });
+};
+
+test("GET /config advertises licenseAuto only with OTP on and the switch set", async () => {
+    const read = async (over) => {
+        const handler = createHandler(baseConfig(over), fakeKchat());
+        const res = await handler(new Request("http://localhost/config", { headers: { origin: ORIGIN } }));
+        return (await res.json()).licenseAuto;
+    };
+    assert.equal(await read({}), false);
+    assert.equal(await read(OTP), false);
+    assert.equal(await read({ freeLicenseAuto: true }), false, "no OTP, no automatic keys");
+    assert.equal(await read(AUTO), true);
+});
+
+test("with automatic licences on, a verified /register has the mailer issue the key", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(AUTO), kchat);
+
+    await withMailer(mailerIssues, async (calls) => {
+        const res = await verifiedRegister(handler);
+        assert.equal(res.status, 200);
+        assert.deepEqual(await res.json(), { ok: true, issued: true, expires: "2027-03-19" });
+
+        assert.equal(calls.length, 1);
+        assert.match(calls[0].url, /\/send-license$/);
+        assert.deepEqual(calls[0].body, { email: "buyer@acme.com", company: "Acme Inc." });
+        assert.ok(calls[0].init.headers["x-signature"], "the mailer request is signed");
+    });
+
+    assert.equal(kchat._state.sent.length, 1);
+    const text = kchat._state.sent[0].text;
+    assert.match(text, /Free licence issued/);
+    assert.match(text, /Acme Inc\./);
+    assert.match(text, /2027-03-19/);
+    assert.doesNotMatch(text, /Sign the free key offline/);
+});
+
+test("an unverified /register issues nothing, even with automatic licences on", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(AUTO), kchat);
+
+    await withMailer(mailerIssues, async (calls) => {
+        const res = await verifiedRegister(handler, { code: "000000" });
+        assert.equal(res.status, 403);
+        assert.equal(calls.length, 0);
+    });
+    assert.equal(kchat._state.sent.length, 0);
+});
+
+test("when the mailer fails, the request falls back to the channel, flagged", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(AUTO), kchat);
+
+    await withMailer(() => new Response("boom", { status: 502 }), async () => {
+        const res = await verifiedRegister(handler);
+        assert.equal(res.status, 200, "the visitor proved the address and is not sent back");
+        assert.deepEqual(await res.json(), { ok: true, transport: "webhook", issued: false });
+    });
+
+    const text = kchat._state.sent[0].text;
+    assert.match(text, /Free licence request/);
+    assert.match(text, /Automatic issue failed/);
+    assert.match(text, /Sign the free key offline/);
+});
+
+test("a failed channel notification does not undo an issued key", async () => {
+    const kchat = { transport: "webhook", async send() { throw new Error("kchat down"); } };
+    const handler = createHandler(baseConfig(AUTO), kchat);
+
+    await withMailer(mailerIssues, async () => {
+        const res = await verifiedRegister(handler);
+        assert.equal(res.status, 200);
+        assert.deepEqual(await res.json(), { ok: true, issued: true, expires: "2027-03-19" });
+    });
+});
+
+test("with the switch off, a verified /register still only relays the request", async () => {
+    const kchat = fakeKchat();
+    const handler = createHandler(baseConfig(OTP), kchat);
+
+    await withMailer(mailerIssues, async (calls) => {
+        const res = await verifiedRegister(handler);
+        assert.equal(res.status, 200);
+        assert.equal((await res.json()).issued, false);
+        assert.equal(calls.length, 0, "the mailer is not asked for a key");
+    });
+    assert.match(kchat._state.sent[0].text, /Free licence request/);
 });

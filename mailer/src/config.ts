@@ -1,6 +1,8 @@
 // Configuration from the environment. Node-only: this service runs on a host with
 // outbound SMTP, loaded via --env-file locally and real env in production.
 
+import { assertUsablePrivateKey, FREE_LICENSE_MAX_TERM_DAYS } from "./license.js";
+
 const readEnv = (name: string): string | undefined => process.env[name];
 
 const required = (name: string): string => {
@@ -36,7 +38,67 @@ export interface Config {
     /** Shared HMAC secret the edge signs /send-code requests with. */
     authSecret: string;
     rateLimitPerHour: number;
+    /**
+     * Free-tier licence issuing. Null when FREE_LICENSE_KEY_B64 is unset, and then
+     * /send-license answers 404 - the mailer keeps sending codes exactly as before.
+     */
+    freeLicense: FreeLicenseConfig | null;
 }
+
+export interface FreeLicenseConfig {
+    /** PEM of free-private.pem. Signs free-tier keys only; see src/license.ts. */
+    privateKeyPem: string;
+    /** Days until expiry. The generator's free preset uses 183; the runners accept 190 at most. */
+    termDays: number;
+    subject: string;
+    /** Body template; {company}, {key}, {expires} and {minVersion} are substituted. */
+    body: string;
+    /** Oldest vallus release that carries the free public key. Older ones reject the key. */
+    minVersion: string;
+}
+
+const DEFAULT_LICENSE_BODY = [
+    "Here is your free vallus licence.",
+    "",
+    "Company: {company}",
+    "",
+    "Licence key:",
+    "{key}",
+    "",
+    "Enter both in vallus under Setup > License, or Admin > System > Update license on a",
+    "running instance. Type the company name exactly as above, including capital letters:",
+    "the key is bound to it.",
+    "",
+    "The licence is valid until {expires} and covers 2 users, 1 project and one test run",
+    "at a time. It needs vallus {minVersion} or newer. When it runs out, request a new one",
+    "at https://vallus.eu/free/.",
+].join("\n");
+
+/**
+ * The key arrives base64-encoded because a PEM is multi-line and .env files, compose
+ * env_file and most secret stores are not:
+ *   base64 < free-private.pem | tr -d '\n'
+ */
+const loadFreeLicense = (): FreeLicenseConfig | null => {
+    const encoded = readEnv("FREE_LICENSE_KEY_B64")?.trim();
+    if (!encoded) return null;
+    const privateKeyPem = Buffer.from(encoded, "base64").toString("utf8");
+    if (!privateKeyPem.includes("PRIVATE KEY")) {
+        throw new Error("FREE_LICENSE_KEY_B64 does not decode to a PEM private key");
+    }
+    assertUsablePrivateKey(privateKeyPem);
+    const termDays = Number(optional("FREE_LICENSE_TERM_DAYS", "183"));
+    if (!Number.isInteger(termDays) || termDays < 1 || termDays > FREE_LICENSE_MAX_TERM_DAYS) {
+        throw new Error(`FREE_LICENSE_TERM_DAYS must be 1-${FREE_LICENSE_MAX_TERM_DAYS}; the runners reject longer free keys`);
+    }
+    return {
+        privateKeyPem,
+        termDays,
+        subject: optional("LICENSE_SUBJECT", "Your free vallus licence"),
+        body: optional("LICENSE_BODY", DEFAULT_LICENSE_BODY).replaceAll("\\n", "\n"),
+        minVersion: required("FREE_LICENSE_MIN_VERSION"),
+    };
+};
 
 export const loadConfig = (): Config => ({
     port: Number(optional("PORT", "8790")),
@@ -61,4 +123,5 @@ export const loadConfig = (): Config => ({
     signature: optional("MAIL_SIGNATURE", "").replaceAll("\\n", "\n").trim(),
     authSecret: required("MAILER_AUTH_SECRET"),
     rateLimitPerHour: Number(optional("SEND_RATE_LIMIT_PER_HOUR", "5")),
+    freeLicense: loadFreeLicense(),
 });
