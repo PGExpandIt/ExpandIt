@@ -296,6 +296,36 @@ ${rows}
     </section>`;
     };
     const body = sorted.length ? sorted.map(section).join("\n") : "    <p>No release has been published yet.</p>";
+    // What the machine has to have. The runner itself is small; the browsers are not,
+    // and what they cost depends on where a run happens - in a container of its own, or
+    // beside the server - not on which runner you took.
+    const requirements = `    <section id="requirements">
+      <h2>Minimum requirements</h2>
+      <table>
+        <thead><tr><th>Running tests</th><th>Minimum</th><th>Recommended</th><th>Disk</th></tr></thead>
+        <tbody>
+        <tr>
+          <td>In Docker</td>
+          <td>Docker 24+, 2 CPU, 4 GB RAM, one worker per run</td>
+          <td>4 CPU, 8 GB RAM; about 1 GB of RAM per parallel worker</td>
+          <td>20 GB: ~4 GB per Playwright version it builds a run image for, plus reports and run history</td>
+        </tr>
+        <tr>
+          <td>On the machine itself</td>
+          <td>2 CPU, 2 GB RAM, one worker, headless</td>
+          <td>2-4 CPU, 4 GB RAM; a browser takes 0.5-1 GB while a test runs</td>
+          <td>10 GB: ~2 GB for the browsers (less with Chromium alone), plus reports and run history</td>
+        </tr>
+        </tbody>
+      </table>
+      <p class="hint">In Docker means a container per run - the Rust slim package, or either
+        runner with the container executor on. On the machine itself means the TypeScript
+        runner, or the Rust package with browsers and that executor off. Linux, macOS or
+        Windows, on the CPU the package names; the TypeScript runner also needs Node 18+.
+        Node test projects install with npm, or with bun when bun is installed on the
+        machine running vallus; Playwright itself always runs under Node.
+        Keep run history pruned (Admin &gt; System &gt; retention) so reports do not fill the disk.</p>
+    </section>`;
     const switchHtml = ARCHES.map(
         (arch, i) => `      <input type="radio" name="arch" id="arch-${arch}" value="${arch}"${i === 0 ? " checked" : ""}>
       <label for="arch-${arch}">${escapeHtml(ARCH_LABELS[arch].name)}</label>`,
@@ -352,6 +382,7 @@ ${switchHtml}
     </div>
 ${hints}
 ${body}
+${requirements}
   </main>
   <script>
     (() => {

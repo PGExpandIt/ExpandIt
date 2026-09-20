@@ -61,7 +61,10 @@ leave the customer's perimeter.
   between runs. The vault integration is licensed from the Team tier upwards; the
   free tier still encrypts its secrets, it just cannot read an external vault.
 - Supports Playwright (Node.js/TypeScript) and pytest-playwright (Python) in the
-  same instance, with a separate Playwright version per project.
+  same instance, with a separate Playwright version per project. Node projects
+  install their dependencies with npm or bun, set per project; bun is offered only
+  when it is installed on the machine running vallus. Playwright itself always runs
+  under Node.
 - Each run executes in its own container when Docker is available, with an image
   per version of the test suite.
 - Reports: Playwright HTML per run, Allure when a JRE is present, hosted trace

@@ -60,7 +60,7 @@ const FEATURES: Feature[] = [
     },
     {
         title: "Python as well as TypeScript",
-        body: "Node/TypeScript Playwright projects and Python pytest-playwright suites run side by side under the same dashboard, roles and history.",
+        body: "Node/TypeScript Playwright projects and Python pytest-playwright suites run side by side under the same dashboard, roles and history. Node projects install with npm or bun, chosen per project.",
     },
     {
         title: "HTTPS and key management",
