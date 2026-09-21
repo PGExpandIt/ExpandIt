@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Everything that breaks in a test suite when there is no internet</title>
+<meta name="description" content="A catalogue of what actually fails when a working test suite is moved into a closed network: shared memory, CDN fonts, revocation checks, telemetry, clock drift and the timeouts they all become.">
+<meta name="color-scheme" content="dark">
+<meta name="author" content="Piotr Gajownik">
+<link rel="canonical" href="https://vallus.eu/articles/what-breaks-without-internet/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="vallus by ExpandIt">
+<meta property="og:locale" content="en_GB">
+<meta property="og:url" content="https://vallus.eu/articles/what-breaks-without-internet/">
+<meta property="og:title" content="Everything that breaks the first time you unplug">
+<meta property="og:description" content="A catalogue of what actually fails when a working test suite is moved into a closed network: shared memory, CDN fonts, revocation checks, telemetry, clock drift and the timeouts they all become.">
+<meta property="og:image" content="https://vallus.eu/articles/what-breaks-without-internet/assets/og-what-breaks-without-internet-en.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Everything that breaks in a test suite when there is no internet">
+<meta property="article:published_time" content="2026-09-21">
+<meta property="article:modified_time" content="2026-09-21">
+<meta property="article:author" content="Piotr Gajownik">
+<meta property="article:section" content="Test automation">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Everything that breaks the first time you unplug">
+<meta name="twitter:description" content="A catalogue of what actually fails when a working test suite is moved into a closed network: shared memory, CDN fonts, revocation checks, telemetry, clock drift and the timeouts they all become.">
+<meta name="twitter:image" content="https://vallus.eu/articles/what-breaks-without-internet/assets/og-what-breaks-without-internet-en.jpg">
+<meta name="twitter:image:alt" content="Everything that breaks in a test suite when there is no internet">
+
+<link rel="preload" href="/articles/what-breaks-without-internet/assets/fonts/geist-400-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/articles/what-breaks-without-internet/assets/fonts/geist-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{
+ "@context": "https://schema.org",
+ "@type": "Article",
+ "headline": "Everything that breaks in a test suite when there is no internet",
+ "alternativeHeadline": "Everything that breaks the first time you unplug",
+ "description": "A catalogue of what actually fails when a working test suite is moved into a closed network: shared memory, CDN fonts, revocation checks, telemetry, clock drift and the timeouts they all become.",
+ "inLanguage": "en",
+ "datePublished": "2026-09-21",
+ "dateModified": "2026-09-21",
+ "author": {
+  "@type": "Person",
+  "name": "Piotr Gajownik",
+  "jobTitle": "Senior Test Engineer",
+  "worksFor": {
+   "@type": "Organization",
+   "name": "ExpandIt"
+  },
+  "url": "https://vallus.eu/"
+ },
+ "publisher": {
+  "@type": "Organization",
+  "name": "ExpandIt",
+  "url": "https://vallus.eu/",
+  "logo": {
+   "@type": "ImageObject",
+   "url": "https://vallus.eu/logo.png"
+  }
+ },
+ "image": [
+  "https://vallus.eu/articles/what-breaks-without-internet/assets/og-what-breaks-without-internet-en.jpg"
+ ],
+ "mainEntityOfPage": {
+  "@type": "WebPage",
+  "@id": "https://vallus.eu/articles/what-breaks-without-internet/"
+ },
+ "articleSection": "Test automation",
+ "keywords": "closed environments, air-gapped, test automation, Playwright, test reporting, data sovereignty"
+}</script>
+<style>
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/what-breaks-without-internet/assets/fonts/geist-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/what-breaks-without-internet/assets/fonts/geist-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/what-breaks-without-internet/assets/fonts/geist-600-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/what-breaks-without-internet/assets/fonts/geist-600-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/what-breaks-without-internet/assets/fonts/geist-700-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/what-breaks-without-internet/assets/fonts/geist-700-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/what-breaks-without-internet/assets/fonts/geist-mono-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/what-breaks-without-internet/assets/fonts/geist-mono-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+
+:root {
+  --ink:#100F0D; --ink-soft:#171613; --surface:#1C1A17; --line:#2C2925;
+  --text:#F2F0EA; --body:#D8D4CB; --muted:#A29C91; --faint:#6E6A61;
+  --mint:#7DD3A0; --mint-dim:#4f8f68;
+  --sans:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:5rem;background:var(--ink)}
+body{
+  margin:0; background:var(--ink); color:var(--body);
+  font-family:var(--sans); font-size:17.5px; line-height:1.72;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+::selection{background:rgba(125,211,160,.24);color:var(--text)}
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--mint);width:0;z-index:99}
+
+/* ── sticky topbar ────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:60;height:60px;display:flex;align-items:center;
+  background:rgba(16,15,13,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.topbar .in{max-width:816px;margin:0 auto;padding:0 28px;width:100%;
+  display:flex;align-items:center;gap:12px}
+.topbar .back{
+  display:inline-flex;align-items:center;gap:7px;flex:none;
+  padding:7px 13px 7px 10px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface);color:var(--body);
+  font-size:13px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+.topbar .back:hover{border-color:var(--mint);color:var(--mint)}
+.topbar .back:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.topbar .back svg{color:var(--mint);transition:color .18s ease}
+.topbar .back:hover svg{color:var(--mint)}
+.topbar .sep{width:1px;height:20px;background:var(--line);flex:none}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;border-bottom:0}
+.brand svg{height:20px;width:auto;color:var(--mint);transition:color .18s ease}
+.brand:hover b{color:var(--mint)}
+.brand b{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.brand span{font-size:12.5px;color:var(--muted)}
+.topbar .crumb{
+  margin-left:auto;font-size:13px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52%;
+}
+
+/* ── hero ─────────────────────────────────────────────── */
+header.hero{position:relative;min-height:78vh;display:flex;align-items:flex-end;
+  background:var(--ink);overflow:hidden}
+header.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:.30;filter:grayscale(.5) contrast(1.06)}
+header.hero .veil{position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 70% 10%,rgba(16,15,13,.30) 0%,rgba(16,15,13,.86) 55%,var(--ink) 100%)}
+header.hero .inner{position:relative;max-width:816px;margin:0 auto;padding:0 28px 76px;width:100%}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mint);
+  font-weight:600;margin:0 0 20px}
+header.hero h1{color:var(--text);font-size:clamp(36px,6vw,64px);line-height:1.06;
+  letter-spacing:-.028em;margin:0 0 22px;font-weight:700;max-width:17ch}
+header.hero p.sub{color:var(--muted);font-size:clamp(17px,2vw,21px);line-height:1.55;
+  margin:0;max-width:52ch;font-weight:400}
+header.hero .byline{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13.5px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+header.hero .byline i{font-style:normal;color:#3d3a34}
+header.hero .byline .author{color:var(--text);font-weight:600}
+header.hero .topics{margin:10px 0 0;color:var(--faint);font-size:12.5px}
+header.hero picture{position:absolute;inset:0;display:block}
+.hero-credit{position:absolute;right:14px;bottom:10px;color:#4a4740;font-size:10.5px}
+
+/* ── layout ───────────────────────────────────────────── */
+main{max-width:816px;margin:0 auto;padding:0 28px 90px}
+article{max-width:760px;margin:0 auto;padding:60px 0 40px}
+
+/* ── spis tresci ──────────────────────────────────────── */
+nav.toc{background:var(--ink-soft);border:1px solid var(--line);border-radius:8px;
+  padding:26px 30px;margin:0 0 64px}
+nav.toc h2{font-size:13px!important;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:0 0 16px!important;border:0!important;padding:0!important;
+  font-weight:600;display:block}
+nav.toc ol{list-style:none;margin:0;padding:0;columns:2;column-gap:34px}
+nav.toc li{margin:0 0 10px;break-inside:avoid}
+nav.toc a{font-size:14.5px;color:var(--body);text-decoration:none;border-bottom:0;display:flex;gap:11px;line-height:1.45}
+nav.toc a span{color:var(--mint-dim);font-weight:600;min-width:15px}
+nav.toc a:hover{color:var(--mint)}
+nav.toc a:hover span{color:var(--mint)}
+
+/* ── typografia ───────────────────────────────────────── */
+h2,h3,h4{color:var(--text);letter-spacing:-.022em;scroll-margin-top:80px}
+h2{font-size:clamp(27px,3.6vw,36px);line-height:1.14;font-weight:700;
+  margin:84px 0 24px;padding-top:30px;border-top:1px solid var(--line);display:flex;gap:16px}
+h2 .num{color:var(--mint);font-weight:700;flex:none}
+h3{font-size:clamp(19px,2.2vw,22px);font-weight:600;margin:50px 0 15px;display:flex;gap:12px;
+  letter-spacing:-.012em}
+h3 .subnum{color:var(--mint-dim);font-weight:600;flex:none}
+h4{font-size:17px;font-weight:600;margin:34px 0 10px}
+h2 code,h3 code,h4 code{font-size:.82em;padding:.05em .3em;background:rgba(255,255,255,.05);
+  border-color:#333029;color:#dbe6dd;font-weight:600;vertical-align:baseline}
+article > h3:first-of-type{margin-top:0}
+p{margin:0 0 22px}
+article > p:first-of-type,
+h3[id^="wstep"] + p, h3[id^="introduction"] + p{font-size:20px;line-height:1.62;color:#e6e2d9}
+a{color:var(--mint);text-decoration:none;border-bottom:1px solid rgba(125,211,160,.35)}
+a:hover{border-bottom-color:var(--mint)}
+strong{font-weight:600;color:var(--text)}
+em{color:var(--muted)}
+hr{display:none}
+ul,ol{margin:0 0 24px;padding-left:24px}
+li{margin:0 0 11px}
+li::marker{color:var(--mint-dim)}
+
+code{font-family:var(--mono);font-size:.86em;background:var(--surface);
+  border:1px solid var(--line);border-radius:5px;padding:.12em .38em;color:#cdd8cf}
+.code{position:relative;margin:0 0 30px;border-radius:8px;overflow:hidden;
+  background:#0A0908;border:1px solid var(--line)}
+.code .lang{position:absolute;top:0;right:0;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);background:var(--surface);
+  padding:4px 12px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+  border-bottom-left-radius:8px}
+.code pre{margin:0;padding:22px 24px;overflow-x:auto}
+.code code{background:none;border:0;padding:0;color:#dad6cd;font-size:13.5px;
+  line-height:1.68;white-space:pre}
+.code .c{color:#6E6A61}
+.code .s{color:var(--mint)}
+.code pre::-webkit-scrollbar{height:8px}
+.code pre::-webkit-scrollbar-thumb{background:#2C2925;border-radius:4px}
+
+blockquote{margin:36px 0;padding:24px 28px;background:rgba(125,211,160,.06);
+  border:1px solid rgba(125,211,160,.20);border-left:3px solid var(--mint);border-radius:0 8px 8px 0}
+blockquote p{margin:0;font-size:18.5px;line-height:1.6;color:#e3ece5}
+
+.tablewrap{overflow-x:auto;margin:0 0 32px;border:1px solid var(--line);
+  border-radius:8px;background:var(--ink-soft)}
+table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.55}
+th{background:var(--surface);text-align:left;font-weight:600;font-size:12px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  padding:13px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--body)}
+td strong{color:var(--text)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(255,255,255,.018)}
+td code{font-size:.84em}
+
+p.grouplabel{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:38px 0 14px}
+p.grouplabel strong{font-weight:600;color:inherit}
+ul.checklist{list-style:none;padding:0;margin:0 0 26px;display:grid;gap:8px}
+ul.checklist li{position:relative;padding:12px 15px 12px 44px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;margin:0;font-size:15.5px;line-height:1.5;
+  color:var(--body)}
+ul.checklist li::before{content:"";position:absolute;left:16px;top:15px;width:14px;height:14px;
+  border:1.5px solid #3A362F;border-radius:4px;background:var(--surface)}
+
+aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{
+  position:fixed;right:24px;bottom:24px;z-index:70;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 16px 10px 13px;border-radius:6px;cursor:pointer;
+  font-family:var(--sans);font-size:13.5px;font-weight:600;
+  color:var(--text);background:rgba(28,26,23,.92);backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  opacity:0;visibility:hidden;transform:translateY(10px);
+  transition:opacity .25s ease,transform .25s ease,visibility .25s,
+             background .18s ease,color .18s ease,border-color .18s ease;
+}
+#totop.show{opacity:1;visibility:visible;transform:none}
+#totop svg{width:14px;height:14px;flex:none;color:var(--mint);transition:color .18s ease}
+#totop:hover{background:var(--mint);color:var(--ink);border-color:var(--mint)}
+#totop:hover svg{color:var(--ink)}
+#totop:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+@media (max-width:680px){
+  aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{right:14px;bottom:14px;padding:9px 13px 9px 11px;font-size:12.5px}
+}
+
+aside.byline-card{
+  margin:70px 0 0;padding:22px 24px;background:var(--ink-soft);border:1px solid var(--line);
+  border-radius:8px;display:flex;gap:18px;align-items:flex-start;
+}
+aside.byline-card .avatar{
+  flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface);border:1px solid var(--line);
+  color:var(--mint);font-size:15px;font-weight:600;letter-spacing:.02em;
+}
+aside.byline-card .who{margin:0 0 5px;font-size:11.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--mint-dim)}
+aside.byline-card .name{margin:0 0 6px;font-size:16.5px;font-weight:600;color:var(--text)}
+aside.byline-card .name span{font-weight:400;color:var(--muted)}
+aside.byline-card .bio{margin:0;font-size:14.5px;line-height:1.6;color:var(--muted);max-width:58ch}
+
+p.dl{margin:20px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+p.dl a{
+  display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:6px;
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  font-size:14px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+p.dl a:hover{border-color:var(--mint);color:var(--mint)}
+p.dl a svg{color:var(--mint)}
+p.dl span{font-size:13px;color:var(--faint)}
+
+figure.photo{margin:40px 0 42px}
+figure.photo picture{display:block}
+figure.photo img{width:100%;height:auto;display:block;border-radius:8px;max-width:100%;
+  border:1px solid var(--line);background:var(--ink-soft);
+  filter:brightness(.84) saturate(.9) contrast(1.02);transition:filter .35s ease}
+figure.photo img:hover{filter:brightness(1) saturate(1)}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);margin-top:13px;
+  padding-left:14px;border-left:2px solid var(--mint-dim)}
+figcaption .credit{display:block;margin-top:6px;font-size:11.5px;color:#57534c}
+figure.diagram{margin:40px 0;padding:24px 18px 12px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px}
+figure.diagram svg{width:100%;height:auto;display:block;font-family:var(--sans)}
+figure.diagram figcaption{border:0;padding:0;margin-top:12px;text-align:center}
+
+footer{border-top:1px solid var(--line);background:#0C0B0A}
+footer .in{max-width:816px;margin:0 auto;padding:40px 28px 64px;color:var(--faint);font-size:12.5px;line-height:1.7}
+footer .fbrand{display:flex;align-items:center;gap:9px;margin-bottom:24px;
+  text-decoration:none;border-bottom:0;width:fit-content}
+footer .fbrand:hover b{color:var(--text)}
+footer .fbrand:hover svg{color:var(--mint)}
+footer .fbrand svg{height:18px;width:auto;color:var(--mint-dim)}
+footer .fbrand b{font-size:14px;font-weight:600;color:var(--muted)}
+footer h3{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mint-dim);
+  margin:0 0 10px;font-weight:600;display:block}
+footer ul{list-style:none;padding:0;margin:0 0 24px}
+footer li{margin:0 0 5px}
+footer .note{padding-top:20px;border-top:1px solid var(--line);color:#57534c;max-width:78ch}
+footer nav.flinks{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 26px;padding:0 0 22px;
+  border-bottom:1px solid var(--line)}
+footer nav.flinks a{color:var(--muted);text-decoration:none;border-bottom:0;font-size:13px}
+footer nav.flinks a:hover{color:var(--mint)}
+footer nav.flinks a.cta{color:var(--mint);font-weight:600}
+
+@media (max-width:680px){
+  body{font-size:16.5px}
+  aside.byline-card{padding:18px}
+  nav.toc ol{columns:1}
+  article{padding:40px 0 30px}
+  h2{margin:58px 0 20px}
+  .topbar .crumb{display:none}
+  .topbar .back{padding:6px 11px 6px 9px;font-size:12.5px}
+  .brand span{display:none}
+}
+@media print{
+  html,body{background:#fff;color:#111;font-size:11pt}
+  #bar,nav.toc,.topbar,aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{display:none}
+  header.hero{min-height:auto;page-break-after:always;background:#fff}
+  header.hero img,header.hero .veil,.hero-credit{display:none}
+  header.hero h1,h2,h3,h4,strong{color:#000}
+  header.hero p.sub,p,td,li{color:#222}
+  .code{background:#f4f4f2;border-color:#ddd}
+  .code code{color:#111} .code .c{color:#666} .code .s{color:#256b41}
+  .tablewrap,ul.checklist li,figure.diagram{background:#fff;border-color:#ccc}
+  th{background:#f1f1ee;color:#333}
+  footer{background:#fff}
+  h2{page-break-after:avoid} figure,.code,.tablewrap,blockquote{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<div class="topbar">
+  <div class="in">
+    <a class="back" id="back" href="/articles/" title="Return to the previous page">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+           stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>Back</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a class="brand" href="https://www.vallus.eu/" title="vallus.eu"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus</b><span>by ExpandIt</span></a>
+    <span class="crumb">Everything that breaks the first time you unplug</span>
+  </div>
+</div>
+
+<header class="hero">
+  <picture><source type="image/avif" srcset="/articles/what-breaks-without-internet/assets/img/p_clock-900.avif 900w, /articles/what-breaks-without-internet/assets/img/p_clock-1440.avif 1440w" sizes="100vw"><source type="image/webp" srcset="/articles/what-breaks-without-internet/assets/img/p_clock-900.webp 900w, /articles/what-breaks-without-internet/assets/img/p_clock-1440.webp 1440w" sizes="100vw"><img src="/articles/what-breaks-without-internet/assets/img/p_clock-1440.jpg" srcset="/articles/what-breaks-without-internet/assets/img/p_clock-900.jpg 900w, /articles/what-breaks-without-internet/assets/img/p_clock-1440.jpg 1440w" sizes="100vw" alt="A large clock with Roman numerals in a railway station concourse" width="1440" height="960" fetchpriority="high" decoding="async"></picture>
+  <div class="veil"></div>
+  <div class="inner">
+    <p class="eyebrow">Closed environments · diagnostics</p>
+    <h1>Everything that breaks the first time you unplug</h1>
+    <p class="sub">A catalogue of what fails in a test suite when there is no internet</p>
+    <div class="byline">
+      <span class="author">Piotr Gajownik</span>
+      <i>·</i><span>ExpandIt</span>
+      <i>·</i><time datetime="2026-09-21">21 September 2026</time>
+      <i>·</i><span>about 6 min read</span>
+    </div>
+    <p class="topics">Debugging · offline · flakiness</p>
+  </div>
+  <div class="hero-credit">Clock at Zhengzhou East Railway Station.jpg - Henrysz, CC BY 4.0 (Wikimedia Commons)</div>
+</header>
+
+<main>
+<article>
+  <nav class="toc">
+    <h2>In this article</h2>
+    <ol><li><a href="#1-shared-memory-disguised-as-flakiness"><span>1</span>Shared memory, disguised as flakiness</a></li><li><a href="#2-fonts-from-a-cdn"><span>2</span>Fonts from a CDN</a></li><li><a href="#3-certificate-revocation-checks"><span>3</span>Certificate revocation checks</a></li><li><a href="#4-telemetry-from-things-you-did-not-choose"><span>4</span>Telemetry, from things you did not choose</a></li><li><a href="#5-time"><span>5</span>Time</a></li><li><a href="#6-external-apis-in-tests"><span>6</span>External APIs in tests</a></li><li><a href="#7-package-installs-at-the-wrong-moment"><span>7</span>Package installs at the wrong moment</a></li><li><a href="#8-timeouts-that-look-like-flakiness"><span>8</span>Timeouts that look like flakiness</a></li><li><a href="#9-the-order-to-work-through-them"><span>9</span>The order to work through them</a></li><li><a href="#10-conclusion"><span>10</span>Conclusion</a></li></ol>
+  </nav>
+  <h3 id="introduction-the-failures-point-at-the-wrong-things">Introduction: the failures point at the wrong things</h3>
+<p>The first run of an existing suite inside a closed network produces a list of failures that look unrelated to each other and unrelated to the network. Tests time out. A browser crashes at random. A report renders as unstyled text. Certificate errors appear on hosts that have valid certificates.</p>
+<p>Almost none of it announces itself as a connectivity problem, because software written for a connected world does not fail loudly when the world disappears. It waits, retries, falls back, and eventually times out somewhere far from the cause.</p>
+<p>This is the catalogue. Sorted roughly by how long each one takes to diagnose the first time.</p>
+<hr>
+<h2 id="1-shared-memory-disguised-as-flakiness"><span class="num">1</span>Shared memory, disguised as flakiness</h2>
+<p>The most expensive entry on the list, because it looks exactly like a race condition in your own code.</p>
+<p>Chromium uses <code>/dev/shm</code> for rendering. In a container the default is 64 MB, which is enough right up until a page with several heavy tabs, at which point the renderer dies. The test does not report &quot;out of shared memory&quot;; it reports a closed target, a timeout, or nothing at all. Then it passes on retry, because the next run happened to be lighter.</p>
+<div class="code"><span class="lang">yaml</span><pre><code>services:
+  tests:
+    shm_size: <span class="s">&quot;2gb&quot;</span>     <span class="c"># or: ipc: host</span></code></pre></div>
+<p>Teams lose weeks to this one. If a suite is unstable in containers and stable outside them, check this before reading a single line of test code.</p>
+<hr>
+<h2 id="2-fonts-from-a-cdn"><span class="num">2</span>Fonts from a CDN</h2>
+<p>A report or a page that pulls a font from a public CDN behaves differently offline depending on the browser: some wait for the timeout, some fall back immediately. Either way, text renders in a fallback face at different metrics.</p>
+<p>That matters in two places. Screenshot comparisons fail on pixel differences that have nothing to do with the change under test. And reports handed to a customer render in Times New Roman, which reads as broken software regardless of the content.</p>
+<p>The check takes a second:</p>
+<div class="code"><span class="lang">bash</span><pre><code>grep -rEo &#x27;https?://[^&quot;&#x27;&quot;&#x27;&quot;<span class="s">&#x27; )]+&#x27;</span> reports/html/ | sort -u</code></pre></div>
+<p>Anything that is not the application under test is a dependency you did not know you had.</p>
+<hr>
+<h2 id="3-certificate-revocation-checks"><span class="num">3</span>Certificate revocation checks</h2>
+<p>A browser asked to validate a certificate may try to check whether it has been revoked, over OCSP, against a responder on the public internet. With no route out, that request does not fail fast. It waits.</p>
+<p>The symptom is a page that takes 10 to 30 seconds to start loading and then works fine, in a suite that is otherwise fast. It usually shows up on the first HTTPS request after the browser starts, which makes it look like a slow login.</p>
+<p>This is worth understanding before reaching for flags: the fix belongs with the customer&#x27;s PKI configuration, and disabling revocation checking wholesale is a conversation with their security team, not a switch you flip in a config file.</p>
+<hr>
+<h2 id="4-telemetry-from-things-you-did-not-choose"><span class="num">4</span>Telemetry, from things you did not choose</h2>
+<figure class="photo"><picture><source type="image/avif" srcset="/articles/what-breaks-without-internet/assets/img/p_board-900.avif 900w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/what-breaks-without-internet/assets/img/p_board-900.webp 900w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/what-breaks-without-internet/assets/img/p_board-900.jpg" srcset="/articles/what-breaks-without-internet/assets/img/p_board-900.jpg 900w" sizes="(max-width: 860px) 100vw, 760px" alt="Frameworks, runners and package managers all phone home by default. Offline, each one costs a timeout somewher" width="900" height="675" loading="lazy" decoding="async"></picture><figcaption>Frameworks, runners and package managers all phone home by default. Offline, each one costs a timeout somewhere.<span class="credit">Computer sound card01.JPEG - Credits : PD Photo.org, public domain (Wikimedia Commons)</span></figcaption></figure>
+<p>Frameworks, test runners, package managers and editors all phone home by default. Some respect a single environment variable, some need a flag per invocation, some only stop when the network refuses the connection.</p>
+<p>Offline, each one costs a timeout somewhere. The worst behave differently on a network that drops packets silently versus one that rejects the connection, which is why a suite can behave differently in two closed environments that both &quot;have no internet&quot;.</p>
+<p>Audit it once, on a clean machine, with the same capture used for any other outbound question:</p>
+<div class="code"><span class="lang">bash</span><pre><code>sudo tcpdump -n -i any \
+  &#x27;(tcp[tcpflags] &amp; tcp-syn != 0) and not dst net 10.0.0.0/8 and not dst net 172.16.0.0/12 and not dst net 192.168.0.0/16&#x27; \
+  -w /tmp/egress.pcap</code></pre></div>
+<p>Then run install, a full suite and a report browse, and look at what shows up.</p>
+<hr>
+<h2 id="5-time"><span class="num">5</span>Time</h2>
+<p>An isolated network that has no NTP source, or has one nobody validated, drifts. Two consequences arrive quietly.</p>
+<p>Tests that assert on dates start failing in a band around midnight, in a way that depends on which machine ran them. And tokens with short lifetimes get rejected when the issuing service and the test machine disagree about the current time by more than the allowed skew, which surfaces as an authentication failure with a perfectly correct password.</p>
+<p>Check the skew between the test machine and the application host before debugging any authentication problem in a closed environment. It takes ten seconds and rules out a whole category.</p>
+<hr>
+<h2 id="6-external-apis-in-tests"><span class="num">6</span>External APIs in tests</h2>
+<p>Payment gateways, address lookup, SMS, mapping, an external identity provider. In the connected world these were a mild dependency; here they are a wall.</p>
+<p>What makes this harder than it looks is that the failure is often partial. A test that calls a mocked payment gateway but loads a real map tile from the internet fails in a place that has nothing to do with payments, and the developer who wrote it never saw the tile because their machine had a route out.</p>
+<hr>
+<h2 id="7-package-installs-at-the-wrong-moment"><span class="num">7</span>Package installs at the wrong moment</h2>
+<p>A pipeline that installs dependencies during deployment rather than during build works fine until the machine doing the deploying has no registry. Same for a container that runs <code>apt-get</code> in its entrypoint, or a test that installs a fixture library on first use.</p>
+<p>The rule that prevents all of these: <strong>installation happens where there is a network, execution happens where there is not.</strong> Anything that installs at run time is a connectivity dependency wearing a different hat.</p>
+<hr>
+<h2 id="8-timeouts-that-look-like-flakiness"><span class="num">8</span>Timeouts that look like flakiness</h2>
+<p>Every item above expresses itself, eventually, as a timeout. This is why the first week in a closed environment feels like the suite became unstable rather than like something specific broke.</p>
+<p>A practical way to separate the categories: run the suite twice, once with the network namespace fully isolated and once with it merely unable to route outside. If the failure counts differ, you are looking at something waiting for a network rather than something using one, and the fix is a configuration change rather than a code change.</p>
+<hr>
+<h2 id="9-the-order-to-work-through-them"><span class="num">9</span>The order to work through them</h2>
+<ol><li><strong>Shared memory</strong>, if anything runs in containers. Cheapest fix, largest effect.</li><li><strong>Capture outbound traffic</strong> once and look at the list. It answers items 2, 4 and 6 at the same time.</li><li><strong>Check the clock</strong> against the application host.</li><li><strong>Grep the reports</strong> for external references.</li><li><strong>Move installs to build time</strong>, if anything installs at run time.</li><li>Only then start reading test code.</li></ol>
+<p>Most teams do this list in reverse, which is why the first month is expensive.</p>
+<hr>
+<h2 id="10-conclusion"><span class="num">10</span>Conclusion</h2>
+<p>None of these are exotic. Each one is well understood in isolation, and each one is invisible in a connected environment, which is exactly why the first offline run produces a list of failures that seem to have nothing in common.</p>
+<p>They do have something in common: <strong>software written for a connected world fails slowly rather than loudly when the world is gone.</strong> Once you know that, the diagnosis order changes, and a month of confusion turns into an afternoon of configuration.</p>
+<p>The single most useful habit, and the one that answers several items at once: capture what your suite actually tries to reach, on a clean machine, before you assume you know.</p>
+  <aside class="byline-card"><span class="avatar" aria-hidden="true">PG</span><div><p class="who">About the author</p><p class="name">Piotr Gajownik <span>· ExpandIt</span></p><p class="bio">Senior Test Engineer. He has been testing software since 2007, working on delivery into regulated and network-isolated environments.</p></div></aside>
+  <p class="dl"><a href="/articles/what-breaks-without-internet-offline.html" download><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>Download the offline copy</a><span>One HTML file with everything inside - opens with no internet at all.</span></p>
+  <aside class="cta"><p class="eyebrow">The runner behind this article</p><h2>These are the problems vallus was built to solve</h2><p class="lead">Everything above describes constraints we kept meeting at customer sites: no route to the internet, no access to the machine where a run failed, and a report that has to answer every question on its own. vallus is the Playwright runner written for exactly those conditions.</p><ul><li><b>Nothing leaves the network</b>No telemetry, no licence server, no call home. Once installed, the instance needs no route to the internet at all - the licence is a file verified locally. §5.4</li><li><b>Results stay on your disk</b>Reports, traces, screenshots and cross-run history live on your infrastructure, in formats that open without us. Nobody at the vendor can see your runs. §5.1</li><li><b>A container per run<em class="scope">Docker installs</em></b>On a Docker deployment each run gets its own container built from that project’s code and dependencies, with an image per version of your tests: a rollback is a tag, not a rebuild. Without Docker the runner executes suites directly on the host. §3.4</li><li><b>Reports built for absent engineers</b>Playwright HTML or Allure per run, traces served over HTTPS, plus run history and trends - the execution context the report has to carry when you cannot log in. §4.3</li><li><b>One dashboard, many environments</b>Scheduling, a run queue, per-project Playwright versions and access rules, so the same suite runs the same way on every environment you ship to. §3.3</li></ul><div class="acts"><a class="btn primary" href="https://www.vallus.eu/">Explore vallus<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="btn secondary" href="https://www.vallus.eu/#demo">Book a demo</a></div><p class="note">vallus is a product of ExpandIt · deployed on your own infrastructure.</p></aside>
+</article>
+</main>
+
+<footer>
+  <div class="in">
+    <a class="fbrand" href="https://www.vallus.eu/"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus · by ExpandIt</b></a>
+    <nav class="flinks" aria-label="vallus.eu"><a href="https://www.vallus.eu/#features">Features</a><a href="https://www.vallus.eu/#pricing">Pricing</a><a href="https://www.vallus.eu/free/">Free</a><a href="https://www.vallus.eu/articles/">Articles</a><a href="https://www.vallus.eu/#deployment">Security</a><a href="https://www.vallus.eu/#faq">FAQ</a><a href="https://www.vallus.eu/privacy/">Privacy</a><a href="https://www.vallus.eu/licenses/">Licences</a><a class="cta" href="https://www.vallus.eu/#demo">Book a demo</a></nav>
+    <h3>Photographs</h3>
+    <ul><li>Clock at Zhengzhou East Railway Station.jpg - Henrysz, CC BY 4.0 (Wikimedia Commons)</li><li>Computer sound card01.JPEG - Credits : PD Photo.org, public domain (Wikimedia Commons)</li></ul>
+    <p class="note">An offline copy of this article is linked at the top: one file with the images, fonts and styles embedded, which opens on a machine with no network at all.</p>
+  </div>
+</footer>
+
+<button id="totop" type="button" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>Back to top</button>
+
+<script>
+(function () {
+  var bar = document.getElementById('bar');
+  var top = document.getElementById('totop');
+  function upd() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    top.classList.toggle('show', h.scrollTop > 700);
+  }
+  document.addEventListener('scroll', upd, {passive: true});
+  // Przycisk wstecz cofa w historii tylko wtedy, gdy poprzednia strona byla nasza.
+  // Wejscie prosto z wyszukiwarki albo z LinkedIna zostawia href, czyli liste artykulow.
+  var back = document.getElementById('back');
+  var from = document.referrer;
+  var sameSite = false;
+  try {
+    sameSite = !!from && new URL(from).origin === location.origin
+               && new URL(from).pathname !== location.pathname;
+  } catch (e) { sameSite = false; }
+  if (sameSite && history.length > 1) {
+    back.addEventListener('click', function (event) {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      history.back();
+    });
+  } else if (back.dataset.needsHistory) {
+    // Offline i bez historii: zostaje tylko adres w internecie, ktorego tu moze nie byc.
+    back.remove();
+    var sep = document.querySelector('.topbar .sep');
+    if (sep) sep.remove();
+  }
+
+  var canSmooth = 'scrollBehavior' in document.documentElement.style;
+  top.addEventListener('click', function () {
+    if (canSmooth) window.scrollTo({top: 0, behavior: 'smooth'});
+    else window.scrollTo(0, 0);
+  });
+  upd();
+})();
+</script>
+</body>
+</html>

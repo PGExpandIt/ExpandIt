@@ -34,6 +34,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
     {
+        slug: "what-breaks-without-internet",
+        title: "Everything that breaks the first time you unplug",
+        summary:
+            "A catalogue of what actually fails when a working suite is moved into a closed network: 64 MB of shared memory, fonts from a CDN, revocation checks, telemetry, clock drift - and the timeouts they all turn into.",
+        published: "2026-09-21",
+        readingMinutes: 6,
+        topics: ["Closed environments", "Debugging", "Flakiness"],
+        language: "en",
+        offlineSize: "0.9 MB",
+    },
+    {
         slug: "updating-playwright-behind-air-gap",
         title: "The version you are on is the version you are stuck with",
         summary:
