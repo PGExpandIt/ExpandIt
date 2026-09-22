@@ -37,6 +37,7 @@ leave the customer's perimeter.
 ## Writing
 
 - [Articles](https://vallus.eu/articles/): notes on test automation in closed environments
+- [The build has to work on a machine that cannot download anything](https://vallus.eu/articles/vendoring-node-dependencies/): where the network boundary belongs in an offline pipeline, three ways to vendor Node dependencies, and how to prove an install never reaches a registry
 - [Everything that breaks the first time you unplug](https://vallus.eu/articles/what-breaks-without-internet/): a catalogue of what fails when a working suite moves into a closed network - shared memory, CDN fonts, revocation checks, telemetry, clock drift, and the timeouts they turn into
 - [The version you are on is the version you are stuck with](https://vallus.eu/articles/updating-playwright-behind-air-gap/): keeping Playwright current behind an air gap - choosing an upgrade cadence, what breaks when you jump several versions, and making a rollback a path change
 - [One tarball is a procedure, twenty is a problem](https://vallus.eu/articles/internal-browser-mirror/): serving Playwright browser archives from your own artifact repository once copying tarballs stops scaling

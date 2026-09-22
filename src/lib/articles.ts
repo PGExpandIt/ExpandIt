@@ -34,6 +34,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
     {
+        slug: "vendoring-node-dependencies",
+        title: "The build has to work on a machine that cannot download anything",
+        summary:
+            "Where the network boundary belongs in an offline pipeline, the three ways to vendor Node dependencies and when each one fits, and how to verify that an install genuinely never reaches a registry.",
+        published: "2026-09-22",
+        readingMinutes: 5,
+        topics: ["Closed environments", "CI", "Vendoring"],
+        language: "en",
+        offlineSize: "1.2 MB",
+    },
+    {
         slug: "what-breaks-without-internet",
         title: "Everything that breaks the first time you unplug",
         summary:
