@@ -304,27 +304,27 @@ test("planFile compares checksums case-insensitively", () => {
     assert.equal(formatSums([{ sha256: "AB", name: "x.zip" }]), "ab  x.zip\n");
 });
 
-test("index.html lists published versions from 1.4.2, newest first, marking the one latest.json names", async () => {
+test("index.html lists published versions from 1.5.0, newest first, marking the one latest.json names", async () => {
     const bunny = await startFakeBunny();
     try {
-        await publish(parseArgs(["--version", "1.4.3"]), settingsFor(bunny, packagesDir("1.4.3")), quiet);
+        await publish(parseArgs(["--version", "1.5.1"]), settingsFor(bunny, packagesDir("1.5.1")), quiet);
         // Older lines published afterwards, without taking over latest.json.
+        await publish(parseArgs(["--version", "1.5.0", "--no-latest"]), settingsFor(bunny, packagesDir("1.5.0")), quiet);
         await publish(parseArgs(["--version", "1.4.2", "--no-latest"]), settingsFor(bunny, packagesDir("1.4.2")), quiet);
-        await publish(parseArgs(["--version", "1.4.1", "--no-latest"]), settingsFor(bunny, packagesDir("1.4.1")), quiet);
 
         const html = bunny.objects.get("index.html").toString();
-        assert.ok(html.indexOf("vallus 1.4.3") < html.indexOf("vallus 1.4.2"), "newest first");
-        assert.match(html, /vallus 1\.4\.3 <span class="badge">latest<\/span>/);
-        assert.doesNotMatch(html, /vallus 1\.4\.2 <span class="badge">/);
-        assert.match(html, /href="1\.4\.2\/vallus-rs-slim-amd64-dist\.zip"/);
-        assert.match(html, /href="1\.4\.3\/SHA256SUMS"/);
+        assert.ok(html.indexOf("vallus 1.5.1") < html.indexOf("vallus 1.5.0"), "newest first");
+        assert.match(html, /vallus 1\.5\.1 <span class="badge">latest<\/span>/);
+        assert.doesNotMatch(html, /vallus 1\.5\.0 <span class="badge">/);
+        assert.match(html, /href="1\.5\.0\/vallus-rs-slim-amd64-dist\.zip"/);
+        assert.match(html, /href="1\.5\.1\/SHA256SUMS"/);
         assert.match(html, /Rust runner with browsers<br><span class="note">Playwright 1\.60\.0<\/span>/);
         // Rows carry their architecture; TypeScript runs anywhere and shows under both.
         assert.match(html, /<tr class="only-arm64">\s*<td>Rust runner \(slim\)/);
         assert.match(html, /<tr>\s*<td>TypeScript runner/);
         // Below MIN_LISTED_VERSION: on the server, not on the page.
-        assert.ok(bunny.objects.has(`1.4.1/${TS}`));
-        assert.doesNotMatch(html, /1\.4\.1/);
+        assert.ok(bunny.objects.has(`1.4.2/${TS}`));
+        assert.doesNotMatch(html, /1\.4\.2/);
     } finally {
         await bunny.close();
     }
@@ -333,7 +333,7 @@ test("index.html lists published versions from 1.4.2, newest first, marking the 
 test("--index-only rebuilds the page and sends nothing else", async () => {
     const bunny = await startFakeBunny();
     try {
-        await publish(parseArgs(["--version", "1.4.2"]), settingsFor(bunny, packagesDir("1.4.2")), quiet);
+        await publish(parseArgs(["--version", "1.5.0"]), settingsFor(bunny, packagesDir("1.5.0")), quiet);
         bunny.objects.delete("index.html");
         const before = puts(bunny).length;
 
@@ -342,7 +342,7 @@ test("--index-only rebuilds the page and sends nothing else", async () => {
 
         await publish(parseArgs(["--index-only"]), settingsFor(bunny, packagesDir()), quiet);
         assert.deepEqual(puts(bunny).slice(before), ["index.html"]);
-        assert.match(bunny.objects.get("index.html").toString(), /vallus 1\.4\.2/);
+        assert.match(bunny.objects.get("index.html").toString(), /vallus 1\.5\.0/);
     } finally {
         await bunny.close();
     }
@@ -351,7 +351,7 @@ test("--index-only rebuilds the page and sends nothing else", async () => {
 test("renderIndex sorts numerically, skips foreign files and escapes names", () => {
     assert.deepEqual(["1.9.0", "1.10.0", "1.4.2"].sort(compareVersionsDesc), ["1.10.0", "1.9.0", "1.4.2"]);
     const html = renderIndex({
-        releases: [{ version: "1.4.2", files: [{ name: "vallus-ts-dist.zip", size: 34877871 }, { name: "<script>.zip", size: 1 }, { name: "vallus-rs-1.4.2.zip", size: 1 }], sums: false }],
+        releases: [{ version: "1.5.0", files: [{ name: "vallus-ts-dist.zip", size: 34877871 }, { name: "<script>.zip", size: 1 }, { name: "vallus-rs-1.4.2.zip", size: 1 }], sums: false }],
         latest: null,
     });
     assert.match(html, /TypeScript[\s\S]*33 MB/);
@@ -401,7 +401,7 @@ test("an image built for another CPU than its name says is refused", async () =>
 test("the page switches between AMD64 (the default) and ARM64", () => {
     const html = renderIndex({
         releases: [{
-            version: "1.4.2",
+            version: "1.5.0",
             files: [
                 { name: "vallus-browsers-playwright-1.60.0-1.63.0-linux-amd64.tar.gz", size: 2e9 },
                 { name: "vallus-rs-playwright-1.63.0-amd64-dist.zip", size: 1e9 },
@@ -410,7 +410,7 @@ test("the page switches between AMD64 (the default) and ARM64", () => {
             ],
             sums: true,
         }],
-        latest: "1.4.2",
+        latest: "1.5.0",
         icon: null,
     });
     assert.match(html, /<input type="radio" name="arch" id="arch-amd64" value="amd64" checked>/);

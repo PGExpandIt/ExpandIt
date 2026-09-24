@@ -222,7 +222,7 @@ export const loadSettings = (env) => {
  * hold links to them - but are not offered: before 1.4.2 no build accepts the free
  * keys the website hands out, and a 1.4.1 package shipped a free key nobody could sign.
  */
-export const MIN_LISTED_VERSION = "1.4.2";
+export const MIN_LISTED_VERSION = "1.5.0";
 
 /** Newest first, numerically: 1.10.0 above 1.9.0. */
 export const compareVersionsDesc = (a, b) => {
