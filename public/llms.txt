@@ -37,6 +37,7 @@ leave the customer's perimeter.
 ## Writing
 
 - [Articles](https://vallus.eu/articles/): notes on test automation in closed environments
+- [The report has to work when the dashboard cannot](https://vallus.eu/articles/reporting-without-cloud-dashboard/): test reporting where a cloud dashboard is not an option - where the framework report, Allure, self-hosted TestOps-class tools and Grafana each stop, an offline acceptance test for any report, and what vallus does not do
 - [The build has to work on a machine that cannot download anything](https://vallus.eu/articles/vendoring-node-dependencies/): where the network boundary belongs in an offline pipeline, three ways to vendor Node dependencies, and how to prove an install never reaches a registry
 - [Everything that breaks the first time you unplug](https://vallus.eu/articles/what-breaks-without-internet/): a catalogue of what fails when a working suite moves into a closed network - shared memory, CDN fonts, revocation checks, telemetry, clock drift, and the timeouts they turn into
 - [The version you are on is the version you are stuck with](https://vallus.eu/articles/updating-playwright-behind-air-gap/): keeping Playwright current behind an air gap - choosing an upgrade cadence, what breaks when you jump several versions, and making a rollback a path change

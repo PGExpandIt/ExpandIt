@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test reporting when you cannot use a cloud dashboard</title>
+<meta name="description" content="An honest survey of self-hosted test reporting for closed environments: what the framework report, Allure, self-hosted TestOps and Grafana each give you, and where each one stops.">
+<meta name="color-scheme" content="dark">
+<meta name="author" content="Piotr Gajownik">
+<link rel="canonical" href="https://vallus.eu/articles/reporting-without-cloud-dashboard/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="vallus by ExpandIt">
+<meta property="og:locale" content="en_GB">
+<meta property="og:url" content="https://vallus.eu/articles/reporting-without-cloud-dashboard/">
+<meta property="og:title" content="The report has to work when the dashboard cannot">
+<meta property="og:description" content="An honest survey of self-hosted test reporting for closed environments: what the framework report, Allure, self-hosted TestOps and Grafana each give you, and where each one stops.">
+<meta property="og:image" content="https://vallus.eu/articles/reporting-without-cloud-dashboard/assets/og-reporting-without-cloud-dashboard-en.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Test reporting when you cannot use a cloud dashboard">
+<meta property="article:published_time" content="2026-09-28">
+<meta property="article:modified_time" content="2026-09-28">
+<meta property="article:author" content="Piotr Gajownik">
+<meta property="article:section" content="Test automation">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The report has to work when the dashboard cannot">
+<meta name="twitter:description" content="An honest survey of self-hosted test reporting for closed environments: what the framework report, Allure, self-hosted TestOps and Grafana each give you, and where each one stops.">
+<meta name="twitter:image" content="https://vallus.eu/articles/reporting-without-cloud-dashboard/assets/og-reporting-without-cloud-dashboard-en.jpg">
+<meta name="twitter:image:alt" content="Test reporting when you cannot use a cloud dashboard">
+
+<link rel="preload" href="/articles/reporting-without-cloud-dashboard/assets/fonts/geist-400-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/articles/reporting-without-cloud-dashboard/assets/fonts/geist-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{
+ "@context": "https://schema.org",
+ "@type": "Article",
+ "headline": "Test reporting when you cannot use a cloud dashboard",
+ "alternativeHeadline": "The report has to work when the dashboard cannot",
+ "description": "An honest survey of self-hosted test reporting for closed environments: what the framework report, Allure, self-hosted TestOps and Grafana each give you, and where each one stops.",
+ "inLanguage": "en",
+ "datePublished": "2026-09-28",
+ "dateModified": "2026-09-28",
+ "author": {
+  "@type": "Person",
+  "name": "Piotr Gajownik",
+  "jobTitle": "Senior Test Engineer",
+  "worksFor": {
+   "@type": "Organization",
+   "name": "ExpandIt"
+  },
+  "url": "https://vallus.eu/"
+ },
+ "publisher": {
+  "@type": "Organization",
+  "name": "ExpandIt",
+  "url": "https://vallus.eu/",
+  "logo": {
+   "@type": "ImageObject",
+   "url": "https://vallus.eu/logo.png"
+  }
+ },
+ "image": [
+  "https://vallus.eu/articles/reporting-without-cloud-dashboard/assets/og-reporting-without-cloud-dashboard-en.jpg"
+ ],
+ "mainEntityOfPage": {
+  "@type": "WebPage",
+  "@id": "https://vallus.eu/articles/reporting-without-cloud-dashboard/"
+ },
+ "articleSection": "Test automation",
+ "keywords": "closed environments, air-gapped, test automation, Playwright, test reporting, data sovereignty"
+}</script>
+<style>
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/reporting-without-cloud-dashboard/assets/fonts/geist-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/reporting-without-cloud-dashboard/assets/fonts/geist-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/reporting-without-cloud-dashboard/assets/fonts/geist-600-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/reporting-without-cloud-dashboard/assets/fonts/geist-600-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/reporting-without-cloud-dashboard/assets/fonts/geist-700-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/reporting-without-cloud-dashboard/assets/fonts/geist-700-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/reporting-without-cloud-dashboard/assets/fonts/geist-mono-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/reporting-without-cloud-dashboard/assets/fonts/geist-mono-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+
+:root {
+  --ink:#100F0D; --ink-soft:#171613; --surface:#1C1A17; --line:#2C2925;
+  --text:#F2F0EA; --body:#D8D4CB; --muted:#A29C91; --faint:#6E6A61;
+  --mint:#7DD3A0; --mint-dim:#4f8f68;
+  --sans:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:5rem;background:var(--ink)}
+body{
+  margin:0; background:var(--ink); color:var(--body);
+  font-family:var(--sans); font-size:17.5px; line-height:1.72;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+::selection{background:rgba(125,211,160,.24);color:var(--text)}
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--mint);width:0;z-index:99}
+
+/* ── sticky topbar ────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:60;height:60px;display:flex;align-items:center;
+  background:rgba(16,15,13,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.topbar .in{max-width:816px;margin:0 auto;padding:0 28px;width:100%;
+  display:flex;align-items:center;gap:12px}
+.topbar .back{
+  display:inline-flex;align-items:center;gap:7px;flex:none;
+  padding:7px 13px 7px 10px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface);color:var(--body);
+  font-size:13px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+.topbar .back:hover{border-color:var(--mint);color:var(--mint)}
+.topbar .back:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.topbar .back svg{color:var(--mint);transition:color .18s ease}
+.topbar .back:hover svg{color:var(--mint)}
+.topbar .sep{width:1px;height:20px;background:var(--line);flex:none}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;border-bottom:0}
+.brand svg{height:20px;width:auto;color:var(--mint);transition:color .18s ease}
+.brand:hover b{color:var(--mint)}
+.brand b{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.brand span{font-size:12.5px;color:var(--muted)}
+.topbar .crumb{
+  margin-left:auto;font-size:13px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52%;
+}
+
+/* ── hero ─────────────────────────────────────────────── */
+header.hero{position:relative;min-height:78vh;display:flex;align-items:flex-end;
+  background:var(--ink);overflow:hidden}
+header.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:.30;filter:grayscale(.5) contrast(1.06)}
+header.hero .veil{position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 70% 10%,rgba(16,15,13,.30) 0%,rgba(16,15,13,.86) 55%,var(--ink) 100%)}
+header.hero .inner{position:relative;max-width:816px;margin:0 auto;padding:0 28px 76px;width:100%}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mint);
+  font-weight:600;margin:0 0 20px}
+header.hero h1{color:var(--text);font-size:clamp(36px,6vw,64px);line-height:1.06;
+  letter-spacing:-.028em;margin:0 0 22px;font-weight:700;max-width:17ch}
+header.hero p.sub{color:var(--muted);font-size:clamp(17px,2vw,21px);line-height:1.55;
+  margin:0;max-width:52ch;font-weight:400}
+header.hero .byline{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13.5px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+header.hero .byline i{font-style:normal;color:#3d3a34}
+header.hero .byline .author{color:var(--text);font-weight:600}
+header.hero .topics{margin:10px 0 0;color:var(--faint);font-size:12.5px}
+header.hero picture{position:absolute;inset:0;display:block}
+.hero-credit{position:absolute;right:14px;bottom:10px;color:#4a4740;font-size:10.5px}
+
+/* ── layout ───────────────────────────────────────────── */
+main{max-width:816px;margin:0 auto;padding:0 28px 90px}
+article{max-width:760px;margin:0 auto;padding:60px 0 40px}
+
+/* ── spis tresci ──────────────────────────────────────── */
+nav.toc{background:var(--ink-soft);border:1px solid var(--line);border-radius:8px;
+  padding:26px 30px;margin:0 0 64px}
+nav.toc h2{font-size:13px!important;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:0 0 16px!important;border:0!important;padding:0!important;
+  font-weight:600;display:block}
+nav.toc ol{list-style:none;margin:0;padding:0;columns:2;column-gap:34px}
+nav.toc li{margin:0 0 10px;break-inside:avoid}
+nav.toc a{font-size:14.5px;color:var(--body);text-decoration:none;border-bottom:0;display:flex;gap:11px;line-height:1.45}
+nav.toc a span{color:var(--mint-dim);font-weight:600;min-width:15px}
+nav.toc a:hover{color:var(--mint)}
+nav.toc a:hover span{color:var(--mint)}
+
+/* ── typografia ───────────────────────────────────────── */
+h2,h3,h4{color:var(--text);letter-spacing:-.022em;scroll-margin-top:80px}
+h2{font-size:clamp(27px,3.6vw,36px);line-height:1.14;font-weight:700;
+  margin:84px 0 24px;padding-top:30px;border-top:1px solid var(--line);display:flex;gap:16px}
+h2 .num{color:var(--mint);font-weight:700;flex:none}
+h3{font-size:clamp(19px,2.2vw,22px);font-weight:600;margin:50px 0 15px;display:flex;gap:12px;
+  letter-spacing:-.012em}
+h3 .subnum{color:var(--mint-dim);font-weight:600;flex:none}
+h4{font-size:17px;font-weight:600;margin:34px 0 10px}
+h2 code,h3 code,h4 code{font-size:.82em;padding:.05em .3em;background:rgba(255,255,255,.05);
+  border-color:#333029;color:#dbe6dd;font-weight:600;vertical-align:baseline}
+article > h3:first-of-type{margin-top:0}
+p{margin:0 0 22px}
+article > p:first-of-type,
+h3[id^="wstep"] + p, h3[id^="introduction"] + p{font-size:20px;line-height:1.62;color:#e6e2d9}
+a{color:var(--mint);text-decoration:none;border-bottom:1px solid rgba(125,211,160,.35)}
+a:hover{border-bottom-color:var(--mint)}
+strong{font-weight:600;color:var(--text)}
+em{color:var(--muted)}
+hr{display:none}
+ul,ol{margin:0 0 24px;padding-left:24px}
+li{margin:0 0 11px}
+li::marker{color:var(--mint-dim)}
+
+code{font-family:var(--mono);font-size:.86em;background:var(--surface);
+  border:1px solid var(--line);border-radius:5px;padding:.12em .38em;color:#cdd8cf}
+.code{position:relative;margin:0 0 30px;border-radius:8px;overflow:hidden;
+  background:#0A0908;border:1px solid var(--line)}
+.code .lang{position:absolute;top:0;right:0;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);background:var(--surface);
+  padding:4px 12px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+  border-bottom-left-radius:8px}
+.code pre{margin:0;padding:22px 24px;overflow-x:auto}
+.code code{background:none;border:0;padding:0;color:#dad6cd;font-size:13.5px;
+  line-height:1.68;white-space:pre}
+.code .c{color:#6E6A61}
+.code .s{color:var(--mint)}
+.code pre::-webkit-scrollbar{height:8px}
+.code pre::-webkit-scrollbar-thumb{background:#2C2925;border-radius:4px}
+
+blockquote{margin:36px 0;padding:24px 28px;background:rgba(125,211,160,.06);
+  border:1px solid rgba(125,211,160,.20);border-left:3px solid var(--mint);border-radius:0 8px 8px 0}
+blockquote p{margin:0;font-size:18.5px;line-height:1.6;color:#e3ece5}
+
+/* Licznik (dyrektywa ::: countdown, tylko wersja webowa). Ukryty, dopoki skrypt go nie
+   uruchomi - bez JavaScriptu czytelnik dostaje zdanie z data z <noscript>. */
+aside.countdown{display:none;margin:40px 0 44px;padding:26px 28px 22px;background:var(--ink-soft);
+  border:1px solid var(--line);border-left:3px solid var(--mint);border-radius:0 8px 8px 0}
+aside.countdown.live{display:block}
+.countdown .cd-units{display:flex;gap:30px;flex-wrap:wrap}
+.countdown .cd-units span{display:flex;flex-direction:column;min-width:62px}
+.countdown .cd-units b{font-family:var(--mono);font-size:clamp(34px,5.4vw,52px);line-height:1;
+  font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.countdown .cd-units i{font-style:normal;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint-dim);margin-top:9px}
+.countdown .cd-label{margin:18px 0 0;font-size:15.5px;line-height:1.55;color:var(--muted)}
+.countdown.done .cd-units{display:none}
+.countdown.done .cd-label{margin:0;font-size:18.5px;color:var(--text)}
+
+.tablewrap{overflow-x:auto;margin:0 0 32px;border:1px solid var(--line);
+  border-radius:8px;background:var(--ink-soft)}
+table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.55}
+th{background:var(--surface);text-align:left;font-weight:600;font-size:12px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  padding:13px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--body)}
+td strong{color:var(--text)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(255,255,255,.018)}
+td code{font-size:.84em}
+
+p.grouplabel{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:38px 0 14px}
+p.grouplabel strong{font-weight:600;color:inherit}
+ul.checklist{list-style:none;padding:0;margin:0 0 26px;display:grid;gap:8px}
+ul.checklist li{position:relative;padding:12px 15px 12px 44px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;margin:0;font-size:15.5px;line-height:1.5;
+  color:var(--body)}
+ul.checklist li::before{content:"";position:absolute;left:16px;top:15px;width:14px;height:14px;
+  border:1.5px solid #3A362F;border-radius:4px;background:var(--surface)}
+
+aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{
+  position:fixed;right:24px;bottom:24px;z-index:70;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 16px 10px 13px;border-radius:6px;cursor:pointer;
+  font-family:var(--sans);font-size:13.5px;font-weight:600;
+  color:var(--text);background:rgba(28,26,23,.92);backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  opacity:0;visibility:hidden;transform:translateY(10px);
+  transition:opacity .25s ease,transform .25s ease,visibility .25s,
+             background .18s ease,color .18s ease,border-color .18s ease;
+}
+#totop.show{opacity:1;visibility:visible;transform:none}
+#totop svg{width:14px;height:14px;flex:none;color:var(--mint);transition:color .18s ease}
+#totop:hover{background:var(--mint);color:var(--ink);border-color:var(--mint)}
+#totop:hover svg{color:var(--ink)}
+#totop:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+@media (max-width:680px){
+  aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{right:14px;bottom:14px;padding:9px 13px 9px 11px;font-size:12.5px}
+}
+
+aside.byline-card{
+  margin:70px 0 0;padding:22px 24px;background:var(--ink-soft);border:1px solid var(--line);
+  border-radius:8px;display:flex;gap:18px;align-items:flex-start;
+}
+aside.byline-card .avatar{
+  flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface);border:1px solid var(--line);
+  color:var(--mint);font-size:15px;font-weight:600;letter-spacing:.02em;
+}
+aside.byline-card .who{margin:0 0 5px;font-size:11.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--mint-dim)}
+aside.byline-card .name{margin:0 0 6px;font-size:16.5px;font-weight:600;color:var(--text)}
+aside.byline-card .name span{font-weight:400;color:var(--muted)}
+aside.byline-card .bio{margin:0;font-size:14.5px;line-height:1.6;color:var(--muted);max-width:58ch}
+
+p.dl{margin:20px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+p.dl a{
+  display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:6px;
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  font-size:14px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+p.dl a:hover{border-color:var(--mint);color:var(--mint)}
+p.dl a svg{color:var(--mint)}
+p.dl span{font-size:13px;color:var(--faint)}
+
+figure.photo{margin:40px 0 42px}
+figure.photo picture{display:block}
+figure.photo img{width:100%;height:auto;display:block;border-radius:8px;max-width:100%;
+  border:1px solid var(--line);background:var(--ink-soft);
+  filter:brightness(.84) saturate(.9) contrast(1.02);transition:filter .35s ease}
+figure.photo img:hover{filter:brightness(1) saturate(1)}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);margin-top:13px;
+  padding-left:14px;border-left:2px solid var(--mint-dim)}
+figcaption .credit{display:block;margin-top:6px;font-size:11.5px;color:#57534c}
+figure.diagram{margin:40px 0;padding:24px 18px 12px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px}
+figure.diagram svg{width:100%;height:auto;display:block;font-family:var(--sans)}
+figure.diagram figcaption{border:0;padding:0;margin-top:12px;text-align:center}
+
+footer{border-top:1px solid var(--line);background:#0C0B0A}
+footer .in{max-width:816px;margin:0 auto;padding:40px 28px 64px;color:var(--faint);font-size:12.5px;line-height:1.7}
+footer .fbrand{display:flex;align-items:center;gap:9px;margin-bottom:24px;
+  text-decoration:none;border-bottom:0;width:fit-content}
+footer .fbrand:hover b{color:var(--text)}
+footer .fbrand:hover svg{color:var(--mint)}
+footer .fbrand svg{height:18px;width:auto;color:var(--mint-dim)}
+footer .fbrand b{font-size:14px;font-weight:600;color:var(--muted)}
+footer h3{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mint-dim);
+  margin:0 0 10px;font-weight:600;display:block}
+footer ul{list-style:none;padding:0;margin:0 0 24px}
+footer li{margin:0 0 5px}
+footer .note{padding-top:20px;border-top:1px solid var(--line);color:#57534c;max-width:78ch}
+footer nav.flinks{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 26px;padding:0 0 22px;
+  border-bottom:1px solid var(--line)}
+footer nav.flinks a{color:var(--muted);text-decoration:none;border-bottom:0;font-size:13px}
+footer nav.flinks a:hover{color:var(--mint)}
+footer nav.flinks a.cta{color:var(--mint);font-weight:600}
+
+@media (max-width:680px){
+  body{font-size:16.5px}
+  aside.byline-card{padding:18px}
+  nav.toc ol{columns:1}
+  article{padding:40px 0 30px}
+  h2{margin:58px 0 20px}
+  .topbar .crumb{display:none}
+  .topbar .back{padding:6px 11px 6px 9px;font-size:12.5px}
+  .brand span{display:none}
+}
+@media print{
+  html,body{background:#fff;color:#111;font-size:11pt}
+  #bar,nav.toc,.topbar,aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{display:none}
+  header.hero{min-height:auto;page-break-after:always;background:#fff}
+  header.hero img,header.hero .veil,.hero-credit{display:none}
+  header.hero h1,h2,h3,h4,strong{color:#000}
+  header.hero p.sub,p,td,li{color:#222}
+  .code{background:#f4f4f2;border-color:#ddd}
+  .code code{color:#111} .code .c{color:#666} .code .s{color:#256b41}
+  .tablewrap,ul.checklist li,figure.diagram{background:#fff;border-color:#ccc}
+  th{background:#f1f1ee;color:#333}
+  footer{background:#fff}
+  h2{page-break-after:avoid} figure,.code,.tablewrap,blockquote{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<div class="topbar">
+  <div class="in">
+    <a class="back" id="back" href="/articles/" title="Return to the previous page">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+           stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>Back</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a class="brand" href="https://www.vallus.eu/" title="vallus.eu"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus</b><span>by ExpandIt</span></a>
+    <span class="crumb">The report has to work when the dashboard cannot</span>
+  </div>
+</div>
+
+<header class="hero">
+  <picture><source type="image/avif" srcset="/articles/reporting-without-cloud-dashboard/assets/img/p_panel-900.avif 900w, /articles/reporting-without-cloud-dashboard/assets/img/p_panel-1440.avif 1440w" sizes="100vw"><source type="image/webp" srcset="/articles/reporting-without-cloud-dashboard/assets/img/p_panel-900.webp 900w, /articles/reporting-without-cloud-dashboard/assets/img/p_panel-1440.webp 1440w" sizes="100vw"><img src="/articles/reporting-without-cloud-dashboard/assets/img/p_panel-1440.jpg" srcset="/articles/reporting-without-cloud-dashboard/assets/img/p_panel-900.jpg 900w, /articles/reporting-without-cloud-dashboard/assets/img/p_panel-1440.jpg 1440w" sizes="100vw" alt="A touchscreen control panel showing sensor readings on industrial equipment" width="1440" height="958" fetchpriority="high" decoding="async"></picture>
+  <div class="veil"></div>
+  <div class="inner">
+    <p class="eyebrow">Closed environments · reporting</p>
+    <h1>The report has to work when the dashboard cannot</h1>
+    <p class="sub">Test reporting for environments that cannot reach a cloud service</p>
+    <div class="byline">
+      <span class="author">Piotr Gajownik</span>
+      <i>·</i><span>ExpandIt</span>
+      <i>·</i><time datetime="2026-09-28">28 September 2026</time>
+      <i>·</i><span>about 6 min read</span>
+    </div>
+    <p class="topics">Reporting · Allure · self-hosted</p>
+  </div>
+  <div class="hero-credit">Control panel displays settings and data for industrial equipment.jpg - Shixart1985, CC BY 2.0 (Wikimedia Commons)</div>
+</header>
+
+<main>
+<article>
+  <nav class="toc">
+    <h2>In this article</h2>
+    <ol><li><a href="#1-what-a-report-has-to-replace"><span>1</span>What a report has to replace</a></li><li><a href="#2-the-options-and-where-each-one-ends"><span>2</span>The options, and where each one ends</a></li><li><a href="#3-the-acceptance-test-for-any-of-them"><span>3</span>The acceptance test for any of them</a></li><li><a href="#4-two-formats-two-audiences"><span>4</span>Two formats, two audiences</a></li><li><a href="#5-what-the-header-must-carry"><span>5</span>What the header must carry</a></li><li><a href="#6-what-vallus-does-and-what-it-does-not"><span>6</span>What vallus does, and what it does not</a></li><li><a href="#7-conclusion"><span>7</span>Conclusion</a></li></ol>
+  </nav>
+  <h3 id="introduction-the-category-everyone-assumes-away">Introduction: the category everyone assumes away</h3>
+<p>Test reporting has quietly standardised on a shape: results go to a hosted service, the team looks at trends in a browser, someone gets a Slack message. It is a good shape, and it is unavailable to anyone whose test machines cannot open a connection outwards.</p>
+<p>What follows is an honest survey of the options that remain, what each one actually gives you, and where each one stops. It includes what our own product does not do, because a comparison that only flatters the author is worth nothing to someone making a purchasing decision.</p>
+<hr>
+<h2 id="1-what-a-report-has-to-replace"><span class="num">1</span>What a report has to replace</h2>
+<p>In a connected environment the report is a convenience: if it is unclear, you log into the machine and look. In a closed one, that fallback does not exist, so the report has to carry everything the absent engineer would have gone looking for.</p>
+<p>That is the criterion to judge every option against, and it is not &quot;does it look nice&quot;:</p>
+<div class="tablewrap"><table><thead><tr><th>Requirement</th><th>Why it matters</th></tr></thead><tbody><tr><td>Opens with no network</td><td>A report that fetches anything renders wrong or not at all</td></tr><tr><td>Carries execution context</td><td>Environment, versions, configuration, resources</td></tr><tr><td>Carries evidence per failure</td><td>Screenshot, video, trace, console and network logs</td></tr><tr><td>Machine-readable alongside</td><td>For gates, trends and anything automated</td></tr><tr><td>Readable without its producer</td><td>An archived report must open in five years</td></tr><tr><td>History across runs</td><td>One result cannot distinguish a regression from a known failure</td></tr></tbody></table></div>
+<hr>
+<h2 id="2-the-options-and-where-each-one-ends"><span class="num">2</span>The options, and where each one ends</h2>
+<h3 id="the-framework-s-own-html-report">The framework&#x27;s own HTML report</h3>
+<p><strong>Gives you:</strong> per-run results, evidence attached to failures, and with Playwright a trace viewer that replays the run step by step. Self-contained enough to hand over as a folder.</p>
+<p><strong>Ends at:</strong> one run. There is no history, no trend, no comparison with yesterday. Also worth checking that your version genuinely embeds everything; some report templates pull a font or a script from a CDN, which is invisible until it renders unstyled somewhere else.</p>
+<p><strong>Fits:</strong> small suites, a handful of projects, teams whose main question is &quot;what failed in this run&quot;.</p>
+<h3 id="allure">Allure</h3>
+<p><strong>Gives you:</strong> the same per-run detail plus history and trends when you keep previous results, categorisation of failures, and a presentation that non-engineers read without help.</p>
+<p><strong>Ends at:</strong> it needs a Java runtime to generate, which is a package on the approved-software list in some environments and a conversation in others. History depends on you preserving the results directory between runs, which is a small operational discipline that gets forgotten.</p>
+<p><strong>Fits:</strong> most teams that need trends and can accept a JRE on the machine.</p>
+<h3 id="allure-testops-reportportal-testkube">Allure TestOps, ReportPortal, Testkube</h3>
+<p><strong>Gives you:</strong> the full dashboard experience: analytics across runs, integrations, and in Allure TestOps&#x27; case test-case management as well. All three can be self-hosted, which is what makes them candidates at all.</p>
+<p><strong>Ends at:</strong> they are services. Self-hosting one means a database, a deployment, backups, upgrades and an owner, inside an environment where every one of those is a change request. The evaluation question is not whether the software is good; it is whether the customer&#x27;s platform team will accept another stateful service.</p>
+<p><strong>Fits:</strong> organisations with a platform team and enough suites to justify the operational weight.</p>
+<h3 id="grafana-over-your-own-metrics">Grafana over your own metrics</h3>
+<p><strong>Gives you:</strong> trends next to the rest of the infrastructure dashboards, in a tool the operations team already runs and already trusts.</p>
+<p><strong>Ends at:</strong> it shows aggregates, not evidence. Nobody diagnoses a failing test from a Grafana panel. Treat it as a complement to a report, never a replacement.</p>
+<hr>
+<h2 id="3-the-acceptance-test-for-any-of-them"><span class="num">3</span>The acceptance test for any of them</h2>
+<p>Whatever you pick, verify the offline claim yourself rather than believing the documentation:</p>
+<div class="code"><span class="lang">bash</span><pre><code><span class="c"># 1. generate a report as you normally would</span>
+<span class="c"># 2. list every external reference it contains</span>
+grep -rEo &#x27;https?://[^&quot;&#x27;&quot;&#x27;&quot;<span class="s">&#x27; )]+&#x27;</span> reports/html/ | sort -u</code></pre></div>
+<p>The output should contain nothing but the application under test. Fonts, analytics, icon sets and script CDNs all show up here, and every one of them is something that will render differently, or hang, on a machine with no route out.</p>
+<p>Then do the stronger version: copy the report to a machine that genuinely has no network and open it. Cached assets on your own laptop will hide the problem otherwise.</p>
+<hr>
+<h2 id="4-two-formats-two-audiences"><span class="num">4</span>Two formats, two audiences</h2>
+<p>Whichever human-facing report you choose, produce a machine-readable one alongside it. They answer different questions and neither substitutes for the other.</p>
+<div class="tablewrap"><table><thead><tr><th></th><th>Machine format</th><th>Human format</th></tr></thead><tbody><tr><td><strong>Example</strong></td><td>JUnit XML, JSON</td><td>HTML, Allure</td></tr><tr><td><strong>Consumer</strong></td><td>CI gates, trend scripts, other tools</td><td>a person diagnosing a failure</td></tr><tr><td><strong>Role</strong></td><td>aggregation and thresholds</td><td>investigation</td></tr></tbody></table></div>
+<p>JUnit XML is ugly and almost universally understood, which makes it the safest choice when you do not know what will read your results on the customer&#x27;s side in two years.</p>
+<div class="code"><span class="lang">xml</span><pre><code>&lt;testsuite name=<span class="s">&quot;checkout&quot;</span> tests=<span class="s">&quot;42&quot;</span> failures=<span class="s">&quot;1&quot;</span> errors=<span class="s">&quot;0&quot;</span> skipped=<span class="s">&quot;3&quot;</span> time=<span class="s">&quot;118.4&quot;</span>&gt;
+  &lt;testcase classname=<span class="s">&quot;checkout.email&quot;</span> name=<span class="s">&quot;confirmation email&quot;</span> time=<span class="s">&quot;0&quot;</span>&gt;
+    &lt;skipped message=<span class="s">&quot;No SMTP in the client-a profile&quot;</span>/&gt;
+  &lt;/testcase&gt;
+&lt;/testsuite&gt;</code></pre></div>
+<p>Note the skip with a reason. In a closed environment some tests genuinely cannot run, and the difference between a documented skip and a silent absence is the difference between a report an auditor accepts and one they do not.</p>
+<hr>
+<h2 id="5-what-the-header-must-carry"><span class="num">5</span>What the header must carry</h2>
+<figure class="photo"><picture><source type="image/avif" srcset="/articles/reporting-without-cloud-dashboard/assets/img/p_files-900.avif 900w, /articles/reporting-without-cloud-dashboard/assets/img/p_files-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/reporting-without-cloud-dashboard/assets/img/p_files-900.webp 900w, /articles/reporting-without-cloud-dashboard/assets/img/p_files-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/reporting-without-cloud-dashboard/assets/img/p_files-1440.jpg" srcset="/articles/reporting-without-cloud-dashboard/assets/img/p_files-900.jpg 900w, /articles/reporting-without-cloud-dashboard/assets/img/p_files-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="Six lines at the top of a report answer most of the questions that would otherwise become an email thread." width="1440" height="811" loading="lazy" decoding="async"></picture><figcaption>Six lines at the top of a report answer most of the questions that would otherwise become an email thread.<span class="credit">Veteran Affairs backlog (2012-08-09).jpg - US Department of Veteran Affairs, public domain (Wikimedia Commons)</span></figcaption></figure>
+<p>Six lines at the top of the report answer most of the questions that would otherwise become an email thread:</p>
+<div class="code"><pre><code>Suite:       regression-suite @ 8f3a21c
+Runner:      1.12.0    Chromium 129.0.6668.29 / Firefox 130.0 / WebKit 18.0
+Environment: client-a (https://app.client-a.local)  ·  app 4.2.1  ·  schema 118
+Machine:     8 vCPU / 32 GB / shm 2 GB  ·  4 workers
+Started:     2026-09-18 21:14 CEST      Duration: 11 min 42 s
+Result:      412 passed · 3 failed · 7 skipped (no SMTP, no SSO)</code></pre></div>
+<p>Most reporting tools will not produce this for you. Generating it is a small job and it is the single highest-value addition you can make to a report that leaves your sight.</p>
+<hr>
+<h2 id="6-what-vallus-does-and-what-it-does-not"><span class="num">6</span>What vallus does, and what it does not</h2>
+<p>Since this is our own area, the honest version.</p>
+<p><strong>It does:</strong> run suites on the customer&#x27;s own infrastructure with no telemetry, no licence server and no call-home; serve the Playwright HTML report and the trace viewer per run; generate Allure when a JRE is present; keep run history and cross-run trends locally; hold everything on the customer&#x27;s disk in formats that open without us.</p>
+<p><strong>It does not:</strong> replace a test-case management system - it keeps no manual test cases and no test plans. It does not yet link tests to requirements either: traceability by tag is planned, but today, if your auditor wants a traceability matrix, that lives in Xray or similar, and vallus files its runs there as test executions. It does not do cross-project analytics of the kind Allure TestOps offers.</p>
+<p><strong>What it costs to find out:</strong> there is a free tier - two users, one project, one run at a time, on a six-month key you renew. That is enough to run one team&#x27;s suite for real rather than in a trial sandbox; what it leaves out are the integrations (Xray, SSO, Grafana, ReportPortal).</p>
+<p>If your need is trend analytics across dozens of teams, a self-hosted TestOps-class tool is a better fit than we are. If your need is running suites reliably where nothing may leave the network, and getting reports that stand on their own, that is the case we were built for.</p>
+<hr>
+<h2 id="7-conclusion"><span class="num">7</span>Conclusion</h2>
+<p>The cloud dashboard is not the only shape reporting can take; it is the shape that happened to win in environments with a network. Remove the network and the question becomes what the report itself has to carry.</p>
+<p>Three criteria worth holding any option to:</p>
+<ol><li><strong>It must open with nothing.</strong> Verify by disconnecting, not by reading the marketing.</li><li><strong>It must carry the context you will not be able to go and look up.</strong> Environment, versions, resources, evidence, explicit skips.</li><li><strong>It must be readable without the tool that made it.</strong> Archived artefacts outlive vendors, versions and sometimes the team.</li></ol>
+  <aside class="byline-card"><span class="avatar" aria-hidden="true">PG</span><div><p class="who">About the author</p><p class="name">Piotr Gajownik <span>· ExpandIt</span></p><p class="bio">Senior Test Engineer. He has been testing software since 2007, working on delivery into regulated and network-isolated environments.</p></div></aside>
+  <p class="dl"><a href="/articles/reporting-without-cloud-dashboard-offline.html" download><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>Download the offline copy</a><span>One HTML file with everything inside - opens with no internet at all.</span></p>
+  <aside class="cta"><p class="eyebrow">The runner behind this article</p><h2>These are the problems vallus was built to solve</h2><p class="lead">Everything above describes constraints we kept meeting at customer sites: no route to the internet, no access to the machine where a run failed, and a report that has to answer every question on its own. vallus is the Playwright runner written for exactly those conditions.</p><ul><li><b>Nothing leaves the network</b>No telemetry, no licence server, no call home. Once installed, the instance needs no route to the internet at all - the licence is a file verified locally. §5.4</li><li><b>Results stay on your disk</b>Reports, traces, screenshots and cross-run history live on your infrastructure, in formats that open without us. Nobody at the vendor can see your runs. §5.1</li><li><b>A container per run<em class="scope">Docker installs</em></b>On a Docker deployment each run gets its own container built from that project’s code and dependencies, with an image per version of your tests: a rollback is a tag, not a rebuild. Without Docker the runner executes suites directly on the host. §3.4</li><li><b>Reports built for absent engineers</b>Playwright HTML or Allure per run, traces served over HTTPS, plus run history and trends - the execution context the report has to carry when you cannot log in. §4.3</li><li><b>One dashboard, many environments</b>Scheduling, a run queue, per-project Playwright versions and access rules, so the same suite runs the same way on every environment you ship to. §3.3</li></ul><div class="acts"><a class="btn primary" href="https://www.vallus.eu/">Explore vallus<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="btn secondary" href="https://www.vallus.eu/#demo">Book a demo</a></div><p class="note">vallus is a product of ExpandIt · deployed on your own infrastructure.</p></aside>
+</article>
+</main>
+
+<footer>
+  <div class="in">
+    <a class="fbrand" href="https://www.vallus.eu/"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus · by ExpandIt</b></a>
+    <nav class="flinks" aria-label="vallus.eu"><a href="https://www.vallus.eu/#features">Features</a><a href="https://www.vallus.eu/#pricing">Pricing</a><a href="https://www.vallus.eu/free/">Free</a><a href="https://www.vallus.eu/articles/">Articles</a><a href="https://www.vallus.eu/#deployment">Security</a><a href="https://www.vallus.eu/#faq">FAQ</a><a href="https://www.vallus.eu/privacy/">Privacy</a><a href="https://www.vallus.eu/licenses/">Licences</a><a class="cta" href="https://www.vallus.eu/#demo">Book a demo</a></nav>
+    <h3>Photographs</h3>
+    <ul><li>Control panel displays settings and data for industrial equipment.jpg - Shixart1985, CC BY 2.0 (Wikimedia Commons)</li><li>Veteran Affairs backlog (2012-08-09).jpg - US Department of Veteran Affairs, public domain (Wikimedia Commons)</li></ul>
+    <p class="note">An offline copy of this article is linked at the top: one file with the images, fonts and styles embedded, which opens on a machine with no network at all.</p>
+  </div>
+</footer>
+
+<button id="totop" type="button" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>Back to top</button>
+
+<script>
+(function () {
+  var bar = document.getElementById('bar');
+  var top = document.getElementById('totop');
+  function upd() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    top.classList.toggle('show', h.scrollTop > 700);
+  }
+  document.addEventListener('scroll', upd, {passive: true});
+  // Przycisk wstecz cofa w historii tylko wtedy, gdy poprzednia strona byla nasza.
+  // Wejscie prosto z wyszukiwarki albo z LinkedIna zostawia href, czyli liste artykulow.
+  var back = document.getElementById('back');
+  var from = document.referrer;
+  var sameSite = false;
+  try {
+    sameSite = !!from && new URL(from).origin === location.origin
+               && new URL(from).pathname !== location.pathname;
+  } catch (e) { sameSite = false; }
+  if (sameSite && history.length > 1) {
+    back.addEventListener('click', function (event) {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      history.back();
+    });
+  } else if (back.dataset.needsHistory) {
+    // Offline i bez historii: zostaje tylko adres w internecie, ktorego tu moze nie byc.
+    back.remove();
+    var sep = document.querySelector('.topbar .sep');
+    if (sep) sep.remove();
+  }
+
+  var canSmooth = 'scrollBehavior' in document.documentElement.style;
+  top.addEventListener('click', function () {
+    if (canSmooth) window.scrollTo({top: 0, behavior: 'smooth'});
+    else window.scrollTo(0, 0);
+  });
+  upd();
+})();
+</script>
+</body>
+</html>

@@ -34,6 +34,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
     {
+        slug: "reporting-without-cloud-dashboard",
+        title: "The report has to work when the dashboard cannot",
+        summary:
+            "An honest survey of test reporting for environments that cannot reach a cloud service: what the framework report, Allure, self-hosted TestOps-class tools and Grafana each give you, where each one stops, and what a report must carry to stand on its own.",
+        published: "2026-09-28",
+        readingMinutes: 6,
+        topics: ["Closed environments", "Reporting", "Self-hosted"],
+        language: "en",
+        offlineSize: "0.7 MB",
+    },
+    {
         slug: "vendoring-node-dependencies",
         title: "The build has to work on a machine that cannot download anything",
         summary:
