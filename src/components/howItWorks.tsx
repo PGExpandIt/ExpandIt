@@ -69,6 +69,26 @@ const HowItWorks = () => {
                     in minutes
                 </h2>
 
+                {/* The full tour, for a visitor who followed "See how it works" from the
+                    hero: that one plays the 30-second ad. Same rules as the hero video -
+                    served from public/, nothing loaded until play. */}
+                <div className="mt-10 max-w-4xl">
+                    <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-2xl shadow-black/40">
+                        <video
+                            className="block aspect-video w-full"
+                            src="/video/vallus-demo-v3.mp4"
+                            poster="/video/vallus-demo-v3-poster.jpg"
+                            controls
+                            playsInline
+                            preload="none"
+                            aria-label="vallus product tour"
+                        />
+                    </div>
+                    <p className="mt-3 text-sm text-muted">
+                        Product tour · 2 min · voice-over, captions in the video
+                    </p>
+                </div>
+
                 <div
                     role="tablist"
                     aria-label="Installation method"

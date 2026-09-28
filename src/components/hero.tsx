@@ -64,7 +64,11 @@ const Hero = () => (
             </div>
 
             {/* Served from public/ with the rest of the site, so playing it contacts no
-                third party. preload="none" keeps the 14 MB file off the wire until play. */}
+                third party. preload="none" keeps the file off the wire until play. The
+                hero carries the 30-second ad - one idea, for a visitor deciding whether to
+                stay; the 2-minute tour sits under "How it works", where the button below
+                leads. File names carry the cut's version: the CDN caches /video for weeks,
+                so a new cut under an old name would keep serving the old one. */}
             {/* On wide screens the stats stand in a column beside the video, and the grid
                 row stretches them to its height - the caption sits in a row of its own so
                 it does not count. Below lg the order puts the caption under the video and
@@ -73,16 +77,19 @@ const Hero = () => (
                 <div className="order-1 overflow-hidden rounded-lg border border-line bg-surface shadow-2xl shadow-black/40">
                     <video
                         className="block aspect-video w-full"
-                        src="/video/vallus-demo.mp4"
-                        poster="/video/vallus-demo-poster.jpg"
+                        src="/video/vallus-ad-v2.mp4"
+                        poster="/video/vallus-ad-v2-poster.jpg"
                         controls
                         playsInline
                         preload="none"
-                        aria-label="vallus product tour"
+                        aria-label="vallus in 30 seconds"
                     />
                 </div>
                 <p className="order-2 text-sm text-muted lg:order-3">
-                    Product tour · 2 min · music only, captions in the video
+                    vallus in 30 seconds · voice-over, captions in the video ·{" "}
+                    <a href="#how-it-works" className="text-bone underline-offset-4 hover:underline">
+                        full 2-minute tour below
+                    </a>
                 </p>
 
                 <dl className="order-3 mt-5 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3 lg:order-2 lg:mt-0 lg:grid-cols-1 lg:grid-rows-3 lg:text-left">
