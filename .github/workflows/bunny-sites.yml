@@ -30,7 +30,9 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moves to Ubuntu 26 from 19 October 2026
+    # (actions/runner-images#14748). Move to 26.04 deliberately, not on GitHub's date.
+    runs-on: ubuntu-24.04
     # BUNNY_API_KEY and BOOKING_ADMIN_TOKEN live on this environment, not on the
     # repository. Without naming it here `secrets.BUNNY_API_KEY` resolves to an empty
     # string and the deploy step fails to authenticate, which is why every recent

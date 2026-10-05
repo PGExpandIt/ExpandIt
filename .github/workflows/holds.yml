@@ -37,7 +37,9 @@ permissions:
 
 jobs:
   top-up:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moves to Ubuntu 26 from 19 October 2026
+    # (actions/runner-images#14748). Move to 26.04 deliberately, not on GitHub's date.
+    runs-on: ubuntu-24.04
     steps:
       - name: Top up the calendar
         env:
