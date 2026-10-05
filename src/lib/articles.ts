@@ -34,6 +34,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
     {
+        slug: "security-review-closed-environments",
+        title: "The review that decides whether your tool ever runs",
+        summary:
+            "Getting test tooling through a customer's security review in a closed environment: who is on the other side, how long it really takes, the document pack that prevents round trips, how to answer SAST findings, and how to prove there is no call-home.",
+        published: "2026-10-05",
+        readingMinutes: 15,
+        topics: ["Closed environments", "Security review", "Supply chain"],
+        language: "en",
+        offlineSize: "1.1 MB",
+    },
+    {
         slug: "reporting-without-cloud-dashboard",
         title: "The report has to work when the dashboard cannot",
         summary:

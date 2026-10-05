@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting test tooling through security review in a closed environment</title>
+<meta name="description" content="What a customer security review actually asks, how long it takes, which SAST findings come back, and how to prove there is no call-home. A vendor-side guide for closed and air-gapped deployments.">
+<meta name="color-scheme" content="dark">
+<meta name="author" content="Piotr Gajownik">
+<link rel="canonical" href="https://vallus.eu/articles/security-review-closed-environments/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="vallus by ExpandIt">
+<meta property="og:locale" content="en_GB">
+<meta property="og:url" content="https://vallus.eu/articles/security-review-closed-environments/">
+<meta property="og:title" content="The review that decides whether your tool ever runs">
+<meta property="og:description" content="What a customer security review actually asks, how long it takes, which SAST findings come back, and how to prove there is no call-home. A vendor-side guide for closed and air-gapped deployments.">
+<meta property="og:image" content="https://vallus.eu/articles/security-review-closed-environments/assets/og-security-review-closed-environments-en.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Getting test tooling through security review in a closed environment">
+<meta property="article:published_time" content="2026-10-05">
+<meta property="article:modified_time" content="2026-10-05">
+<meta property="article:author" content="Piotr Gajownik">
+<meta property="article:section" content="Test automation">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The review that decides whether your tool ever runs">
+<meta name="twitter:description" content="What a customer security review actually asks, how long it takes, which SAST findings come back, and how to prove there is no call-home. A vendor-side guide for closed and air-gapped deployments.">
+<meta name="twitter:image" content="https://vallus.eu/articles/security-review-closed-environments/assets/og-security-review-closed-environments-en.jpg">
+<meta name="twitter:image:alt" content="Getting test tooling through security review in a closed environment">
+
+<link rel="preload" href="/articles/security-review-closed-environments/assets/fonts/geist-400-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/articles/security-review-closed-environments/assets/fonts/geist-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{
+ "@context": "https://schema.org",
+ "@type": "Article",
+ "headline": "Getting test tooling through security review in a closed environment",
+ "alternativeHeadline": "The review that decides whether your tool ever runs",
+ "description": "What a customer security review actually asks, how long it takes, which SAST findings come back, and how to prove there is no call-home. A vendor-side guide for closed and air-gapped deployments.",
+ "inLanguage": "en",
+ "datePublished": "2026-10-05",
+ "dateModified": "2026-10-05",
+ "author": {
+  "@type": "Person",
+  "name": "Piotr Gajownik",
+  "jobTitle": "Senior Test Engineer",
+  "worksFor": {
+   "@type": "Organization",
+   "name": "ExpandIt"
+  },
+  "url": "https://vallus.eu/"
+ },
+ "publisher": {
+  "@type": "Organization",
+  "name": "ExpandIt",
+  "url": "https://vallus.eu/",
+  "logo": {
+   "@type": "ImageObject",
+   "url": "https://vallus.eu/logo.png"
+  }
+ },
+ "image": [
+  "https://vallus.eu/articles/security-review-closed-environments/assets/og-security-review-closed-environments-en.jpg"
+ ],
+ "mainEntityOfPage": {
+  "@type": "WebPage",
+  "@id": "https://vallus.eu/articles/security-review-closed-environments/"
+ },
+ "articleSection": "Test automation",
+ "keywords": "closed environments, air-gapped, test automation, Playwright, test reporting, data sovereignty"
+}</script>
+<style>
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/security-review-closed-environments/assets/fonts/geist-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/security-review-closed-environments/assets/fonts/geist-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/security-review-closed-environments/assets/fonts/geist-600-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/security-review-closed-environments/assets/fonts/geist-600-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/security-review-closed-environments/assets/fonts/geist-700-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/security-review-closed-environments/assets/fonts/geist-700-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/security-review-closed-environments/assets/fonts/geist-mono-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/security-review-closed-environments/assets/fonts/geist-mono-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+
+:root {
+  --ink:#100F0D; --ink-soft:#171613; --surface:#1C1A17; --line:#2C2925;
+  --text:#F2F0EA; --body:#D8D4CB; --muted:#A29C91; --faint:#6E6A61;
+  --mint:#7DD3A0; --mint-dim:#4f8f68;
+  --sans:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:5rem;background:var(--ink)}
+body{
+  margin:0; background:var(--ink); color:var(--body);
+  font-family:var(--sans); font-size:17.5px; line-height:1.72;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+::selection{background:rgba(125,211,160,.24);color:var(--text)}
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--mint);width:0;z-index:99}
+
+/* ── sticky topbar ────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:60;height:60px;display:flex;align-items:center;
+  background:rgba(16,15,13,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.topbar .in{max-width:816px;margin:0 auto;padding:0 28px;width:100%;
+  display:flex;align-items:center;gap:12px}
+.topbar .back{
+  display:inline-flex;align-items:center;gap:7px;flex:none;
+  padding:7px 13px 7px 10px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface);color:var(--body);
+  font-size:13px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+.topbar .back:hover{border-color:var(--mint);color:var(--mint)}
+.topbar .back:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.topbar .back svg{color:var(--mint);transition:color .18s ease}
+.topbar .back:hover svg{color:var(--mint)}
+.topbar .sep{width:1px;height:20px;background:var(--line);flex:none}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;border-bottom:0}
+.brand svg{height:20px;width:auto;color:var(--mint);transition:color .18s ease}
+.brand:hover b{color:var(--mint)}
+.brand b{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.brand span{font-size:12.5px;color:var(--muted)}
+.topbar .crumb{
+  margin-left:auto;font-size:13px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52%;
+}
+
+/* ── hero ─────────────────────────────────────────────── */
+header.hero{position:relative;min-height:78vh;display:flex;align-items:flex-end;
+  background:var(--ink);overflow:hidden}
+header.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:.30;filter:grayscale(.5) contrast(1.06)}
+header.hero .veil{position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 70% 10%,rgba(16,15,13,.30) 0%,rgba(16,15,13,.86) 55%,var(--ink) 100%)}
+header.hero .inner{position:relative;max-width:816px;margin:0 auto;padding:0 28px 76px;width:100%}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mint);
+  font-weight:600;margin:0 0 20px}
+header.hero h1{color:var(--text);font-size:clamp(36px,6vw,64px);line-height:1.06;
+  letter-spacing:-.028em;margin:0 0 22px;font-weight:700;max-width:17ch}
+header.hero p.sub{color:var(--muted);font-size:clamp(17px,2vw,21px);line-height:1.55;
+  margin:0;max-width:52ch;font-weight:400}
+header.hero .byline{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13.5px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+header.hero .byline i{font-style:normal;color:#3d3a34}
+header.hero .byline .author{color:var(--text);font-weight:600}
+header.hero .topics{margin:10px 0 0;color:var(--faint);font-size:12.5px}
+header.hero picture{position:absolute;inset:0;display:block}
+.hero-credit{position:absolute;right:14px;bottom:10px;color:#4a4740;font-size:10.5px}
+
+/* ── layout ───────────────────────────────────────────── */
+main{max-width:816px;margin:0 auto;padding:0 28px 90px}
+article{max-width:760px;margin:0 auto;padding:60px 0 40px}
+
+/* ── spis tresci ──────────────────────────────────────── */
+nav.toc{background:var(--ink-soft);border:1px solid var(--line);border-radius:8px;
+  padding:26px 30px;margin:0 0 64px}
+nav.toc h2{font-size:13px!important;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:0 0 16px!important;border:0!important;padding:0!important;
+  font-weight:600;display:block}
+nav.toc ol{list-style:none;margin:0;padding:0;columns:2;column-gap:34px}
+nav.toc li{margin:0 0 10px;break-inside:avoid}
+nav.toc a{font-size:14.5px;color:var(--body);text-decoration:none;border-bottom:0;display:flex;gap:11px;line-height:1.45}
+nav.toc a span{color:var(--mint-dim);font-weight:600;min-width:15px}
+nav.toc a:hover{color:var(--mint)}
+nav.toc a:hover span{color:var(--mint)}
+
+/* ── typografia ───────────────────────────────────────── */
+h2,h3,h4{color:var(--text);letter-spacing:-.022em;scroll-margin-top:80px}
+h2{font-size:clamp(27px,3.6vw,36px);line-height:1.14;font-weight:700;
+  margin:84px 0 24px;padding-top:30px;border-top:1px solid var(--line);display:flex;gap:16px}
+h2 .num{color:var(--mint);font-weight:700;flex:none}
+h3{font-size:clamp(19px,2.2vw,22px);font-weight:600;margin:50px 0 15px;display:flex;gap:12px;
+  letter-spacing:-.012em}
+h3 .subnum{color:var(--mint-dim);font-weight:600;flex:none}
+h4{font-size:17px;font-weight:600;margin:34px 0 10px}
+h2 code,h3 code,h4 code{font-size:.82em;padding:.05em .3em;background:rgba(255,255,255,.05);
+  border-color:#333029;color:#dbe6dd;font-weight:600;vertical-align:baseline}
+article > h3:first-of-type{margin-top:0}
+p{margin:0 0 22px}
+article > p:first-of-type,
+h3[id^="wstep"] + p, h3[id^="introduction"] + p{font-size:20px;line-height:1.62;color:#e6e2d9}
+a{color:var(--mint);text-decoration:none;border-bottom:1px solid rgba(125,211,160,.35)}
+a:hover{border-bottom-color:var(--mint)}
+strong{font-weight:600;color:var(--text)}
+em{color:var(--muted)}
+hr{display:none}
+ul,ol{margin:0 0 24px;padding-left:24px}
+li{margin:0 0 11px}
+li::marker{color:var(--mint-dim)}
+
+code{font-family:var(--mono);font-size:.86em;background:var(--surface);
+  border:1px solid var(--line);border-radius:5px;padding:.12em .38em;color:#cdd8cf}
+.code{position:relative;margin:0 0 30px;border-radius:8px;overflow:hidden;
+  background:#0A0908;border:1px solid var(--line)}
+.code .lang{position:absolute;top:0;right:0;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);background:var(--surface);
+  padding:4px 12px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+  border-bottom-left-radius:8px}
+.code pre{margin:0;padding:22px 24px;overflow-x:auto}
+.code code{background:none;border:0;padding:0;color:#dad6cd;font-size:13.5px;
+  line-height:1.68;white-space:pre}
+.code .c{color:#6E6A61}
+.code .s{color:var(--mint)}
+.code pre::-webkit-scrollbar{height:8px}
+.code pre::-webkit-scrollbar-thumb{background:#2C2925;border-radius:4px}
+
+blockquote{margin:36px 0;padding:24px 28px;background:rgba(125,211,160,.06);
+  border:1px solid rgba(125,211,160,.20);border-left:3px solid var(--mint);border-radius:0 8px 8px 0}
+blockquote p{margin:0;font-size:18.5px;line-height:1.6;color:#e3ece5}
+
+/* Licznik (dyrektywa ::: countdown, tylko wersja webowa). Ukryty, dopoki skrypt go nie
+   uruchomi - bez JavaScriptu czytelnik dostaje zdanie z data z <noscript>. */
+aside.countdown{display:none;margin:40px 0 44px;padding:26px 28px 22px;background:var(--ink-soft);
+  border:1px solid var(--line);border-left:3px solid var(--mint);border-radius:0 8px 8px 0}
+aside.countdown.live{display:block}
+.countdown .cd-units{display:flex;gap:30px;flex-wrap:wrap}
+.countdown .cd-units span{display:flex;flex-direction:column;min-width:62px}
+.countdown .cd-units b{font-family:var(--mono);font-size:clamp(34px,5.4vw,52px);line-height:1;
+  font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.countdown .cd-units i{font-style:normal;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint-dim);margin-top:9px}
+.countdown .cd-label{margin:18px 0 0;font-size:15.5px;line-height:1.55;color:var(--muted)}
+.countdown.done .cd-units{display:none}
+.countdown.done .cd-label{margin:0;font-size:18.5px;color:var(--text)}
+
+.tablewrap{overflow-x:auto;margin:0 0 32px;border:1px solid var(--line);
+  border-radius:8px;background:var(--ink-soft)}
+table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.55}
+th{background:var(--surface);text-align:left;font-weight:600;font-size:12px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  padding:13px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--body)}
+td strong{color:var(--text)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(255,255,255,.018)}
+td code{font-size:.84em}
+
+p.grouplabel{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:38px 0 14px}
+p.grouplabel strong{font-weight:600;color:inherit}
+ul.checklist{list-style:none;padding:0;margin:0 0 26px;display:grid;gap:8px}
+ul.checklist li{position:relative;padding:12px 15px 12px 44px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;margin:0;font-size:15.5px;line-height:1.5;
+  color:var(--body)}
+ul.checklist li::before{content:"";position:absolute;left:16px;top:15px;width:14px;height:14px;
+  border:1.5px solid #3A362F;border-radius:4px;background:var(--surface)}
+
+aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{
+  position:fixed;right:24px;bottom:24px;z-index:70;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 16px 10px 13px;border-radius:6px;cursor:pointer;
+  font-family:var(--sans);font-size:13.5px;font-weight:600;
+  color:var(--text);background:rgba(28,26,23,.92);backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  opacity:0;visibility:hidden;transform:translateY(10px);
+  transition:opacity .25s ease,transform .25s ease,visibility .25s,
+             background .18s ease,color .18s ease,border-color .18s ease;
+}
+#totop.show{opacity:1;visibility:visible;transform:none}
+#totop svg{width:14px;height:14px;flex:none;color:var(--mint);transition:color .18s ease}
+#totop:hover{background:var(--mint);color:var(--ink);border-color:var(--mint)}
+#totop:hover svg{color:var(--ink)}
+#totop:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+@media (max-width:680px){
+  aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{right:14px;bottom:14px;padding:9px 13px 9px 11px;font-size:12.5px}
+}
+
+aside.byline-card{
+  margin:70px 0 0;padding:22px 24px;background:var(--ink-soft);border:1px solid var(--line);
+  border-radius:8px;display:flex;gap:18px;align-items:flex-start;
+}
+aside.byline-card .avatar{
+  flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface);border:1px solid var(--line);
+  color:var(--mint);font-size:15px;font-weight:600;letter-spacing:.02em;
+}
+aside.byline-card .who{margin:0 0 5px;font-size:11.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--mint-dim)}
+aside.byline-card .name{margin:0 0 6px;font-size:16.5px;font-weight:600;color:var(--text)}
+aside.byline-card .name span{font-weight:400;color:var(--muted)}
+aside.byline-card .bio{margin:0;font-size:14.5px;line-height:1.6;color:var(--muted);max-width:58ch}
+
+p.dl{margin:20px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+p.dl a{
+  display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:6px;
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  font-size:14px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+p.dl a:hover{border-color:var(--mint);color:var(--mint)}
+p.dl a svg{color:var(--mint)}
+p.dl span{font-size:13px;color:var(--faint)}
+
+figure.photo{margin:40px 0 42px}
+figure.photo picture{display:block}
+figure.photo img{width:100%;height:auto;display:block;border-radius:8px;max-width:100%;
+  border:1px solid var(--line);background:var(--ink-soft);
+  filter:brightness(.84) saturate(.9) contrast(1.02);transition:filter .35s ease}
+figure.photo img:hover{filter:brightness(1) saturate(1)}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);margin-top:13px;
+  padding-left:14px;border-left:2px solid var(--mint-dim)}
+figcaption .credit{display:block;margin-top:6px;font-size:11.5px;color:#57534c}
+figure.diagram{margin:40px 0;padding:24px 18px 12px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px}
+figure.diagram svg{width:100%;height:auto;display:block;font-family:var(--sans)}
+figure.diagram figcaption{border:0;padding:0;margin-top:12px;text-align:center}
+
+footer{border-top:1px solid var(--line);background:#0C0B0A}
+footer .in{max-width:816px;margin:0 auto;padding:40px 28px 64px;color:var(--faint);font-size:12.5px;line-height:1.7}
+footer .fbrand{display:flex;align-items:center;gap:9px;margin-bottom:24px;
+  text-decoration:none;border-bottom:0;width:fit-content}
+footer .fbrand:hover b{color:var(--text)}
+footer .fbrand:hover svg{color:var(--mint)}
+footer .fbrand svg{height:18px;width:auto;color:var(--mint-dim)}
+footer .fbrand b{font-size:14px;font-weight:600;color:var(--muted)}
+footer h3{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mint-dim);
+  margin:0 0 10px;font-weight:600;display:block}
+footer ul{list-style:none;padding:0;margin:0 0 24px}
+footer li{margin:0 0 5px}
+footer .note{padding-top:20px;border-top:1px solid var(--line);color:#57534c;max-width:78ch}
+footer nav.flinks{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 26px;padding:0 0 22px;
+  border-bottom:1px solid var(--line)}
+footer nav.flinks a{color:var(--muted);text-decoration:none;border-bottom:0;font-size:13px}
+footer nav.flinks a:hover{color:var(--mint)}
+footer nav.flinks a.cta{color:var(--mint);font-weight:600}
+
+@media (max-width:680px){
+  body{font-size:16.5px}
+  aside.byline-card{padding:18px}
+  nav.toc ol{columns:1}
+  article{padding:40px 0 30px}
+  h2{margin:58px 0 20px}
+  .topbar .crumb{display:none}
+  .topbar .back{padding:6px 11px 6px 9px;font-size:12.5px}
+  .brand span{display:none}
+}
+@media print{
+  html,body{background:#fff;color:#111;font-size:11pt}
+  #bar,nav.toc,.topbar,aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{display:none}
+  header.hero{min-height:auto;page-break-after:always;background:#fff}
+  header.hero img,header.hero .veil,.hero-credit{display:none}
+  header.hero h1,h2,h3,h4,strong{color:#000}
+  header.hero p.sub,p,td,li{color:#222}
+  .code{background:#f4f4f2;border-color:#ddd}
+  .code code{color:#111} .code .c{color:#666} .code .s{color:#256b41}
+  .tablewrap,ul.checklist li,figure.diagram{background:#fff;border-color:#ccc}
+  th{background:#f1f1ee;color:#333}
+  footer{background:#fff}
+  h2{page-break-after:avoid} figure,.code,.tablewrap,blockquote{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<div class="topbar">
+  <div class="in">
+    <a class="back" id="back" href="/articles/" title="Return to the previous page">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+           stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>Back</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a class="brand" href="https://www.vallus.eu/" title="vallus.eu"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus</b><span>by ExpandIt</span></a>
+    <span class="crumb">The review that decides whether your tool ever runs</span>
+  </div>
+</div>
+
+<header class="hero">
+  <picture><source type="image/avif" srcset="/articles/security-review-closed-environments/assets/img/s7_gate-900.avif 900w, /articles/security-review-closed-environments/assets/img/s7_gate-1440.avif 1440w" sizes="100vw"><source type="image/webp" srcset="/articles/security-review-closed-environments/assets/img/s7_gate-900.webp 900w, /articles/security-review-closed-environments/assets/img/s7_gate-1440.webp 1440w" sizes="100vw"><img src="/articles/security-review-closed-environments/assets/img/s7_gate-1440.jpg" srcset="/articles/security-review-closed-environments/assets/img/s7_gate-900.jpg 900w, /articles/security-review-closed-environments/assets/img/s7_gate-1440.jpg 1440w" sizes="100vw" alt="A corridor and a closed door inside a decommissioned facility" width="1440" height="2160" fetchpriority="high" decoding="async"></picture>
+  <div class="veil"></div>
+  <div class="inner">
+    <p class="eyebrow">Closed environments · security review</p>
+    <h1>The review that decides whether your tool ever runs</h1>
+    <p class="sub">Getting test tooling through a customer&#x27;s security review in a closed environment</p>
+    <div class="byline">
+      <span class="author">Piotr Gajownik</span>
+      <i>·</i><span>ExpandIt</span>
+      <i>·</i><time datetime="2026-10-05">5 October 2026</time>
+      <i>·</i><span>about 15 min read</span>
+    </div>
+    <p class="topics">Security review · SBOM · supply chain</p>
+  </div>
+  <div class="hero-credit">Dülmen, Kirchspiel, ehem. Sondermunitionslager Visbeck, Gebäude 30, Innenansicht -- 2023 -- 8939.jpg - Dietmar Rabich, CC BY-SA 4.0 (Wikimedia Commons)</div>
+</header>
+
+<main>
+<article>
+  <nav class="toc">
+    <h2>In this article</h2>
+    <ol><li><a href="#1-who-is-on-the-other-side"><span>1</span>Who is on the other side</a></li><li><a href="#2-the-timeline-honestly"><span>2</span>The timeline, honestly</a></li><li><a href="#3-the-questionnaire-and-what-each-question-is-really-asking"><span>3</span>The questionnaire, and what each question is really asking</a></li><li><a href="#4-the-document-pack"><span>4</span>The document pack</a></li><li><a href="#5-sast-findings-and-how-to-answer-them"><span>5</span>SAST findings and how to answer them</a></li><li><a href="#6-proving-there-is-no-call-home"><span>6</span>Proving there is no call-home</a></li><li><a href="#7-the-network-and-identity-questions"><span>7</span>The network and identity questions</a></li><li><a href="#8-what-not-to-do"><span>8</span>What not to do</a></li><li><a href="#9-a-checklist"><span>9</span>A checklist</a></li><li><a href="#10-conclusion"><span>10</span>Conclusion</a></li></ol>
+  </nav>
+  <h3 id="introduction-the-stage-nobody-budgets-for">Introduction: the stage nobody budgets for</h3>
+<p>Every closed-environment deployment has a moment where the engineering work stops mattering. The runner is packaged, the images are built, the <a href="https://vallus.eu/articles/playwright-offline-install/">offline install</a> has been rehearsed. Then the customer&#x27;s security team asks for a questionnaire to be filled in, and everything waits.</p>
+<p>This is where deployments die. Not on architecture, not on price, not on a failed proof of concept. They die because the vendor treated the security review as paperwork to be handled at the end, discovered it takes eight weeks, and by then the budget quarter had closed.</p>
+<p>The review is not an obstacle placed in your way by people who do not understand software. It is the customer&#x27;s own control, run by people who will personally answer for what runs inside their perimeter. Treat it as an engineering deliverable with its own requirements, and it becomes predictable. Treat it as an interruption, and it will behave like one.</p>
+<p>What follows is what the process actually looks like from the vendor&#x27;s side, what gets asked, what the honest answers are, and which mistakes cost the most time. No customer is identifiable here: the classes of finding and the shape of the process are common across the sector.</p>
+<p>This piece belongs to a series on <a href="https://vallus.eu/articles/testing-closed-environments/">test automation in closed environments</a>, and goes deeper into the one stage the overview only mentions in passing.</p>
+<hr>
+<h2 id="1-who-is-on-the-other-side"><span class="num">1</span>Who is on the other side</h2>
+<figure class="photo"><picture><source type="image/avif" srcset="/articles/security-review-closed-environments/assets/img/s7_ops-900.avif 900w, /articles/security-review-closed-environments/assets/img/s7_ops-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/security-review-closed-environments/assets/img/s7_ops-900.webp 900w, /articles/security-review-closed-environments/assets/img/s7_ops-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/security-review-closed-environments/assets/img/s7_ops-1440.jpg" srcset="/articles/security-review-closed-environments/assets/img/s7_ops-900.jpg 900w, /articles/security-review-closed-environments/assets/img/s7_ops-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="The other side is not one gatekeeper. It is architecture, application security, infrastructure and compliance," width="1440" height="960" loading="lazy" decoding="async"></picture><figcaption>The other side is not one gatekeeper. It is architecture, application security, infrastructure and compliance, each protecting something different.<span class="credit">Combined Space Operations Center (CSpOC) staff monitors workstations (Screen images have been altered for operational security) (9169412).jpg - U.S. Space Force S4S by David Dozoretz, public domain (Wikimedia Commons)</span></figcaption></figure>
+<p>&quot;Security&quot; is rarely one person, and the parts do not want the same things.</p>
+<div class="tablewrap"><table><thead><tr><th>Role</th><th>What they are protecting</th><th>What convinces them</th></tr></thead><tbody><tr><td><strong>Security architect</strong></td><td>The perimeter and the data flow model</td><td>A diagram of every connection your tool opens, and evidence it opens no others</td></tr><tr><td><strong>Application security</strong></td><td>Code quality and the supply chain</td><td>SBOM, dependency provenance, an answer to each SAST class</td></tr><tr><td><strong>Infrastructure / platform</strong></td><td>The hosts and the runtime</td><td>Resource profile, privileges required, how it is patched</td></tr><tr><td><strong>Compliance / risk</strong></td><td>The audit trail and supplier register</td><td>Contracts, data-processing terms, retention, subprocessors</td></tr><tr><td><strong>The sponsor inside the company</strong></td><td>Their own credibility</td><td>Answers they can forward without translating</td></tr></tbody></table></div>
+<p>That last row is the one vendors underestimate. Your reviewer is usually not the person who wants your tool. Someone else does: a QA lead, an engineering manager, whoever hit the problem you solve. They spend their own political capital pushing your tool through, and every unanswered question spends more of it.</p>
+<p><strong>Write for them, not for the reviewer.</strong> Every document you produce should be something your sponsor can forward without a covering explanation. If it needs one, you have written it for the wrong reader.</p>
+<hr>
+<h2 id="2-the-timeline-honestly"><span class="num">2</span>The timeline, honestly</h2>
+<p>Ask a vendor how long security review takes and you get &quot;a few weeks&quot;. Here is a shape that matches reality more often, for a tool that runs on customer infrastructure and touches test data:</p>
+<div class="tablewrap"><table><thead><tr><th>Phase</th><th>Typical elapsed time</th><th>What determines it</th></tr></thead><tbody><tr><td>Intake and questionnaire</td><td>1 to 2 weeks</td><td>How fast you return it, and how few follow-ups it triggers</td></tr><tr><td>Document review</td><td>1 to 3 weeks</td><td>Whether the pack is complete on first submission</td></tr><tr><td>Technical assessment (SAST/SCA, sometimes pentest)</td><td>2 to 6 weeks</td><td>Their queue, not your code</td></tr><tr><td>Findings and responses</td><td>1 to 4 weeks</td><td>Round trips; each one costs a week</td></tr><tr><td>Architecture and network sign-off</td><td>1 to 2 weeks</td><td>Whether you asked for firewall exceptions</td></tr><tr><td>Final approval and registration</td><td>1 to 2 weeks</td><td>Change-advisory cadence, often fortnightly</td></tr></tbody></table></div>
+<p>Two things drive that range more than anything you can control on the day:</p>
+<p><strong>Round trips.</strong> Each incomplete answer costs roughly a week, because your reply enters a queue rather than a conversation. Three round trips is a month. This is why the document pack matters far more than its contents suggest: it is not about impressing anyone, it is about not going around the loop again.</p>
+<p><strong>Their calendar.</strong> Change advisory boards meet on a fixed cadence. Miss one and you wait for the next, no matter how good your answers were. Ask early which day of the month it meets, and work backwards from it.</p>
+<p>The practical consequence: start the review at the beginning of the engagement, in parallel with the technical work, not after the proof of concept succeeds. A proof of concept that ends with &quot;great, now we start the security review&quot; has not saved anyone time.</p>
+<hr>
+<h2 id="3-the-questionnaire-and-what-each-question-is-really-asking"><span class="num">3</span>The questionnaire, and what each question is really asking</h2>
+<p>Security questionnaires look like bureaucracy because they are written to cover every category of supplier, from cloud SaaS to a desktop utility. Most questions are not aimed at you. The ones that are, are asking something narrower than they appear.</p>
+<p><strong>&quot;Where is data stored and processed?&quot;</strong> They are not asking about your database schema. They are asking whether anything leaves their perimeter. For a tool that runs on their infrastructure, the honest answer is short and strong: results, screenshots, traces and history are written to their disk, in <a href="https://vallus.eu/articles/reporting-without-cloud-dashboard/">formats readable without your software</a>, and nothing is transmitted anywhere. Say it in one sentence, then say what would be transmitted if a particular feature were enabled, and how it is disabled.</p>
+<p><strong>&quot;Do you have access to customer data?&quot;</strong> The expected answer from a SaaS vendor is a long qualification about support access and role separation. If your answer is genuinely &quot;no, we have no access at all, there is no channel by which we could&quot;, say exactly that and explain why architecturally. This is the single strongest thing an on-premise tool can say, and vendors routinely bury it in hedging language that makes it sound like a SaaS answer.</p>
+<p><strong>&quot;How are updates delivered?&quot;</strong> They are asking whether your tool can change itself. Auto-update is a code-execution path from your infrastructure into theirs, and in a closed environment it is disqualifying. The answer they want is that updates are packages the customer transfers and installs deliberately, with checksums and signatures, on their schedule - the <a href="https://vallus.eu/articles/updating-playwright-behind-air-gap/">procedure for carrying a new version across</a> is a document in its own right.</p>
+<p><strong>&quot;What third parties are involved?&quot;</strong> Subprocessors, telemetry endpoints, error reporting, analytics, fonts and scripts from a CDN, licence servers. Every one is an entry on their supplier register that someone has to justify at audit. A tool with zero of them removes an entire workstream from their side, which is worth more to them than most features.</p>
+<p><strong>&quot;How do you authenticate users?&quot;</strong> They are checking whether you bring your own identity silo. Local accounts are tolerated; integration with their directory or OIDC provider is what they want, because deprovisioning a leaver has to work everywhere at once.</p>
+<p><strong>&quot;What privileges does it require?&quot;</strong> Root, host network, privileged containers, access to the Docker socket. Each of these turns a routine approval into an escalation. Know your real minimum before they ask, and know what breaks without each one.</p>
+<hr>
+<h2 id="4-the-document-pack"><span class="num">4</span>The document pack</h2>
+<figure class="photo"><picture><source type="image/avif" srcset="/articles/security-review-closed-environments/assets/img/s7_docs-900.avif 900w, /articles/security-review-closed-environments/assets/img/s7_docs-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/security-review-closed-environments/assets/img/s7_docs-900.webp 900w, /articles/security-review-closed-environments/assets/img/s7_docs-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/security-review-closed-environments/assets/img/s7_docs-1440.jpg" srcset="/articles/security-review-closed-environments/assets/img/s7_docs-900.jpg 900w, /articles/security-review-closed-environments/assets/img/s7_docs-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="The document pack is not there to impress anyone. It exists to prevent round trips, and each round trip costs " width="1440" height="1080" loading="lazy" decoding="async"></picture><figcaption>The document pack is not there to impress anyone. It exists to prevent round trips, and each round trip costs about a week.<span class="credit">Legal Contract &amp; Signature - Warm Tones.jpg - Blogtrepreneur, CC BY 2.0 (Wikimedia Commons)</span></figcaption></figure>
+<p>Assemble this once, keep it versioned alongside the product, and regenerate it per release. The goal is that the first submission is complete, because completeness is what prevents round trips.</p>
+<p><strong>Architecture and data-flow description.</strong> One or two pages, not a sales deck. Every component, every port, every connection, and the direction of each. Mark clearly which connections exist only when an optional feature is enabled. Reviewers read this first and form their model of your tool from it; if it is vague, everything afterwards is treated with suspicion.</p>
+<p><strong>Software Bill of Materials.</strong> Generated per release, in CycloneDX or SPDX. Which one depends on who is reading: security platforms and DevSecOps tooling generally expect CycloneDX, while procurement, legal and federal-adjacent reviewers usually expect SPDX. Producing both costs one line in your build and prevents a round trip.</p>
+<div class="code"><span class="lang">bash</span><pre><code><span class="c"># per release, alongside the artefact itself</span>
+syft scan dir:. -o cyclonedx-json &gt; sbom.cdx.json
+syft scan dir:. -o spdx-json      &gt; sbom.spdx.json
+sha256sum sbom.*.json dist/*.tar.gz  &gt; SHA256SUMS
+gpg --detach-sign --armor SHA256SUMS</code></pre></div>
+<p><strong>Vulnerability report against that SBOM.</strong> Do not wait for them to run the scan and send you the results. Run it yourself, and submit it with the findings already triaged. A report you produced showing twelve findings with reasoned dispositions lands very differently from twelve findings they discovered.</p>
+<p><strong>Signatures and checksums, with a verification procedure.</strong> Not just the values: the exact commands the customer runs to verify them, tested on a machine that has never seen your build system.</p>
+<p><strong>Network behaviour statement.</strong> The list of outbound connections, and the method by which the customer can verify it themselves. This one has its own section below, because it is the single most valuable document in the pack.</p>
+<p><strong>Licence and dependency notices.</strong> Every transitive dependency, its licence, and confirmation that none of them are copyleft in a way that affects the customer. Legal review runs in parallel and is a common silent blocker.</p>
+<p><strong>Patch and support policy.</strong> How fast you respond to a critical CVE in a dependency, how you notify customers who cannot receive automatic updates, and how long a given release is supported. Closed-environment customers upgrade slowly, so &quot;supported for six months&quot; means something very different to them than to a SaaS customer.</p>
+<hr>
+<h2 id="5-sast-findings-and-how-to-answer-them"><span class="num">5</span>SAST findings and how to answer them</h2>
+<p>At some point your code, or your container image, goes through a scanner. Sometimes the customer runs it; sometimes they accept yours. Either way, findings come back, and how you answer them determines whether the review takes one round or three.</p>
+<p>The single most important thing to understand: <strong>you are not being asked to reach zero findings.</strong> You are being asked to demonstrate that you understand your own code. A vendor who disposes of every finding as &quot;false positive&quot; is less credible than one who fixes four, accepts two with reasoning, and admits one is a genuine weakness with a fix scheduled.</p>
+<p>Classes that come back most often, and what an answer that ends the conversation looks like:</p>
+<p><strong>Dependency CVEs in transitive packages.</strong> The bulk of every report. Triage each into one of three states: fixed in the release under review, not reachable because the affected code path is never executed, or accepted with a date. &quot;Not reachable&quot; must be argued, not asserted: name the function, say why it is never called. Reviewers see the unargued version constantly and discount it.</p>
+<p><strong>Command execution.</strong> A test runner spawns processes by design, so this class is guaranteed. The answer is not &quot;it is intentional&quot;, it is the boundary: what can reach those arguments, who can supply them, what is validated, and what privileges the spawned process has. If the honest answer is that a user with permission to define a test run can execute code on the runner, say so plainly and describe the role model that contains it. Reviewers can accept a documented boundary; they cannot accept a surprise.</p>
+<p><strong>Path traversal in artefact handling.</strong> Anything that unpacks archives, serves reports or accepts uploaded traces will attract this. Show the normalisation, show the containment check, and mention the test that covers it.</p>
+<p><strong>Secrets in code.</strong> Test fixtures and example configuration files trigger this constantly. Fix it rather than explaining it, even for obvious dummies. It is cheap to fix, and a report where the only remaining findings are ones you argued is much stronger than one where you argued about a fake password.</p>
+<p><strong>Missing security headers on the served interface.</strong> Genuinely worth fixing before the scan rather than after: content security policy, frame options, transport security. It is an afternoon of work and it removes a whole page from the report.</p>
+<p><strong>TLS configuration.</strong> In a closed environment the certificate is usually issued by the customer&#x27;s own CA. Make sure your tool accepts a customer-supplied chain properly, and that whatever &quot;accept self-signed&quot; switch you offer is off by default, scoped, and logged when enabled.</p>
+<p><strong>Container image findings.</strong> Base image CVEs, running as root, no health check. Use a minimal base, pin it by digest, run as a non-root user, and rebuild for each release so the base is current. A large share of image findings are simply staleness.</p>
+<p>The format that works for the response is a table, one row per finding, with four columns: identifier, your disposition, the reasoning in one or two sentences, and the release in which it is addressed. Send it as a document, not as comments inside their tracker, because your sponsor needs something forwardable.</p>
+<hr>
+<h2 id="6-proving-there-is-no-call-home"><span class="num">6</span>Proving there is no call-home</h2>
+<p>This is the question everything else in a closed environment reduces to, and it is the one where vendors write paragraphs instead of giving evidence.</p>
+<p>An assertion is worth little. &quot;Our product does not send telemetry&quot; is what every vendor says, including the ones whose crash reporter fires on the first exception. What changes the conversation is handing the customer a procedure to verify it themselves, on their hardware, without trusting you.</p>
+<div class="code"><span class="lang">bash</span><pre><code><span class="c"># On the host, before the tool is started. Capture new TCP connections (the</span>
+<span class="c"># first SYN, not the replies) and all UDP, excluding the internal ranges.</span>
+sudo tcpdump -n -i any \
+  &#x27;((tcp[tcpflags] &amp; (tcp-syn|tcp-ack)) == tcp-syn or udp) and not dst net 10.0.0.0/8 and not dst net 172.16.0.0/12 and not dst net 192.168.0.0/16&#x27; \
+  -w /tmp/egress.pcap
+
+<span class="c"># Run a full workload: install, licence check, a scheduled run, report browsing.</span>
+<span class="c"># Then list every destination that was contacted. The field after &quot;&gt;&quot; is the</span>
+<span class="c"># destination whatever else tcpdump prints on the line (newer versions add the</span>
+<span class="c"># interface and direction when capturing on &quot;any&quot;).</span>
+tcpdump -nr /tmp/egress.pcap | awk &#x27;{for (i = 1; i &lt; NF; i++) if ($i == &quot;&gt;&quot;) print $(i + 1)}&#x27; | cut -d. -f1-4 | sort -u</code></pre></div>
+<p>Note the three RFC 1918 ranges rather than just <code>10.0.0.0/8</code>, and UDP alongside TCP. A filter that excludes only one of the ranges, or watches only TCP while QUIC and NTP go out over UDP, is the kind of detail a reviewer notices, and noticing it undermines everything else you handed them.</p>
+<p>The internal ranges hide one thing worth seeing: queries to the customer&#x27;s own DNS resolver. A call-home attempt in a closed network usually ends there, as a lookup that never resolves, so capture <code>port 53</code> in a second run and read which names were asked for.</p>
+<p>Run this yourself first, on a clean machine, and include the output in the pack. Then invite them to repeat it. Two things follow. The reviewer gets evidence rather than a claim, and you find out what your own software actually does, which is not always what you believe. Update checks, font fetches, crash reporters, licence validation and package managers invoked during first run are all <a href="https://vallus.eu/articles/what-breaks-without-internet/">common surprises</a>.</p>
+<p>Two adjacent points worth stating explicitly in the same document:</p>
+<p><strong>The licence must be a file, not a request.</strong> Any licensing scheme that periodically contacts a server is a call-home by another name, and it means the customer&#x27;s installation stops working at an unpredictable moment with no way to fix it locally. Verification has to be offline and deterministic.</p>
+<p><strong>Name what would connect if enabled.</strong> If an optional integration reaches an external system, list it, say it is off by default, and say how to confirm it is off. Reviewers trust a vendor who volunteers the exceptions far more than one whose statement is absolute until they find something.</p>
+<hr>
+<h2 id="7-the-network-and-identity-questions"><span class="num">7</span>The network and identity questions</h2>
+<p>Two specific areas generate more rework than the rest of the review combined.</p>
+<p><strong>Inbound ports.</strong> Enumerate exactly what listens, on which interface, and what authenticates each one. A tool that opens one port for its interface and one per project should say so, rather than describing a range. If any port serves artefacts without authentication, expect that to become a finding, and have the answer ready before it does.</p>
+<p><strong>Identity.</strong> Local accounts get a tool through evaluation and block it at production approval. What the customer wants is their directory or OIDC provider, group mapping onto roles, and deprovisioning that takes effect immediately. If you support it, say which flows and which claims. If you do not yet, give a date rather than a hedge, because they are planning around it either way.</p>
+<p><strong>Egress to the application under test.</strong> Worth stating separately, because it is the one connection your tool legitimately needs. Making the distinction yourself, rather than letting them discover it, is the difference between an approved data flow and a finding.</p>
+<hr>
+<h2 id="8-what-not-to-do"><span class="num">8</span>What not to do</h2>
+<p>Five mistakes, in rough order of how much time each costs.</p>
+<p><strong>Do not ask for a firewall exception.</strong> It is the most expensive sentence in the engagement. An exception needs a request, a justification, an approval and a review cycle, and it turns your tool from something that fits their environment into something that changes it. If your product genuinely requires outbound access to function, that is a product problem to fix, not a policy problem to negotiate.</p>
+<p><strong>Do not argue with findings.</strong> Disagree with them, in writing, with reasoning, and accept the ones you cannot defend. Arguing signals that the next finding will be argued too, which is exactly what makes a reviewer look harder.</p>
+<p><strong>Do not say &quot;it is only a test tool&quot;.</strong> It runs code on their infrastructure, holds their test data, reaches their applications and often holds credentials for them. The category that sounds harmless to you is the one that historically gets least scrutiny and therefore most attention now.</p>
+<p><strong>Do not send a sales deck when asked for architecture.</strong> Reviewers read a deck as an attempt to avoid the question, and it costs you credibility for the rest of the process.</p>
+<p><strong>Do not promise a feature to unblock approval.</strong> It goes into their register as a commitment with a date attached, and it will be checked at the next audit whether or not anyone remembers the conversation.</p>
+<hr>
+<h2 id="9-a-checklist"><span class="num">9</span>A checklist</h2>
+<p>Assemble this before the questionnaire arrives, not after:</p>
+<p class="grouplabel"><strong>Documents</strong></p>
+<ul class="checklist"><li class="">architecture and data-flow description, one to two pages</li><li class="">SBOM per release, in both CycloneDX and SPDX</li><li class="">self-run vulnerability report with every finding triaged</li><li class="">checksums, signatures and a tested verification procedure</li><li class="">network behaviour statement, with the verification commands</li><li class="">dependency licence notices</li><li class="">patch and support policy, with timelines for a critical CVE</li></ul>
+<p class="grouplabel"><strong>Evidence</strong></p>
+<ul class="checklist"><li class=""><code>tcpdump</code> capture, connections and DNS, from a full workload on a clean machine</li><li class="">confirmation that the licence verifies offline</li><li class="">list of optional integrations that would connect, and how to confirm they are off</li><li class="">the minimum privileges the tool needs, and what breaks below them</li></ul>
+<p class="grouplabel"><strong>Answers ready in advance</strong></p>
+<ul class="checklist"><li class="">where data is stored, and why the vendor cannot reach it</li><li class="">how updates are delivered, and that nothing self-updates</li><li class="">which ports listen and what authenticates them</li><li class="">identity integration: what is supported, and dates for what is not</li><li class="">every third party involved, or the fact that there are none</li></ul>
+<p class="grouplabel"><strong>Process</strong></p>
+<ul class="checklist"><li class="">review started in parallel with the technical work, not after it</li><li class="">the date the change advisory board meets</li><li class="">one named person on your side who answers within a day</li><li class="">everything written so your sponsor can forward it unedited</li></ul>
+<hr>
+<h2 id="10-conclusion"><span class="num">10</span>Conclusion</h2>
+<p>The security review is not a gate placed in front of the real work. In a closed environment it <strong>is</strong> the real work, because it is the point at which someone decides whether your software is allowed to exist inside a perimeter they are responsible for.</p>
+<p>Three things determine the outcome more than the quality of your code:</p>
+<ol><li><strong>Completeness on first submission.</strong> Round trips are measured in weeks. The pack exists to prevent them, not to impress anyone.</li><li><strong>Evidence instead of assertion.</strong> Anyone can claim there is no telemetry. Handing over the procedure to verify it, and the output of having run it, is a different category of answer.</li><li><strong>Volunteering the exceptions.</strong> The vendor who names the one connection that exists, and the one finding they cannot defend, is trusted on everything else. The vendor whose statement is absolute is trusted until the first contradiction, and then not at all.</li></ol>
+<p>A product built for these environments makes the review shorter by having fewer things to explain: no telemetry to justify, no subprocessors to register, no auto-update to disable, no external dependency to whitelist. That is not a marketing property. It is the difference between an approval that takes six weeks and one that takes six months.</p>
+  <aside class="byline-card"><span class="avatar" aria-hidden="true">PG</span><div><p class="who">About the author</p><p class="name">Piotr Gajownik <span>· ExpandIt</span></p><p class="bio">Senior Test Engineer. He has been testing software since 2007, working on delivery into regulated and network-isolated environments.</p></div></aside>
+  <p class="dl"><a href="/articles/security-review-closed-environments-offline.html" download><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>Download the offline copy</a><span>One HTML file with everything inside - opens with no internet at all.</span></p>
+  <aside class="cta"><p class="eyebrow">The runner behind this article</p><h2>These are the problems vallus was built to solve</h2><p class="lead">Everything above describes constraints we kept meeting at customer sites: no route to the internet, no access to the machine where a run failed, and a report that has to answer every question on its own. vallus is the Playwright runner written for exactly those conditions.</p><ul><li><b>Nothing leaves the network</b>No telemetry, no licence server, no call home. Once installed, the instance needs no route to the internet at all - the licence is a file verified locally. §5.4</li><li><b>Results stay on your disk</b>Reports, traces, screenshots and cross-run history live on your infrastructure, in formats that open without us. Nobody at the vendor can see your runs. §5.1</li><li><b>A container per run<em class="scope">Docker installs</em></b>On a Docker deployment each run gets its own container built from that project’s code and dependencies, with an image per version of your tests: a rollback is a tag, not a rebuild. Without Docker the runner executes suites directly on the host. §3.4</li><li><b>Reports built for absent engineers</b>Playwright HTML or Allure per run, traces served over HTTPS, plus run history and trends - the execution context the report has to carry when you cannot log in. §4.3</li><li><b>One dashboard, many environments</b>Scheduling, a run queue, per-project Playwright versions and access rules, so the same suite runs the same way on every environment you ship to. §3.3</li></ul><div class="acts"><a class="btn primary" href="https://www.vallus.eu/">Explore vallus<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="btn secondary" href="https://www.vallus.eu/#demo">Book a demo</a></div><p class="note">vallus is a product of ExpandIt · deployed on your own infrastructure.</p></aside>
+</article>
+</main>
+
+<footer>
+  <div class="in">
+    <a class="fbrand" href="https://www.vallus.eu/"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus · by ExpandIt</b></a>
+    <nav class="flinks" aria-label="vallus.eu"><a href="https://www.vallus.eu/#features">Features</a><a href="https://www.vallus.eu/#pricing">Pricing</a><a href="https://www.vallus.eu/free/">Free</a><a href="https://www.vallus.eu/articles/">Articles</a><a href="https://www.vallus.eu/#deployment">Security</a><a href="https://www.vallus.eu/#faq">FAQ</a><a href="https://www.vallus.eu/privacy/">Privacy</a><a href="https://www.vallus.eu/licenses/">Licences</a><a class="cta" href="https://www.vallus.eu/#demo">Book a demo</a></nav>
+    <h3>Photographs</h3>
+    <ul><li>Dülmen, Kirchspiel, ehem. Sondermunitionslager Visbeck, Gebäude 30, Innenansicht -- 2023 -- 8939.jpg - Dietmar Rabich, CC BY-SA 4.0 (Wikimedia Commons)</li><li>Combined Space Operations Center (CSpOC) staff monitors workstations (Screen images have been altered for operational security) (9169412).jpg - U.S. Space Force S4S by David Dozoretz, public domain (Wikimedia Commons)</li><li>Legal Contract &amp; Signature - Warm Tones.jpg - Blogtrepreneur, CC BY 2.0 (Wikimedia Commons)</li></ul>
+    <p class="note">An offline copy of this article is linked at the top: one file with the images, fonts and styles embedded, which opens on a machine with no network at all.</p>
+  </div>
+</footer>
+
+<button id="totop" type="button" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>Back to top</button>
+
+<script>
+(function () {
+  var bar = document.getElementById('bar');
+  var top = document.getElementById('totop');
+  function upd() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    top.classList.toggle('show', h.scrollTop > 700);
+  }
+  document.addEventListener('scroll', upd, {passive: true});
+  // Przycisk wstecz cofa w historii tylko wtedy, gdy poprzednia strona byla nasza.
+  // Wejscie prosto z wyszukiwarki albo z LinkedIna zostawia href, czyli liste artykulow.
+  var back = document.getElementById('back');
+  var from = document.referrer;
+  var sameSite = false;
+  try {
+    sameSite = !!from && new URL(from).origin === location.origin
+               && new URL(from).pathname !== location.pathname;
+  } catch (e) { sameSite = false; }
+  if (sameSite && history.length > 1) {
+    back.addEventListener('click', function (event) {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      history.back();
+    });
+  } else if (back.dataset.needsHistory) {
+    // Offline i bez historii: zostaje tylko adres w internecie, ktorego tu moze nie byc.
+    back.remove();
+    var sep = document.querySelector('.topbar .sep');
+    if (sep) sep.remove();
+  }
+
+  var canSmooth = 'scrollBehavior' in document.documentElement.style;
+  top.addEventListener('click', function () {
+    if (canSmooth) window.scrollTo({top: 0, behavior: 'smooth'});
+    else window.scrollTo(0, 0);
+  });
+  upd();
+})();
+</script>
+</body>
+</html>
