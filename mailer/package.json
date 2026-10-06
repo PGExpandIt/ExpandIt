@@ -15,11 +15,11 @@
     "test": "npm run build && node --test test/*.test.mjs"
   },
   "dependencies": {
-    "nodemailer": "^6.9.16"
+    "nodemailer": "^10.0.15"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/nodemailer": "^6.4.16",
+    "@types/nodemailer": "^8.0.2",
     "typescript": "^5"
   }
 }
