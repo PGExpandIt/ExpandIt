@@ -174,7 +174,7 @@ końcem ważności. Reguły opisuje [`README.md`](./README.md).
 
 ```bash
 npm test                                    # lokalnie, przed wysyłką
-rsync -a --delete --exclude node_modules --exclude dist --exclude .git --exclude .env \
+rsync -a --delete --exclude node_modules --exclude dist --exclude .git --exclude .env --exclude '.env.bak*' \
       mailer/ ubuntu@179.237.100.147:/opt/vallus-mailer/
 ssh ubuntu@179.237.100.147 'cd /opt/vallus-mailer && sudo docker compose up -d --build'
 ```
@@ -189,6 +189,10 @@ ssh ubuntu@179.237.100.147 'cd /opt/vallus-mailer && sudo docker compose restart
 a zamontowany pojedynczy plik dalej wskazuje w kontenerze starą wersję - reload wczyta
 starą konfigurację i nowa trasa, np. `/send-license`, odpowie `404`. Restart montuje
 plik od nowa; certyfikaty są w wolumenie `caddy_data`, więc nic nie jest wydawane ponownie.
+
+`--exclude '.env.bak*'` chroni kopie `.env` zrobione na serwerze (np. `.env.bak-minversion`):
+bez niego `--delete` usuwa je, bo nie ma ich w repozytorium. Przed wysyłką warto puścić to samo
+polecenie z `-n --itemize-changes` - linie `*deleting` pokazują, co zniknęłoby z serwera.
 
 `restart: unless-stopped` w `compose.yaml` załatwia start po reboocie serwera - nie
 trzeba jednostki systemd.
