@@ -33,6 +33,10 @@ const ITEMS = [
         a: "That is the point of the product. Workflows are defined once by someone technical, and anyone with the executor role can then run them from the browser - with per-workflow permissions deciding who may run what.",
     },
     {
+        q: "Can it give our auditors evidence of what was tested?",
+        a: "Yes, since 1.7. Tag tests with requirement ids and vallus shows, per release, which requirements are met, not met or not verified. An approver signs the release with their password - never one they helped assemble - and it is frozen into an evidence pack with a SHA-256 manifest, recorded in a hash-chained audit trail. The auditor verifies the pack offline with the vallus binary alone. Signing needs a Business licence or above and a local account; SSO accounts cannot sign yet.",
+    },
+    {
         q: "What happens when a license expires?",
         a: "Reading stays open - dashboards, history, reports and traces remain accessible. Only mutating operations are blocked until the license is renewed, so you never lose access to your own results.",
     },

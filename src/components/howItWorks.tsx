@@ -76,8 +76,8 @@ const HowItWorks = () => {
                     <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-2xl shadow-black/40">
                         <video
                             className="block aspect-video w-full"
-                            src="/video/vallus-demo-v3.mp4"
-                            poster="/video/vallus-demo-v3-poster.jpg"
+                            src="/video/vallus-demo-v4.mp4"
+                            poster="/video/vallus-demo-v4-poster.jpg"
                             controls
                             playsInline
                             preload="none"

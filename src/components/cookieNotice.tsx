@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 /**
  * Flip to true the moment anything non-essential is added - analytics, an embedded
@@ -50,6 +50,7 @@ const CookieNotice = () => {
     // Rendered only after mount: the static export has no idea what this visitor
     // has already answered, and guessing would flash the banner at everyone.
     const [visible, setVisible] = useState(false);
+    const box = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (read() === null) setVisible(true);
@@ -69,10 +70,28 @@ const CookieNotice = () => {
         return () => window.removeEventListener("keydown", onKey);
     }, [visible]);
 
+    // Its height, published as --cookie-notice-h while it is shown: the scroll-to-top
+    // button sits on the same bottom edge and lifts itself above it by that much,
+    // instead of being covered until the notice is answered.
+    useEffect(() => {
+        const root = document.documentElement;
+        const element = box.current;
+        if (!visible || !element) return;
+        const publish = () => root.style.setProperty("--cookie-notice-h", `${element.offsetHeight}px`);
+        publish();
+        const observer = new ResizeObserver(publish);
+        observer.observe(element);
+        return () => {
+            observer.disconnect();
+            root.style.removeProperty("--cookie-notice-h");
+        };
+    }, [visible]);
+
     if (!visible) return null;
 
     return (
         <div
+            ref={box}
             role="region"
             aria-label="Privacy notice"
             className="fixed inset-x-0 bottom-0 z-[60] border-t border-line bg-surface/95 backdrop-blur"

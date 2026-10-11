@@ -23,6 +23,10 @@ const INCLUDED: { label: string; detail: string }[] = [
         label: "Core runner",
         detail: "Scheduling, containerised runs, reports and history - the full engine.",
     },
+    {
+        label: "Test evidence",
+        detail: "The test catalogue and requirement coverage, traced from your test tags.",
+    },
 ];
 
 export default function FreePage() {
@@ -70,7 +74,8 @@ export default function FreePage() {
                                 </h2>
                                 <p className="mt-2 text-sm text-muted">
                                     The gated integrations - Xray, SSO, Grafana and ReportPortal -
-                                    are reserved for paid tiers. Need those or more capacity? See
+                                    are reserved for paid tiers, and release sign-off for Business
+                                    and above. Need those or more capacity? See
                                     the{" "}
                                     <Link
                                         href="/#pricing"

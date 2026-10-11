@@ -17,9 +17,12 @@ const Hero = () => (
         <div className="relative mx-auto max-w-6xl px-6 py-24 text-center sm:py-32">
             <VallusMark className="mx-auto h-16 w-auto text-accent" />
 
-            <p className="mt-8 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-muted">
+            <p className="mt-8 inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-muted">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                A product of ExpandIt · version 1.6 · actively developed
+                A product of ExpandIt · version 1.7 ·{" "}
+                <a href="#evidence" className="text-accent hover:underline">
+                    new: test evidence and release sign-off
+                </a>
             </p>
 
             <div className="mx-auto mt-8 max-w-2xl space-y-4 text-left text-[15px] leading-relaxed text-muted sm:text-center">
@@ -77,8 +80,8 @@ const Hero = () => (
                 <div className="order-1 overflow-hidden rounded-lg border border-line bg-surface shadow-2xl shadow-black/40">
                     <video
                         className="block aspect-video w-full"
-                        src="/video/vallus-ad-v2.mp4"
-                        poster="/video/vallus-ad-v2-poster.jpg"
+                        src="/video/vallus-ad-v3.mp4"
+                        poster="/video/vallus-ad-v3-poster.jpg"
                         controls
                         playsInline
                         preload="none"

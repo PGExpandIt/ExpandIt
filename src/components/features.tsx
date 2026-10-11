@@ -43,6 +43,10 @@ const FEATURES: Feature[] = [
         body: "Playwright HTML reports, Allure trends and the trace viewer are served straight from the dashboard - no zipping folders, no sharing files by hand.",
     },
     {
+        title: "Test evidence and release sign-off",
+        body: "A catalogue of every test, requirements traced from test tags, and releases an approver signs into a hashed evidence pack that an auditor can verify offline. New in 1.7.",
+    },
+    {
         title: "Cross-run analytics",
         body: "Run history in SQLite turns into trends: flaky tests, newly failing specs, duration drift, step-level summaries, and CSV export for reporting.",
     },

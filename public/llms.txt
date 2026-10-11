@@ -25,6 +25,7 @@ leave the customer's perimeter.
 
 - [Product overview](https://vallus.eu/#product): what the dashboard does
 - [Features](https://vallus.eu/#features): launcher, workflows, scheduling, queue
+- [Test evidence](https://vallus.eu/#evidence): new in 1.7 - test catalogue, requirement coverage from test tags, release sign-off and evidence packs verifiable offline
 - [How it works](https://vallus.eu/#how-it-works): from a project to a report
 - [Integrations](https://vallus.eu/#integrations): Playwright, pytest-playwright, Allure, Jenkins, GitHub Actions, Azure DevOps, Jira, Xray, Keycloak/OIDC, Grafana, ReportPortal
 - [Deployment and security](https://vallus.eu/#deployment): on-premise, containers, TLS, access rules
@@ -73,6 +74,13 @@ leave the customer's perimeter.
   per version of the test suite.
 - Reports: Playwright HTML per run, Allure when a JRE is present, hosted trace
   viewer, plus run history and cross-run trends stored locally.
+- Test evidence (1.7): a catalogue of every test the workflows ran, requirements
+  traced from test tags (met, not met, not verified), and releases an approver
+  signs - four eyes, password re-entered, a written justification for anything not
+  met. Signing freezes an evidence pack (summary, report, SHA-256 manifest) and a
+  hash-chained audit entry; `vallus --verify-pack <zip>` checks a pack offline with
+  no instance. The catalogue and requirements come with every plan; creating and
+  signing releases needs Business or above.
 - Sizing: roughly 0.4 vCPU and 1.6 GB RAM per concurrent browser. Containers
   need shm_size 2gb, or Chromium crashes on the default 64 MB.
 

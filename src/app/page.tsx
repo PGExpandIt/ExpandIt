@@ -3,6 +3,7 @@ import Hero from "@/components/hero";
 import Origin from "@/components/origin";
 import Problem from "@/components/problem";
 import Features from "@/components/features";
+import Evidence from "@/components/evidence";
 import HowItWorks from "@/components/howItWorks";
 import Integrations from "@/components/integrations";
 import Development from "@/components/development";
@@ -23,6 +24,7 @@ export default function Home() {
                 <Origin />
                 <Problem />
                 <Features />
+                <Evidence />
                 <HowItWorks />
                 <Integrations />
                 <Development />
