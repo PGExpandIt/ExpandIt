@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automated sanity checks and environment preconditions in an isolated network</title>
+<meta name="description" content="A sanity set is the first delivery in a closed environment: preconditions as a Playwright project, the browser trust-store trap, and why the suite stays small.">
+<meta name="color-scheme" content="dark">
+<meta name="author" content="Piotr Gajownik">
+<link rel="canonical" href="https://vallus.eu/articles/sanity-checks-isolated-environments/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="vallus by ExpandIt">
+<meta property="og:locale" content="en_GB">
+<meta property="og:url" content="https://vallus.eu/articles/sanity-checks-isolated-environments/">
+<meta property="og:title" content="Start with the checks that tell you the environment is alive">
+<meta property="og:description" content="A sanity set is the first delivery in a closed environment: preconditions as a Playwright project, the browser trust-store trap, and why the suite stays small.">
+<meta property="og:image" content="https://vallus.eu/articles/sanity-checks-isolated-environments/assets/og-sanity-checks-isolated-environments-en.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Automated sanity checks and environment preconditions in an isolated network">
+<meta property="article:published_time" content="2026-10-13">
+<meta property="article:modified_time" content="2026-10-13">
+<meta property="article:author" content="Piotr Gajownik">
+<meta property="article:section" content="Test automation">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Start with the checks that tell you the environment is alive">
+<meta name="twitter:description" content="A sanity set is the first delivery in a closed environment: preconditions as a Playwright project, the browser trust-store trap, and why the suite stays small.">
+<meta name="twitter:image" content="https://vallus.eu/articles/sanity-checks-isolated-environments/assets/og-sanity-checks-isolated-environments-en.jpg">
+<meta name="twitter:image:alt" content="Automated sanity checks and environment preconditions in an isolated network">
+
+<link rel="preload" href="/articles/sanity-checks-isolated-environments/assets/fonts/geist-400-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/articles/sanity-checks-isolated-environments/assets/fonts/geist-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{
+ "@context": "https://schema.org",
+ "@type": "Article",
+ "headline": "Automated sanity checks and environment preconditions in an isolated network",
+ "alternativeHeadline": "Start with the checks that tell you the environment is alive",
+ "description": "A sanity set is the first delivery in a closed environment: preconditions as a Playwright project, the browser trust-store trap, and why the suite stays small.",
+ "inLanguage": "en",
+ "datePublished": "2026-10-13",
+ "dateModified": "2026-10-13",
+ "author": {
+  "@type": "Person",
+  "name": "Piotr Gajownik",
+  "jobTitle": "Senior Test Engineer",
+  "worksFor": {
+   "@type": "Organization",
+   "name": "ExpandIt"
+  },
+  "url": "https://vallus.eu/"
+ },
+ "publisher": {
+  "@type": "Organization",
+  "name": "ExpandIt",
+  "url": "https://vallus.eu/",
+  "logo": {
+   "@type": "ImageObject",
+   "url": "https://vallus.eu/logo.png"
+  }
+ },
+ "image": [
+  "https://vallus.eu/articles/sanity-checks-isolated-environments/assets/og-sanity-checks-isolated-environments-en.jpg"
+ ],
+ "mainEntityOfPage": {
+  "@type": "WebPage",
+  "@id": "https://vallus.eu/articles/sanity-checks-isolated-environments/"
+ },
+ "articleSection": "Test automation",
+ "keywords": "closed environments, air-gapped, test automation, Playwright, test reporting, data sovereignty"
+}</script>
+<style>
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/sanity-checks-isolated-environments/assets/fonts/geist-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/sanity-checks-isolated-environments/assets/fonts/geist-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/sanity-checks-isolated-environments/assets/fonts/geist-600-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/sanity-checks-isolated-environments/assets/fonts/geist-600-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/sanity-checks-isolated-environments/assets/fonts/geist-700-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/sanity-checks-isolated-environments/assets/fonts/geist-700-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/sanity-checks-isolated-environments/assets/fonts/geist-mono-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/sanity-checks-isolated-environments/assets/fonts/geist-mono-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+
+:root {
+  --ink:#100F0D; --ink-soft:#171613; --surface:#1C1A17; --line:#2C2925;
+  --text:#F2F0EA; --body:#D8D4CB; --muted:#A29C91; --faint:#6E6A61;
+  --mint:#7DD3A0; --mint-dim:#4f8f68;
+  --sans:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:5rem;background:var(--ink)}
+body{
+  margin:0; background:var(--ink); color:var(--body);
+  font-family:var(--sans); font-size:17.5px; line-height:1.72;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+::selection{background:rgba(125,211,160,.24);color:var(--text)}
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--mint);width:0;z-index:99}
+
+/* ── sticky topbar ────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:60;height:60px;display:flex;align-items:center;
+  background:rgba(16,15,13,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.topbar .in{max-width:816px;margin:0 auto;padding:0 28px;width:100%;
+  display:flex;align-items:center;gap:12px}
+.topbar .back{
+  display:inline-flex;align-items:center;gap:7px;flex:none;
+  padding:7px 13px 7px 10px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface);color:var(--body);
+  font-size:13px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+.topbar .back:hover{border-color:var(--mint);color:var(--mint)}
+.topbar .back:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.topbar .back svg{color:var(--mint);transition:color .18s ease}
+.topbar .back:hover svg{color:var(--mint)}
+.topbar .sep{width:1px;height:20px;background:var(--line);flex:none}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;border-bottom:0}
+.brand svg{height:20px;width:auto;color:var(--mint);transition:color .18s ease}
+.brand:hover b{color:var(--mint)}
+.brand b{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.brand span{font-size:12.5px;color:var(--muted)}
+.topbar .crumb{
+  margin-left:auto;font-size:13px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52%;
+}
+
+/* ── hero ─────────────────────────────────────────────── */
+header.hero{position:relative;min-height:78vh;display:flex;align-items:flex-end;
+  background:var(--ink);overflow:hidden}
+header.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:.30;filter:grayscale(.5) contrast(1.06)}
+header.hero .veil{position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 70% 10%,rgba(16,15,13,.30) 0%,rgba(16,15,13,.86) 55%,var(--ink) 100%)}
+header.hero .inner{position:relative;max-width:816px;margin:0 auto;padding:0 28px 76px;width:100%}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mint);
+  font-weight:600;margin:0 0 20px}
+header.hero h1{color:var(--text);font-size:clamp(36px,6vw,64px);line-height:1.06;
+  letter-spacing:-.028em;margin:0 0 22px;font-weight:700;max-width:17ch}
+header.hero p.sub{color:var(--muted);font-size:clamp(17px,2vw,21px);line-height:1.55;
+  margin:0;max-width:52ch;font-weight:400}
+header.hero .byline{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13.5px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+header.hero .byline i{font-style:normal;color:#3d3a34}
+header.hero .byline .author{color:var(--text);font-weight:600}
+header.hero .topics{margin:10px 0 0;color:var(--faint);font-size:12.5px}
+header.hero picture{position:absolute;inset:0;display:block}
+.hero-credit{position:absolute;right:14px;bottom:10px;color:#4a4740;font-size:10.5px}
+
+/* ── layout ───────────────────────────────────────────── */
+main{max-width:816px;margin:0 auto;padding:0 28px 90px}
+article{max-width:760px;margin:0 auto;padding:60px 0 40px}
+
+/* ── spis tresci ──────────────────────────────────────── */
+nav.toc{background:var(--ink-soft);border:1px solid var(--line);border-radius:8px;
+  padding:26px 30px;margin:0 0 64px}
+nav.toc h2{font-size:13px!important;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:0 0 16px!important;border:0!important;padding:0!important;
+  font-weight:600;display:block}
+nav.toc ol{list-style:none;margin:0;padding:0;columns:2;column-gap:34px}
+nav.toc li{margin:0 0 10px;break-inside:avoid}
+nav.toc a{font-size:14.5px;color:var(--body);text-decoration:none;border-bottom:0;display:flex;gap:11px;line-height:1.45}
+nav.toc a span{color:var(--mint-dim);font-weight:600;min-width:15px}
+nav.toc a:hover{color:var(--mint)}
+nav.toc a:hover span{color:var(--mint)}
+
+/* ── typografia ───────────────────────────────────────── */
+h2,h3,h4{color:var(--text);letter-spacing:-.022em;scroll-margin-top:80px}
+h2{font-size:clamp(27px,3.6vw,36px);line-height:1.14;font-weight:700;
+  margin:84px 0 24px;padding-top:30px;border-top:1px solid var(--line);display:flex;gap:16px}
+h2 .num{color:var(--mint);font-weight:700;flex:none}
+h3{font-size:clamp(19px,2.2vw,22px);font-weight:600;margin:50px 0 15px;display:flex;gap:12px;
+  letter-spacing:-.012em}
+h3 .subnum{color:var(--mint-dim);font-weight:600;flex:none}
+h4{font-size:17px;font-weight:600;margin:34px 0 10px}
+h2 code,h3 code,h4 code{font-size:.82em;padding:.05em .3em;background:rgba(255,255,255,.05);
+  border-color:#333029;color:#dbe6dd;font-weight:600;vertical-align:baseline}
+article > h3:first-of-type{margin-top:0}
+p{margin:0 0 22px}
+article > p:first-of-type,
+h3[id^="wstep"] + p, h3[id^="introduction"] + p{font-size:20px;line-height:1.62;color:#e6e2d9}
+a{color:var(--mint);text-decoration:none;border-bottom:1px solid rgba(125,211,160,.35)}
+a:hover{border-bottom-color:var(--mint)}
+strong{font-weight:600;color:var(--text)}
+em{color:var(--muted)}
+hr{display:none}
+ul,ol{margin:0 0 24px;padding-left:24px}
+li{margin:0 0 11px}
+li::marker{color:var(--mint-dim)}
+
+code{font-family:var(--mono);font-size:.86em;background:var(--surface);
+  border:1px solid var(--line);border-radius:5px;padding:.12em .38em;color:#cdd8cf}
+.code{position:relative;margin:0 0 30px;border-radius:8px;overflow:hidden;
+  background:#0A0908;border:1px solid var(--line)}
+.code .lang{position:absolute;top:0;right:0;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);background:var(--surface);
+  padding:4px 12px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+  border-bottom-left-radius:8px}
+.code pre{margin:0;padding:22px 24px;overflow-x:auto}
+.code code{background:none;border:0;padding:0;color:#dad6cd;font-size:13.5px;
+  line-height:1.68;white-space:pre}
+.code .c{color:#6E6A61}
+.code .s{color:var(--mint)}
+.code pre::-webkit-scrollbar{height:8px}
+.code pre::-webkit-scrollbar-thumb{background:#2C2925;border-radius:4px}
+
+blockquote{margin:36px 0;padding:24px 28px;background:rgba(125,211,160,.06);
+  border:1px solid rgba(125,211,160,.20);border-left:3px solid var(--mint);border-radius:0 8px 8px 0}
+blockquote p{margin:0;font-size:18.5px;line-height:1.6;color:#e3ece5}
+
+/* Licznik (dyrektywa ::: countdown, tylko wersja webowa). Ukryty, dopoki skrypt go nie
+   uruchomi - bez JavaScriptu czytelnik dostaje zdanie z data z <noscript>. */
+aside.countdown{display:none;margin:40px 0 44px;padding:26px 28px 22px;background:var(--ink-soft);
+  border:1px solid var(--line);border-left:3px solid var(--mint);border-radius:0 8px 8px 0}
+aside.countdown.live{display:block}
+.countdown .cd-units{display:flex;gap:30px;flex-wrap:wrap}
+.countdown .cd-units span{display:flex;flex-direction:column;min-width:62px}
+.countdown .cd-units b{font-family:var(--mono);font-size:clamp(34px,5.4vw,52px);line-height:1;
+  font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.countdown .cd-units i{font-style:normal;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint-dim);margin-top:9px}
+.countdown .cd-label{margin:18px 0 0;font-size:15.5px;line-height:1.55;color:var(--muted)}
+.countdown.done .cd-units{display:none}
+.countdown.done .cd-label{margin:0;font-size:18.5px;color:var(--text)}
+
+.tablewrap{overflow-x:auto;margin:0 0 32px;border:1px solid var(--line);
+  border-radius:8px;background:var(--ink-soft)}
+table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.55}
+th{background:var(--surface);text-align:left;font-weight:600;font-size:12px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  padding:13px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--body)}
+td strong{color:var(--text)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(255,255,255,.018)}
+td code{font-size:.84em}
+
+p.grouplabel{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:38px 0 14px}
+p.grouplabel strong{font-weight:600;color:inherit}
+ul.checklist{list-style:none;padding:0;margin:0 0 26px;display:grid;gap:8px}
+ul.checklist li{position:relative;padding:12px 15px 12px 44px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;margin:0;font-size:15.5px;line-height:1.5;
+  color:var(--body)}
+ul.checklist li::before{content:"";position:absolute;left:16px;top:15px;width:14px;height:14px;
+  border:1.5px solid #3A362F;border-radius:4px;background:var(--surface)}
+
+aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{
+  position:fixed;right:24px;bottom:24px;z-index:70;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 16px 10px 13px;border-radius:6px;cursor:pointer;
+  font-family:var(--sans);font-size:13.5px;font-weight:600;
+  color:var(--text);background:rgba(28,26,23,.92);backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  opacity:0;visibility:hidden;transform:translateY(10px);
+  transition:opacity .25s ease,transform .25s ease,visibility .25s,
+             background .18s ease,color .18s ease,border-color .18s ease;
+}
+#totop.show{opacity:1;visibility:visible;transform:none}
+#totop svg{width:14px;height:14px;flex:none;color:var(--mint);transition:color .18s ease}
+#totop:hover{background:var(--mint);color:var(--ink);border-color:var(--mint)}
+#totop:hover svg{color:var(--ink)}
+#totop:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+@media (max-width:680px){
+  aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{right:14px;bottom:14px;padding:9px 13px 9px 11px;font-size:12.5px}
+}
+
+aside.byline-card{
+  margin:70px 0 0;padding:22px 24px;background:var(--ink-soft);border:1px solid var(--line);
+  border-radius:8px;display:flex;gap:18px;align-items:flex-start;
+}
+aside.byline-card .avatar{
+  flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface);border:1px solid var(--line);
+  color:var(--mint);font-size:15px;font-weight:600;letter-spacing:.02em;
+}
+aside.byline-card .who{margin:0 0 5px;font-size:11.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--mint-dim)}
+aside.byline-card .name{margin:0 0 6px;font-size:16.5px;font-weight:600;color:var(--text)}
+aside.byline-card .name span{font-weight:400;color:var(--muted)}
+aside.byline-card .bio{margin:0;font-size:14.5px;line-height:1.6;color:var(--muted);max-width:58ch}
+
+p.dl{margin:20px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+p.dl a{
+  display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:6px;
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  font-size:14px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+p.dl a:hover{border-color:var(--mint);color:var(--mint)}
+p.dl a svg{color:var(--mint)}
+p.dl span{font-size:13px;color:var(--faint)}
+
+figure.photo{margin:40px 0 42px}
+figure.photo picture{display:block}
+figure.photo img{width:100%;height:auto;display:block;border-radius:8px;max-width:100%;
+  border:1px solid var(--line);background:var(--ink-soft);
+  filter:brightness(.84) saturate(.9) contrast(1.02);transition:filter .35s ease}
+figure.photo img:hover{filter:brightness(1) saturate(1)}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);margin-top:13px;
+  padding-left:14px;border-left:2px solid var(--mint-dim)}
+figcaption .credit{display:block;margin-top:6px;font-size:11.5px;color:#57534c}
+figure.diagram{margin:40px 0;padding:24px 18px 12px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px}
+figure.diagram svg{width:100%;height:auto;display:block;font-family:var(--sans)}
+figure.diagram figcaption{border:0;padding:0;margin-top:12px;text-align:center}
+
+footer{border-top:1px solid var(--line);background:#0C0B0A}
+footer .in{max-width:816px;margin:0 auto;padding:40px 28px 64px;color:var(--faint);font-size:12.5px;line-height:1.7}
+footer .fbrand{display:flex;align-items:center;gap:9px;margin-bottom:24px;
+  text-decoration:none;border-bottom:0;width:fit-content}
+footer .fbrand:hover b{color:var(--text)}
+footer .fbrand:hover svg{color:var(--mint)}
+footer .fbrand svg{height:18px;width:auto;color:var(--mint-dim)}
+footer .fbrand b{font-size:14px;font-weight:600;color:var(--muted)}
+footer h3{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mint-dim);
+  margin:0 0 10px;font-weight:600;display:block}
+footer ul{list-style:none;padding:0;margin:0 0 24px}
+footer li{margin:0 0 5px}
+footer .note{padding-top:20px;border-top:1px solid var(--line);color:#57534c;max-width:78ch}
+footer nav.flinks{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 26px;padding:0 0 22px;
+  border-bottom:1px solid var(--line)}
+footer nav.flinks a{color:var(--muted);text-decoration:none;border-bottom:0;font-size:13px}
+footer nav.flinks a:hover{color:var(--mint)}
+footer nav.flinks a.cta{color:var(--mint);font-weight:600}
+
+@media (max-width:680px){
+  body{font-size:16.5px}
+  aside.byline-card{padding:18px}
+  nav.toc ol{columns:1}
+  article{padding:40px 0 30px}
+  h2{margin:58px 0 20px}
+  .topbar .crumb{display:none}
+  .topbar .back{padding:6px 11px 6px 9px;font-size:12.5px}
+  .brand span{display:none}
+}
+@media print{
+  html,body{background:#fff;color:#111;font-size:11pt}
+  #bar,nav.toc,.topbar,aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{display:none}
+  header.hero{min-height:auto;page-break-after:always;background:#fff}
+  header.hero img,header.hero .veil,.hero-credit{display:none}
+  header.hero h1,h2,h3,h4,strong{color:#000}
+  header.hero p.sub,p,td,li{color:#222}
+  .code{background:#f4f4f2;border-color:#ddd}
+  .code code{color:#111} .code .c{color:#666} .code .s{color:#256b41}
+  .tablewrap,ul.checklist li,figure.diagram{background:#fff;border-color:#ccc}
+  th{background:#f1f1ee;color:#333}
+  footer{background:#fff}
+  h2{page-break-after:avoid} figure,.code,.tablewrap,blockquote{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<div class="topbar">
+  <div class="in">
+    <a class="back" id="back" href="/articles/" title="Return to the previous page">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+           stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>Back</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a class="brand" href="https://www.vallus.eu/" title="vallus.eu"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus</b><span>by ExpandIt</span></a>
+    <span class="crumb">Start with the checks that tell you the environment is alive</span>
+  </div>
+</div>
+
+<header class="hero">
+  <picture><source type="image/avif" srcset="/articles/sanity-checks-isolated-environments/assets/img/p_cockpit-900.avif 900w" sizes="100vw"><source type="image/webp" srcset="/articles/sanity-checks-isolated-environments/assets/img/p_cockpit-900.webp 900w" sizes="100vw"><img src="/articles/sanity-checks-isolated-environments/assets/img/p_cockpit-900.jpg" srcset="/articles/sanity-checks-isolated-environments/assets/img/p_cockpit-900.jpg 900w" sizes="100vw" alt="A pilot reading a printed checklist in an aircraft cockpit" width="900" height="1350" fetchpriority="high" decoding="async"></picture>
+  <div class="veil"></div>
+  <div class="inner">
+    <p class="eyebrow">Closed environments · delivery</p>
+    <h1>Start with the checks that tell you the environment is alive</h1>
+    <p class="sub">Automated sanity checks as the first delivery in an isolated environment</p>
+    <div class="byline">
+      <span class="author">Piotr Gajownik</span>
+      <i>·</i><span>ExpandIt</span>
+      <i>·</i><time datetime="2026-10-13">13 October 2026</time>
+      <i>·</i><span>about 12 min read</span>
+    </div>
+    <p class="topics">Sanity checks · preconditions · delivery</p>
+  </div>
+  <div class="hero-credit">Parking checklist (5837541456).jpg - Curimedia, CC BY 2.0 (Wikimedia Commons)</div>
+</header>
+
+<main>
+<article>
+  <nav class="toc">
+    <h2>In this article</h2>
+    <ol><li><a href="#1-the-chain-link-by-link"><span>1</span>The chain, link by link</a></li><li><a href="#2-what-belongs-in-the-set"><span>2</span>What belongs in the set</a></li><li><a href="#3-preconditions-as-a-project-not-a-describe-block"><span>3</span>Preconditions as a project, not a describe block</a></li><li><a href="#4-the-trust-store-the-suite-actually-uses"><span>4</span>The trust store the suite actually uses</a></li><li><a href="#5-a-failure-the-customer-can-act-on"><span>5</span>A failure the customer can act on</a></li><li><a href="#6-why-this-is-the-right-first-delivery"><span>6</span>Why this is the right first delivery</a></li><li><a href="#7-a-feedback-loop-measured-in-days-and-what-it-does-to-suite"><span>7</span>A feedback loop measured in days, and what it does to suite size</a></li><li><a href="#8-where-it-runs-and-who-can-start-it"><span>8</span>Where it runs, and who can start it</a></li><li><a href="#9-growing-from-here"><span>9</span>Growing from here</a></li><li><a href="#10-where-a-runner-fits-and-where-vallus-does"><span>10</span>Where a runner fits, and where vallus does</a></li><li><a href="#11-conclusion"><span>11</span>Conclusion</a></li></ol>
+  </nav>
+  <h3 id="introduction-the-wrong-place-to-start">Introduction: the wrong place to start</h3>
+<p>The instinct when automating in a customer&#x27;s closed environment is to port the regression suite. It is the biggest asset, it represents the most work, and it is what the team is proud of. It is also the worst possible first delivery.</p>
+<p>A regression suite in an unfamiliar environment produces dozens of failures on the first run, almost none of which are the application&#x27;s fault: a certificate the browser does not trust, a clock that drifts, 64 MB of shared memory, an integration that does not exist here, a service account that expired last week. The customer sees a wall of red and concludes that the automation does not work.</p>
+<p>Sanity checks are the right first delivery, and not as a consolation prize. They are the smallest artefact that proves the entire chain end to end, and in a closed environment proving the chain is the hard part.</p>
+<p>This piece belongs to a series on <a href="https://vallus.eu/articles/testing-closed-environments/">test automation in closed environments</a>. The overview gives the environment smoke test one paragraph. This is the long version: a precondition suite you can copy, the trust-store trap it exists to catch, and the arithmetic that keeps it small.</p>
+<hr>
+<h2 id="1-the-chain-link-by-link"><span class="num">1</span>The chain, link by link</h2>
+<p>Between &quot;we have tests&quot; and &quot;someone acts on a result&quot; there are six links. Every one of them can break on its own, in an environment you cannot see:</p>
+<div class="tablewrap"><table><thead><tr><th>Link</th><th>What has to be true</th><th>How it breaks behind an air gap</th></tr></thead><tbody><tr><td><strong>Binary</strong></td><td>The runner and its browsers are on the machine, at the version you shipped</td><td>The browser cache never arrived, or does not match the installed Playwright (<a href="https://vallus.eu/articles/playwright-offline-install/">installing offline</a>, <a href="https://vallus.eu/articles/updating-playwright-behind-air-gap/">keeping it current</a>)</td></tr><tr><td><strong>Environment</strong></td><td>Libraries, fonts, shared memory, clock, disk, trust store</td><td>64 MB of <code>/dev/shm</code>, a private CA, a clock minutes off (<a href="https://vallus.eu/articles/what-breaks-without-internet/">the full catalogue</a>)</td></tr><tr><td><strong>Configuration</strong></td><td>Application address, credentials, feature flags</td><td>A base URL from another environment, an expired service account</td></tr><tr><td><strong>Execution</strong></td><td>Something starts a run without you</td><td>A cron entry on your laptop, a terminal session someone closed</td></tr><tr><td><strong>Evidence</strong></td><td>A report that survives the machine and opens offline</td><td>Written inside a container that no longer exists, or <a href="https://vallus.eu/articles/reporting-without-cloud-dashboard/">fetching its fonts from a CDN</a></td></tr><tr><td><strong>Delivery</strong></td><td>A person receives the result, or can reach it</td><td>Nobody subscribed, the mail relay is not permitted, the report sits on a host nobody can log into</td></tr></tbody></table></div>
+<p>The regression suite exercises exactly one of these, execution, and only after the other five already work. A sanity set exercises all six with a handful of assertions, which is why it belongs first.</p>
+<hr>
+<h2 id="2-what-belongs-in-the-set"><span class="num">2</span>What belongs in the set</h2>
+<p>Small, fast, and boring by design. If it takes longer than five minutes, or fails for reasons that need a meeting, it is not a sanity check any more.</p>
+<p><strong>Environment preconditions.</strong> Before anything touches the application: is the address answering, does the browser trust its certificate, is the clock within tolerance of the application host, is there shared memory for a browser and disk for a report.</p>
+<p><strong>One authentication path.</strong> Whatever identity mechanism this environment uses, exercised once. It catches an expired service account earlier than anything else, and an expired service account in a closed environment is a ticket that takes days.</p>
+<p><strong>One critical business path, end to end.</strong> Not a comprehensive one. The single flow whose failure would mean the deployment is not usable. If it has to write data, it writes records it can recognise and remove, and the customer knows they exist.</p>
+<p><strong>One report artefact.</strong> Produced, written to disk, and openable on a machine with no network. A run that passes and leaves nothing behind has not proven the chain.</p>
+<p>That is four groups and perhaps a dozen assertions. Resist the urge to grow it: the value is in its stability, and every addition is one more way for it to fail for reasons the customer will read as noise. Section 7 puts a number on that.</p>
+<hr>
+<h2 id="3-preconditions-as-a-project-not-a-describe-block"><span class="num">3</span>Preconditions as a project, not a describe block</h2>
+<figure class="photo"><picture><source type="image/avif" srcset="/articles/sanity-checks-isolated-environments/assets/img/p_lab-900.avif 900w, /articles/sanity-checks-isolated-environments/assets/img/p_lab-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/sanity-checks-isolated-environments/assets/img/p_lab-900.webp 900w, /articles/sanity-checks-isolated-environments/assets/img/p_lab-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/sanity-checks-isolated-environments/assets/img/p_lab-1440.jpg" srcset="/articles/sanity-checks-isolated-environments/assets/img/p_lab-900.jpg 900w, /articles/sanity-checks-isolated-environments/assets/img/p_lab-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="A quarantine inspection happens before anything is let in, not after it has spread. Preconditions do the same " width="1440" height="1920" loading="lazy" decoding="async"></picture><figcaption>A quarantine inspection happens before anything is let in, not after it has spread. Preconditions do the same for a run: nothing reaches the application until they pass.<span class="credit">20200730-USDA-PPQ-IMG 0678 (50214521528).jpg - USDAgov, public domain (Wikimedia Commons)</span></figcaption></figure>
+<p>The difference between a sanity run that helps and one that adds confusion is whether the environment assertions run first and stop everything else when they fail. A run that reports 48 failures is noise. A run that reports one failed precondition and nothing else is an answer.</p>
+<p>A <code>test.describe(&#x27;preconditions&#x27;)</code> at the top of a file does not do that: the other tests run anyway and time out one by one. Playwright&#x27;s project dependencies do. A project that depends on another starts only when every test in it has passed:</p>
+<div class="code"><span class="lang">typescript</span><pre><code><span class="c">// playwright.config.ts</span>
+import { defineConfig } from <span class="s">&#x27;@playwright/test&#x27;</span>;
+
+export default defineConfig({
+  use: { baseURL: process.env.APP_URL },
+  reporter: [[<span class="s">&#x27;html&#x27;</span>, { open: <span class="s">&#x27;never&#x27;</span> }], [<span class="s">&#x27;junit&#x27;</span>, { outputFile: <span class="s">&#x27;results.xml&#x27;</span> }]],
+  projects: [
+    <span class="c">// Runs first. If any of it fails, nothing below starts.</span>
+    { name: <span class="s">&#x27;preconditions&#x27;</span>, testMatch: /preconditions\.spec\.ts/ },
+    <span class="c">// One sign-in, saved for every sanity test after it.</span>
+    { name: <span class="s">&#x27;login&#x27;</span>, testMatch: /login\.setup\.ts/, dependencies: [<span class="s">&#x27;preconditions&#x27;</span>] },
+    {
+      name: <span class="s">&#x27;sanity&#x27;</span>,
+      testMatch: /sanity\.spec\.ts/,
+      dependencies: [<span class="s">&#x27;login&#x27;</span>],
+      use: { storageState: <span class="s">&#x27;.auth/state.json&#x27;</span> },
+    },
+  ],
+});</code></pre></div>
+<p>The preconditions themselves are short. Each assertion carries a message, because the message is what the person reading the report will see:</p>
+<div class="code"><span class="lang">typescript</span><pre><code><span class="c">// preconditions.spec.ts</span>
+import { test, expect } from <span class="s">&#x27;@playwright/test&#x27;</span>;
+import { statfsSync } from <span class="s">&#x27;node:fs&#x27;</span>;
+
+const freeMb = (path: string) =&gt; {
+  const fs = statfsSync(path);
+  return Math.floor((fs.bavail * fs.bsize) / 2 ** 20);
+};
+
+test(<span class="s">&#x27;the application answers&#x27;</span>, async ({ request }) =&gt; {
+  const res = await request.get(<span class="s">&#x27;/health&#x27;</span>, { timeout: 10_000 });
+  expect(res.status(), <span class="s">&#x27;GET /health&#x27;</span>).toBe(200);
+});
+
+test(<span class="s">&#x27;the browser trusts the certificate&#x27;</span>, async ({ page }) =&gt; {
+  <span class="c">// Not the same check as the one above: the API request and the browser</span>
+  <span class="c">// read different trust stores, and only the browser runs the suite.</span>
+  await page.goto(<span class="s">&#x27;/&#x27;</span>);
+});
+
+test(<span class="s">&#x27;the clock agrees with the application host&#x27;</span>, async ({ request }) =&gt; {
+  const res = await request.get(<span class="s">&#x27;/health&#x27;</span>);
+  const skew = Math.abs(Date.now() - Date.parse(res.headers()[<span class="s">&#x27;date&#x27;</span>])) / 1000;
+  expect(Math.round(skew), <span class="s">&#x27;seconds between this clock and the application host&#x27;</span>)
+    .toBeLessThan(60);
+});
+
+test(<span class="s">&#x27;the browser has enough shared memory&#x27;</span>, () =&gt; {
+  test.skip(process.platform !== <span class="s">&#x27;linux&#x27;</span>, <span class="s">&#x27;/dev/shm is a Linux mount&#x27;</span>);
+  expect(freeMb(<span class="s">&#x27;/dev/shm&#x27;</span>), <span class="s">&#x27;MB free in /dev/shm&#x27;</span>).toBeGreaterThanOrEqual(1024);
+});
+
+test(<span class="s">&#x27;there is room for the report&#x27;</span>, () =&gt; {
+  expect(freeMb(<span class="s">&#x27;.&#x27;</span>), <span class="s">&#x27;MB free where the report is written&#x27;</span>)
+    .toBeGreaterThanOrEqual(2048);
+});</code></pre></div>
+<p>Run it with <code>npx playwright test --project=sanity</code>. Playwright runs the projects it depends on first, so nobody has to remember the order.</p>
+<p>We ran this set in the official Playwright 1.59 image, with the network switched off and the test application&#x27;s clock moved 214 seconds ahead. The result was one failed test, the clock, reported as <code>seconds between this clock and the application host</code> with <code>Received: 214</code> underneath, and the login and sanity projects listed as <em>did not run</em>. In the JUnit file those two appear as skipped, so a CI dashboard shows one failure rather than a page of timeouts.</p>
+<p>Three details that matter in practice:</p>
+<ul><li><strong>The <code>Date</code> header has one-second resolution</strong> and comes from whatever terminates HTTP. If a reverse proxy sits in front of the application, you are measuring the proxy&#x27;s clock. Say so in the message, so nobody chases the wrong host.</li><li><strong>1 GB of <code>/dev/shm</code> is a floor, not a recommendation.</strong> A container gets 64 MB unless told otherwise, and <code>shm_size</code> or <code>ipc: host</code> fixes it. <a href="https://vallus.eu/articles/what-breaks-without-internet/">The catalogue of offline failures</a> explains why its absence looks like a race condition rather than a resource limit.</li><li><strong>The free-disk check looks where the report is written</strong>, not at <code>/</code>. A full data volume on a host with an empty root partition is a common way to lose the evidence of a run that otherwise passed.</li></ul>
+<p>Thirty seconds of checks that turn a category of confusing failures into one readable sentence. It is the highest-value code in the entire delivery, and it is usually the part nobody writes.</p>
+<hr>
+<h2 id="4-the-trust-store-the-suite-actually-uses"><span class="num">4</span>The trust store the suite actually uses</h2>
+<p>The second precondition deserves a section of its own, because it is the one most teams get wrong in the same way.</p>
+<p>In a closed environment the application&#x27;s certificate is almost always issued by the customer&#x27;s own CA. Someone adds that CA to the runner, the API calls start working, and everyone moves on. Then every browser test fails with <code>net::ERR_CERT_AUTHORITY_INVALID</code>.</p>
+<p>The API request and the browser do not read the same trust store. We tried three ways of installing a private CA in the official Playwright image (Ubuntu 22.04, the Chromium that ships with Playwright 1.59), against a test application whose certificate that CA had signed:</p>
+<div class="tablewrap"><table><thead><tr><th>CA installed in</th><th><code>request.get()</code></th><th><code>page.goto()</code></th></tr></thead><tbody><tr><td><code>NODE_EXTRA_CA_CERTS</code> only</td><td>trusted</td><td><code>ERR_CERT_AUTHORITY_INVALID</code></td></tr><tr><td>The system store only, via <code>update-ca-certificates</code></td><td>rejected, with a hint to use <code>--use-system-ca</code></td><td><code>ERR_CERT_AUTHORITY_INVALID</code></td></tr><tr><td>The NSS database, plus <code>NODE_EXTRA_CA_CERTS</code></td><td>trusted</td><td>trusted</td></tr></tbody></table></div>
+<p>On Linux, Chromium takes locally added CAs from the NSS database in the home directory of the user it runs as, not from the system bundle. Node carries its own list and reads neither unless told to. A setup that works for both:</p>
+<div class="code"><span class="lang">bash</span><pre><code><span class="c"># certutil comes with libnss3-tools. Run it as the user the tests run as.</span>
+mkdir -p <span class="s">&quot;$HOME/.pki/nssdb&quot;</span>
+certutil -d <span class="s">&quot;sql:$HOME/.pki/nssdb&quot;</span> -N --empty-password
+certutil -d <span class="s">&quot;sql:$HOME/.pki/nssdb&quot;</span> -A -t <span class="s">&quot;C,,&quot;</span> -n <span class="s">&quot;internal-ca&quot;</span> -i internal-ca.pem
+<span class="c"># And for the API requests in the same suite:</span>
+export NODE_EXTRA_CA_CERTS=/etc/pki/internal-ca.pem</code></pre></div>
+<p>Two consequences. The precondition has to go through <code>page</code>, not <code>request</code>, or it passes on exactly the machine where the suite will fail. And the tempting fix, <code>ignoreHTTPSErrors: true</code>, makes the precondition pass by switching off the thing it checks. In a customer environment it is also a finding waiting for the <a href="https://vallus.eu/articles/security-review-closed-environments/">security review</a>.</p>
+<hr>
+<h2 id="5-a-failure-the-customer-can-act-on"><span class="num">5</span>A failure the customer can act on</h2>
+<p>The point of a readable precondition is that its failure has an owner, and the owner is not you. Write the runbook as a table the customer can follow without calling anyone:</p>
+<div class="tablewrap"><table><thead><tr><th>The report says</th><th>Whose it is</th><th>What they do</th></tr></thead><tbody><tr><td><code>GET /health</code> is not 200</td><td>Whoever deployed the application</td><td>The deployment is not up; there is nothing to test yet</td></tr><tr><td><code>ERR_CERT_AUTHORITY_INVALID</code></td><td>Platform team</td><td>Add the CA to the browser&#x27;s store on the runner, as above</td></tr><tr><td>Seconds between this clock and the application host</td><td>Infrastructure</td><td>Fix time sync on whichever of the two hosts drifted</td></tr><tr><td>MB free in <code>/dev/shm</code></td><td>Whoever runs the container</td><td><code>shm_size</code> or <code>ipc: host</code> in the runner&#x27;s definition</td></tr><tr><td>MB free where the report is written</td><td>Operations</td><td>Retention, or a bigger volume</td></tr><tr><td>The service account cannot sign in</td><td>Identity team</td><td>Expired password, locked account, or a missing group</td></tr><tr><td>The critical path fails, preconditions passed</td><td>Application team</td><td>This one is a real result</td></tr></tbody></table></div>
+<p>Only the last row is about the application, and that is the point. By the time the critical path runs, everything else has been ruled out, and a red result means what it says.</p>
+<hr>
+<h2 id="6-why-this-is-the-right-first-delivery"><span class="num">6</span>Why this is the right first delivery</h2>
+<p><strong>It fails in ways the customer can act on.</strong> Every failure points at something in their environment that they own and can fix, rather than at your test code.</p>
+<p><strong>It proves the chain, not the coverage.</strong> Once a sanity run is scheduled, executes, reports and reaches a person, adding the regression suite is a change of scope rather than a new integration.</p>
+<p><strong>It survives the feedback loop.</strong> A small, stable set is something the customer will actually run at each deployment. A large brittle one gets skipped exactly when it matters.</p>
+<p><strong>It sets the expectation correctly.</strong> The first automation the customer sees behaves predictably. That is worth more, politically, than demonstrating breadth.</p>
+<hr>
+<h2 id="7-a-feedback-loop-measured-in-days-and-what-it-does-to-suite"><span class="num">7</span>A feedback loop measured in days, and what it does to suite size</h2>
+<p>In a closed delivery model the loop between a change and its result is commit, package, transfer, maintenance window, run on site, report sent back, analysis. Three days if it goes well. That changes what a red run costs: each one is a loop, not a re-run.</p>
+<p>A rough model makes the consequence concrete. Say every test, independently, fails for a reason that is not the application once in a hundred runs: a slow page, a lock held by another team&#x27;s job, a test data collision. The chance that a whole run comes back green falls with every test you add, and the number of runs you wait, on average, for a green one rises:</p>
+<div class="tablewrap"><table><thead><tr><th>Tests</th><th>Whole run green</th><th>Runs until a green one</th><th>At three days a loop</th></tr></thead><tbody><tr><td>12</td><td>89%</td><td>1.1</td><td>3.4 days</td></tr><tr><td>40</td><td>67%</td><td>1.5</td><td>4.5 days</td></tr><tr><td>300</td><td>5%</td><td>20</td><td>about two months</td></tr></tbody></table></div>
+<p>The numbers are illustrative. Real failures cluster rather than arrive independently, and one in a hundred is generous for a suite that has never run in this environment. The shape is the point: at the customer&#x27;s site the size of a suite is a cost, not an achievement. The sanity set stays at a dozen assertions, and the regression suite runs upstream, on staging, where a red run costs minutes. The overview&#x27;s <a href="https://vallus.eu/articles/testing-closed-environments/">distribution of effort</a> puts only smoke and acceptance tests in the customer row for exactly this reason.</p>
+<hr>
+<h2 id="8-where-it-runs-and-who-can-start-it"><span class="num">8</span>Where it runs, and who can start it</h2>
+<p>Three moments, in increasing order of value:</p>
+<p><strong>After every deployment</strong>, automatically, before anyone is told the deployment succeeded. This is the one that changes behaviour, because it turns &quot;the deployment finished&quot; into &quot;the deployment works&quot;.</p>
+<p><strong>On a schedule</strong>, nightly or hourly depending on how much changes underneath. It catches expired certificates, filled disks and drifting clocks before a user does.</p>
+<p><strong>On demand</strong>, by someone who is not you. If running the checks requires your presence, you have built a demo rather than a capability.</p>
+<p>That last one is the real test of the delivery. A set that only the vendor can start is not automation from the customer&#x27;s point of view. Handing it over means one command or one button, credentials supplied by the environment rather than typed in by whoever runs it, the report in a known place, and the table from section 5 next to it.</p>
+<hr>
+<h2 id="9-growing-from-here"><span class="num">9</span>Growing from here</h2>
+<p>The order that works, once the sanity set is stable and running unattended:</p>
+<ol><li>Widen the critical path into a small acceptance set, still under ten minutes.</li><li>Add the regression suite, but run it on a schedule rather than per deployment.</li><li>Add cross-run history, because by now there is enough data for trends to mean something.</li><li>Only then consider the long tail: performance, compatibility, matrix runs.</li></ol>
+<p>Each step happens on a chain that already works. That is the whole point of starting small: none of these steps is an integration project, because the integration was done in week one with a dozen assertions.</p>
+<hr>
+<h2 id="10-where-a-runner-fits-and-where-vallus-does"><span class="num">10</span>Where a runner fits, and where vallus does</h2>
+<p>Everything above can be done with the framework alone and a scheduler. What a runner adds in a closed environment is the parts around the test, and those are the parts this series has been about: a suite that installs offline, takes its browsers from an <a href="https://vallus.eu/articles/internal-browser-mirror/">internal mirror</a>, updates deliberately, <a href="https://vallus.eu/articles/vendoring-node-dependencies/">vendors its dependencies</a>, reports without a cloud and survives a security review. Sanity checks are where all of that becomes visible to the customer for the first time.</p>
+<p>vallus is the runner we built for that case. For a sanity set specifically:</p>
+<ul><li><strong>A workflow runs its steps in order and, by default, stops at the first one that fails.</strong> The project chain above runs as a single step; a separate preconditions step in front of the suite works too.</li><li><strong>Three ways to start it, none of them yours.</strong> A schedule for the hourly or nightly run, a token-authenticated webhook the deployment pipeline calls when it finishes, and a Run button for anyone with the executor role and permission for that workflow.</li><li><strong>Credentials the person pressing Run never sees.</strong> A workflow variable is a value, a secret encrypted with the instance key, or, from the Team tier up, a reference to OpenBao or HashiCorp Vault resolved when the run starts.</li><li><strong>Delivery is part of the workflow.</strong> Notifications are chosen per workflow, on failure by default, and go to Slack, Teams, any webhook or e-mail, so an internal chat server or mail relay is enough.</li><li><strong>The runner checks its own side.</strong> A strip on the home screen reports the Playwright version the project pins, missing browsers, the mirror, free disk and the licence. Grey means it could not tell, never that all is well.</li><li><strong>Evidence stays on the customer&#x27;s disk.</strong> Playwright HTML or Allure reports, traces and run history, with flaky tests and newly failing specs picked out across runs.</li></ul>
+<p>What it does not do: it does not write your preconditions, and it knows nothing about the application&#x27;s clock, certificate or health beyond what your suite asserts. It is not an uptime monitor either: between scheduled runs, nothing is watching.</p>
+<p>To see a sanity set running behind an air gap, <a href="https://vallus.eu/#demo">book a demo</a> and ask for the 21-day evaluation key, which has every feature. The <a href="https://vallus.eu/free/">Free licence</a> (two users, one project, one run at a time) is enough for exactly one sanity set, with scheduling, containerised runs, reports and history included.</p>
+<hr>
+<h2 id="11-conclusion"><span class="num">11</span>Conclusion</h2>
+<p>Starting with the regression suite optimises for what you already built. Starting with sanity checks optimises for what has to be proven first, which in a closed environment is not coverage but the chain itself.</p>
+<ol><li><strong>A dozen assertions that exercise all six links</strong> beat a thousand that exercise one.</li><li><strong>Preconditions belong in the suite</strong>, as a project the rest depends on, checked through the same browser and trust store the suite uses, and failing with a sentence someone else can act on.</li><li><strong>Someone other than you must be able to run it.</strong> Until that is true, there is a demo rather than a delivery.</li></ol>
+  <aside class="byline-card"><span class="avatar" aria-hidden="true">PG</span><div><p class="who">About the author</p><p class="name">Piotr Gajownik <span>· ExpandIt</span></p><p class="bio">Senior Test Engineer. He has been testing software since 2007, working on delivery into regulated and network-isolated environments.</p></div></aside>
+  <p class="dl"><a href="/articles/sanity-checks-isolated-environments-offline.html" download><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>Download the offline copy</a><span>One HTML file with everything inside - opens with no internet at all.</span></p>
+  <aside class="cta"><p class="eyebrow">The runner behind this article</p><h2>These are the problems vallus was built to solve</h2><p class="lead">Everything above describes constraints we kept meeting at customer sites: no route to the internet, no access to the machine where a run failed, and a report that has to answer every question on its own. vallus is the Playwright runner written for exactly those conditions.</p><ul><li><b>Nothing leaves the network</b>No telemetry, no licence server, no call home. Once installed, the instance needs no route to the internet at all - the licence is a file verified locally. §5.4</li><li><b>Results stay on your disk</b>Reports, traces, screenshots and cross-run history live on your infrastructure, in formats that open without us. Nobody at the vendor can see your runs. §5.1</li><li><b>A container per run<em class="scope">Docker installs</em></b>On a Docker deployment each run gets its own container built from that project’s code and dependencies, with an image per version of your tests: a rollback is a tag, not a rebuild. Without Docker the runner executes suites directly on the host. §3.4</li><li><b>Reports built for absent engineers</b>Playwright HTML or Allure per run, traces served over HTTPS, plus run history and trends - the execution context the report has to carry when you cannot log in. §4.3</li><li><b>One dashboard, many environments</b>Scheduling, a run queue, per-project Playwright versions and access rules, so the same suite runs the same way on every environment you ship to. §3.3</li></ul><div class="acts"><a class="btn primary" href="https://www.vallus.eu/">Explore vallus<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="btn secondary" href="https://www.vallus.eu/#demo">Book a demo</a></div><p class="note">vallus is a product of ExpandIt · deployed on your own infrastructure.</p></aside>
+</article>
+</main>
+
+<footer>
+  <div class="in">
+    <a class="fbrand" href="https://www.vallus.eu/"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus · by ExpandIt</b></a>
+    <nav class="flinks" aria-label="vallus.eu"><a href="https://www.vallus.eu/#features">Features</a><a href="https://www.vallus.eu/#pricing">Pricing</a><a href="https://www.vallus.eu/free/">Free</a><a href="https://www.vallus.eu/articles/">Articles</a><a href="https://www.vallus.eu/#deployment">Security</a><a href="https://www.vallus.eu/#faq">FAQ</a><a href="https://www.vallus.eu/privacy/">Privacy</a><a href="https://www.vallus.eu/licenses/">Licences</a><a class="cta" href="https://www.vallus.eu/#demo">Book a demo</a></nav>
+    <h3>Photographs</h3>
+    <ul><li>Parking checklist (5837541456).jpg - Curimedia, CC BY 2.0 (Wikimedia Commons)</li><li>20200730-USDA-PPQ-IMG 0678 (50214521528).jpg - USDAgov, public domain (Wikimedia Commons)</li></ul>
+    <p class="note">An offline copy of this article is linked at the top: one file with the images, fonts and styles embedded, which opens on a machine with no network at all.</p>
+  </div>
+</footer>
+
+<button id="totop" type="button" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>Back to top</button>
+
+<script>
+(function () {
+  var bar = document.getElementById('bar');
+  var top = document.getElementById('totop');
+  function upd() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    top.classList.toggle('show', h.scrollTop > 700);
+  }
+  document.addEventListener('scroll', upd, {passive: true});
+  // Przycisk wstecz cofa w historii tylko wtedy, gdy poprzednia strona byla nasza.
+  // Wejscie prosto z wyszukiwarki albo z LinkedIna zostawia href, czyli liste artykulow.
+  var back = document.getElementById('back');
+  var from = document.referrer;
+  var sameSite = false;
+  try {
+    sameSite = !!from && new URL(from).origin === location.origin
+               && new URL(from).pathname !== location.pathname;
+  } catch (e) { sameSite = false; }
+  if (sameSite && history.length > 1) {
+    back.addEventListener('click', function (event) {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      history.back();
+    });
+  } else if (back.dataset.needsHistory) {
+    // Offline i bez historii: zostaje tylko adres w internecie, ktorego tu moze nie byc.
+    back.remove();
+    var sep = document.querySelector('.topbar .sep');
+    if (sep) sep.remove();
+  }
+
+  var canSmooth = 'scrollBehavior' in document.documentElement.style;
+  top.addEventListener('click', function () {
+    if (canSmooth) window.scrollTo({top: 0, behavior: 'smooth'});
+    else window.scrollTo(0, 0);
+  });
+  upd();
+})();
+</script>
+</body>
+</html>

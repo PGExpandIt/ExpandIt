@@ -34,6 +34,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
     {
+        slug: "sanity-checks-isolated-environments",
+        title: "Start with the checks that tell you the environment is alive",
+        summary:
+            "Why a sanity set, not the regression suite, is the first delivery in a customer's closed environment: the six links it has to prove, preconditions as a Playwright project the rest depends on, the browser trust-store trap, and the arithmetic that keeps the suite small.",
+        published: "2026-10-13",
+        readingMinutes: 12,
+        topics: ["Closed environments", "Sanity checks", "Delivery"],
+        language: "en",
+        offlineSize: "0.9 MB",
+    },
+    {
         slug: "security-review-closed-environments",
         title: "The review that decides whether your tool ever runs",
         summary:
