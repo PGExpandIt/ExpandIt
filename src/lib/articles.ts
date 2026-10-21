@@ -34,6 +34,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
     {
+        slug: "test-data-leaving-closed-environments",
+        title: "The password is in the trace",
+        summary:
+            "Six values planted in a failing Playwright run, and every file the run left searched for them: what traces, reports, screenshots and saved logins actually carry, what configuration can keep out of them, and an export that lets only counts leave a closed environment.",
+        published: "2026-10-19",
+        readingMinutes: 12,
+        topics: ["Closed environments", "Test artefacts", "Data protection"],
+        language: "en",
+        offlineSize: "1.1 MB",
+    },
+    {
         slug: "sanity-checks-isolated-environments",
         title: "Start with the checks that tell you the environment is alive",
         summary:

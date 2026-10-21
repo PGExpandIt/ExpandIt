@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Playwright traces, screenshots and reports carry out of a closed environment</title>
+<meta name="description" content="Six values planted in a failing Playwright run turned up in traces, reports and screenshots. What each artefact carries, and an export that takes only counts.">
+<meta name="color-scheme" content="dark">
+<meta name="author" content="Piotr Gajownik">
+<link rel="canonical" href="https://vallus.eu/articles/test-data-leaving-closed-environments/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="vallus by ExpandIt">
+<meta property="og:locale" content="en_GB">
+<meta property="og:url" content="https://vallus.eu/articles/test-data-leaving-closed-environments/">
+<meta property="og:title" content="The password is in the trace">
+<meta property="og:description" content="Six values planted in a failing Playwright run turned up in traces, reports and screenshots. What each artefact carries, and an export that takes only counts.">
+<meta property="og:image" content="https://vallus.eu/articles/test-data-leaving-closed-environments/assets/og-test-data-leaving-closed-environments-en.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What Playwright traces, screenshots and reports carry out of a closed environment">
+<meta property="article:published_time" content="2026-10-19">
+<meta property="article:modified_time" content="2026-10-19">
+<meta property="article:author" content="Piotr Gajownik">
+<meta property="article:section" content="Test automation">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The password is in the trace">
+<meta name="twitter:description" content="Six values planted in a failing Playwright run turned up in traces, reports and screenshots. What each artefact carries, and an export that takes only counts.">
+<meta name="twitter:image" content="https://vallus.eu/articles/test-data-leaving-closed-environments/assets/og-test-data-leaving-closed-environments-en.jpg">
+<meta name="twitter:image:alt" content="What Playwright traces, screenshots and reports carry out of a closed environment">
+
+<link rel="preload" href="/articles/test-data-leaving-closed-environments/assets/fonts/geist-400-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/articles/test-data-leaving-closed-environments/assets/fonts/geist-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{
+ "@context": "https://schema.org",
+ "@type": "Article",
+ "headline": "What Playwright traces, screenshots and reports carry out of a closed environment",
+ "alternativeHeadline": "The password is in the trace",
+ "description": "Six values planted in a failing Playwright run turned up in traces, reports and screenshots. What each artefact carries, and an export that takes only counts.",
+ "inLanguage": "en",
+ "datePublished": "2026-10-19",
+ "dateModified": "2026-10-19",
+ "author": {
+  "@type": "Person",
+  "name": "Piotr Gajownik",
+  "jobTitle": "Senior Test Engineer",
+  "worksFor": {
+   "@type": "Organization",
+   "name": "ExpandIt"
+  },
+  "url": "https://vallus.eu/"
+ },
+ "publisher": {
+  "@type": "Organization",
+  "name": "ExpandIt",
+  "url": "https://vallus.eu/",
+  "logo": {
+   "@type": "ImageObject",
+   "url": "https://vallus.eu/logo.png"
+  }
+ },
+ "image": [
+  "https://vallus.eu/articles/test-data-leaving-closed-environments/assets/og-test-data-leaving-closed-environments-en.jpg"
+ ],
+ "mainEntityOfPage": {
+  "@type": "WebPage",
+  "@id": "https://vallus.eu/articles/test-data-leaving-closed-environments/"
+ },
+ "articleSection": "Test automation",
+ "keywords": "closed environments, air-gapped, test automation, Playwright, test reporting, data sovereignty"
+}</script>
+<style>
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/test-data-leaving-closed-environments/assets/fonts/geist-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/test-data-leaving-closed-environments/assets/fonts/geist-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/test-data-leaving-closed-environments/assets/fonts/geist-600-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:600;font-display:swap;src:url(/articles/test-data-leaving-closed-environments/assets/fonts/geist-600-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/test-data-leaving-closed-environments/assets/fonts/geist-700-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist';font-style:normal;font-weight:700;font-display:swap;src:url(/articles/test-data-leaving-closed-environments/assets/fonts/geist-700-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/test-data-leaving-closed-environments/assets/fonts/geist-mono-400-latin-ext.woff2) format('woff2');unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/articles/test-data-leaving-closed-environments/assets/fonts/geist-mono-400-latin.woff2) format('woff2');unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+
+:root {
+  --ink:#100F0D; --ink-soft:#171613; --surface:#1C1A17; --line:#2C2925;
+  --text:#F2F0EA; --body:#D8D4CB; --muted:#A29C91; --faint:#6E6A61;
+  --mint:#7DD3A0; --mint-dim:#4f8f68;
+  --sans:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:5rem;background:var(--ink)}
+body{
+  margin:0; background:var(--ink); color:var(--body);
+  font-family:var(--sans); font-size:17.5px; line-height:1.72;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+::selection{background:rgba(125,211,160,.24);color:var(--text)}
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--mint);width:0;z-index:99}
+
+/* ── sticky topbar ────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:60;height:60px;display:flex;align-items:center;
+  background:rgba(16,15,13,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.topbar .in{max-width:816px;margin:0 auto;padding:0 28px;width:100%;
+  display:flex;align-items:center;gap:12px}
+.topbar .back{
+  display:inline-flex;align-items:center;gap:7px;flex:none;
+  padding:7px 13px 7px 10px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface);color:var(--body);
+  font-size:13px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+.topbar .back:hover{border-color:var(--mint);color:var(--mint)}
+.topbar .back:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.topbar .back svg{color:var(--mint);transition:color .18s ease}
+.topbar .back:hover svg{color:var(--mint)}
+.topbar .sep{width:1px;height:20px;background:var(--line);flex:none}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;border-bottom:0}
+.brand svg{height:20px;width:auto;color:var(--mint);transition:color .18s ease}
+.brand:hover b{color:var(--mint)}
+.brand b{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.brand span{font-size:12.5px;color:var(--muted)}
+.topbar .crumb{
+  margin-left:auto;font-size:13px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52%;
+}
+
+/* ── hero ─────────────────────────────────────────────── */
+header.hero{position:relative;min-height:78vh;display:flex;align-items:flex-end;
+  background:var(--ink);overflow:hidden}
+header.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:.30;filter:grayscale(.5) contrast(1.06)}
+header.hero .veil{position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 70% 10%,rgba(16,15,13,.30) 0%,rgba(16,15,13,.86) 55%,var(--ink) 100%)}
+header.hero .inner{position:relative;max-width:816px;margin:0 auto;padding:0 28px 76px;width:100%}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mint);
+  font-weight:600;margin:0 0 20px}
+header.hero h1{color:var(--text);font-size:clamp(36px,6vw,64px);line-height:1.06;
+  letter-spacing:-.028em;margin:0 0 22px;font-weight:700;max-width:17ch}
+header.hero p.sub{color:var(--muted);font-size:clamp(17px,2vw,21px);line-height:1.55;
+  margin:0;max-width:52ch;font-weight:400}
+header.hero .byline{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13.5px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+header.hero .byline i{font-style:normal;color:#3d3a34}
+header.hero .byline .author{color:var(--text);font-weight:600}
+header.hero .topics{margin:10px 0 0;color:var(--faint);font-size:12.5px}
+header.hero picture{position:absolute;inset:0;display:block}
+.hero-credit{position:absolute;right:14px;bottom:10px;color:#4a4740;font-size:10.5px}
+
+/* ── layout ───────────────────────────────────────────── */
+main{max-width:816px;margin:0 auto;padding:0 28px 90px}
+article{max-width:760px;margin:0 auto;padding:60px 0 40px}
+
+/* ── spis tresci ──────────────────────────────────────── */
+nav.toc{background:var(--ink-soft);border:1px solid var(--line);border-radius:8px;
+  padding:26px 30px;margin:0 0 64px}
+nav.toc h2{font-size:13px!important;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:0 0 16px!important;border:0!important;padding:0!important;
+  font-weight:600;display:block}
+nav.toc ol{list-style:none;margin:0;padding:0;columns:2;column-gap:34px}
+nav.toc li{margin:0 0 10px;break-inside:avoid}
+nav.toc a{font-size:14.5px;color:var(--body);text-decoration:none;border-bottom:0;display:flex;gap:11px;line-height:1.45}
+nav.toc a span{color:var(--mint-dim);font-weight:600;min-width:15px}
+nav.toc a:hover{color:var(--mint)}
+nav.toc a:hover span{color:var(--mint)}
+
+/* ── typografia ───────────────────────────────────────── */
+h2,h3,h4{color:var(--text);letter-spacing:-.022em;scroll-margin-top:80px}
+h2{font-size:clamp(27px,3.6vw,36px);line-height:1.14;font-weight:700;
+  margin:84px 0 24px;padding-top:30px;border-top:1px solid var(--line);display:flex;gap:16px}
+h2 .num{color:var(--mint);font-weight:700;flex:none}
+h3{font-size:clamp(19px,2.2vw,22px);font-weight:600;margin:50px 0 15px;display:flex;gap:12px;
+  letter-spacing:-.012em}
+h3 .subnum{color:var(--mint-dim);font-weight:600;flex:none}
+h4{font-size:17px;font-weight:600;margin:34px 0 10px}
+h2 code,h3 code,h4 code{font-size:.82em;padding:.05em .3em;background:rgba(255,255,255,.05);
+  border-color:#333029;color:#dbe6dd;font-weight:600;vertical-align:baseline}
+article > h3:first-of-type{margin-top:0}
+p{margin:0 0 22px}
+article > p:first-of-type,
+h3[id^="wstep"] + p, h3[id^="introduction"] + p{font-size:20px;line-height:1.62;color:#e6e2d9}
+a{color:var(--mint);text-decoration:none;border-bottom:1px solid rgba(125,211,160,.35)}
+a:hover{border-bottom-color:var(--mint)}
+strong{font-weight:600;color:var(--text)}
+em{color:var(--muted)}
+hr{display:none}
+ul,ol{margin:0 0 24px;padding-left:24px}
+li{margin:0 0 11px}
+li::marker{color:var(--mint-dim)}
+
+code{font-family:var(--mono);font-size:.86em;background:var(--surface);
+  border:1px solid var(--line);border-radius:5px;padding:.12em .38em;color:#cdd8cf}
+.code{position:relative;margin:0 0 30px;border-radius:8px;overflow:hidden;
+  background:#0A0908;border:1px solid var(--line)}
+.code .lang{position:absolute;top:0;right:0;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);background:var(--surface);
+  padding:4px 12px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+  border-bottom-left-radius:8px}
+.code pre{margin:0;padding:22px 24px;overflow-x:auto}
+.code code{background:none;border:0;padding:0;color:#dad6cd;font-size:13.5px;
+  line-height:1.68;white-space:pre}
+.code .c{color:#6E6A61}
+.code .s{color:var(--mint)}
+.code pre::-webkit-scrollbar{height:8px}
+.code pre::-webkit-scrollbar-thumb{background:#2C2925;border-radius:4px}
+
+blockquote{margin:36px 0;padding:24px 28px;background:rgba(125,211,160,.06);
+  border:1px solid rgba(125,211,160,.20);border-left:3px solid var(--mint);border-radius:0 8px 8px 0}
+blockquote p{margin:0;font-size:18.5px;line-height:1.6;color:#e3ece5}
+
+/* Licznik (dyrektywa ::: countdown, tylko wersja webowa). Ukryty, dopoki skrypt go nie
+   uruchomi - bez JavaScriptu czytelnik dostaje zdanie z data z <noscript>. */
+aside.countdown{display:none;margin:40px 0 44px;padding:26px 28px 22px;background:var(--ink-soft);
+  border:1px solid var(--line);border-left:3px solid var(--mint);border-radius:0 8px 8px 0}
+aside.countdown.live{display:block}
+.countdown .cd-units{display:flex;gap:30px;flex-wrap:wrap}
+.countdown .cd-units span{display:flex;flex-direction:column;min-width:62px}
+.countdown .cd-units b{font-family:var(--mono);font-size:clamp(34px,5.4vw,52px);line-height:1;
+  font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.countdown .cd-units i{font-style:normal;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint-dim);margin-top:9px}
+.countdown .cd-label{margin:18px 0 0;font-size:15.5px;line-height:1.55;color:var(--muted)}
+.countdown.done .cd-units{display:none}
+.countdown.done .cd-label{margin:0;font-size:18.5px;color:var(--text)}
+
+.tablewrap{overflow-x:auto;margin:0 0 32px;border:1px solid var(--line);
+  border-radius:8px;background:var(--ink-soft)}
+table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.55}
+th{background:var(--surface);text-align:left;font-weight:600;font-size:12px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  padding:13px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--body)}
+td strong{color:var(--text)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(255,255,255,.018)}
+td code{font-size:.84em}
+
+p.grouplabel{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin:38px 0 14px}
+p.grouplabel strong{font-weight:600;color:inherit}
+ul.checklist{list-style:none;padding:0;margin:0 0 26px;display:grid;gap:8px}
+ul.checklist li{position:relative;padding:12px 15px 12px 44px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;margin:0;font-size:15.5px;line-height:1.5;
+  color:var(--body)}
+ul.checklist li::before{content:"";position:absolute;left:16px;top:15px;width:14px;height:14px;
+  border:1.5px solid #3A362F;border-radius:4px;background:var(--surface)}
+
+aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{
+  position:fixed;right:24px;bottom:24px;z-index:70;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 16px 10px 13px;border-radius:6px;cursor:pointer;
+  font-family:var(--sans);font-size:13.5px;font-weight:600;
+  color:var(--text);background:rgba(28,26,23,.92);backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  opacity:0;visibility:hidden;transform:translateY(10px);
+  transition:opacity .25s ease,transform .25s ease,visibility .25s,
+             background .18s ease,color .18s ease,border-color .18s ease;
+}
+#totop.show{opacity:1;visibility:visible;transform:none}
+#totop svg{width:14px;height:14px;flex:none;color:var(--mint);transition:color .18s ease}
+#totop:hover{background:var(--mint);color:var(--ink);border-color:var(--mint)}
+#totop:hover svg{color:var(--ink)}
+#totop:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+@media (max-width:680px){
+  aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{right:14px;bottom:14px;padding:9px 13px 9px 11px;font-size:12.5px}
+}
+
+aside.byline-card{
+  margin:70px 0 0;padding:22px 24px;background:var(--ink-soft);border:1px solid var(--line);
+  border-radius:8px;display:flex;gap:18px;align-items:flex-start;
+}
+aside.byline-card .avatar{
+  flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface);border:1px solid var(--line);
+  color:var(--mint);font-size:15px;font-weight:600;letter-spacing:.02em;
+}
+aside.byline-card .who{margin:0 0 5px;font-size:11.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--mint-dim)}
+aside.byline-card .name{margin:0 0 6px;font-size:16.5px;font-weight:600;color:var(--text)}
+aside.byline-card .name span{font-weight:400;color:var(--muted)}
+aside.byline-card .bio{margin:0;font-size:14.5px;line-height:1.6;color:var(--muted);max-width:58ch}
+
+p.dl{margin:20px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+p.dl a{
+  display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:6px;
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  font-size:14px;font-weight:600;text-decoration:none;
+  transition:border-color .18s ease,color .18s ease;
+}
+p.dl a:hover{border-color:var(--mint);color:var(--mint)}
+p.dl a svg{color:var(--mint)}
+p.dl span{font-size:13px;color:var(--faint)}
+
+figure.photo{margin:40px 0 42px}
+figure.photo picture{display:block}
+figure.photo img{width:100%;height:auto;display:block;border-radius:8px;max-width:100%;
+  border:1px solid var(--line);background:var(--ink-soft);
+  filter:brightness(.84) saturate(.9) contrast(1.02);transition:filter .35s ease}
+figure.photo img:hover{filter:brightness(1) saturate(1)}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);margin-top:13px;
+  padding-left:14px;border-left:2px solid var(--mint-dim)}
+figcaption .credit{display:block;margin-top:6px;font-size:11.5px;color:#57534c}
+figure.diagram{margin:40px 0;padding:24px 18px 12px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px}
+figure.diagram svg{width:100%;height:auto;display:block;font-family:var(--sans)}
+figure.diagram figcaption{border:0;padding:0;margin-top:12px;text-align:center}
+
+footer{border-top:1px solid var(--line);background:#0C0B0A}
+footer .in{max-width:816px;margin:0 auto;padding:40px 28px 64px;color:var(--faint);font-size:12.5px;line-height:1.7}
+footer .fbrand{display:flex;align-items:center;gap:9px;margin-bottom:24px;
+  text-decoration:none;border-bottom:0;width:fit-content}
+footer .fbrand:hover b{color:var(--text)}
+footer .fbrand:hover svg{color:var(--mint)}
+footer .fbrand svg{height:18px;width:auto;color:var(--mint-dim)}
+footer .fbrand b{font-size:14px;font-weight:600;color:var(--muted)}
+footer h3{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mint-dim);
+  margin:0 0 10px;font-weight:600;display:block}
+footer ul{list-style:none;padding:0;margin:0 0 24px}
+footer li{margin:0 0 5px}
+footer .note{padding-top:20px;border-top:1px solid var(--line);color:#57534c;max-width:78ch}
+footer nav.flinks{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 26px;padding:0 0 22px;
+  border-bottom:1px solid var(--line)}
+footer nav.flinks a{color:var(--muted);text-decoration:none;border-bottom:0;font-size:13px}
+footer nav.flinks a:hover{color:var(--mint)}
+footer nav.flinks a.cta{color:var(--mint);font-weight:600}
+
+@media (max-width:680px){
+  body{font-size:16.5px}
+  aside.byline-card{padding:18px}
+  nav.toc ol{columns:1}
+  article{padding:40px 0 30px}
+  h2{margin:58px 0 20px}
+  .topbar .crumb{display:none}
+  .topbar .back{padding:6px 11px 6px 9px;font-size:12.5px}
+  .brand span{display:none}
+}
+@media print{
+  html,body{background:#fff;color:#111;font-size:11pt}
+  #bar,nav.toc,.topbar,aside.cta{
+  margin:76px 0 8px;padding:34px 34px 32px;background:var(--ink-soft);
+  border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;
+}
+aside.cta::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mint),transparent);opacity:.55;
+}
+aside.cta .eyebrow{margin-bottom:14px}
+aside.cta h2{
+  font-size:clamp(23px,3vw,29px);line-height:1.18;margin:0 0 14px;
+  padding:0;border:0;display:block;
+}
+aside.cta p.lead{color:var(--muted);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:62ch}
+aside.cta ul{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:10px}
+aside.cta li{
+  margin:0;padding:15px 17px;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;font-size:15px;line-height:1.55;color:var(--muted);
+}
+aside.cta li b{display:block;color:var(--text);font-size:15.5px;font-weight:600;margin-bottom:4px}
+aside.cta li b .scope{
+  display:inline-block;margin-left:9px;padding:2px 8px;border-radius:4px;vertical-align:1px;
+  background:rgba(125,211,160,.10);border:1px solid rgba(125,211,160,.28);
+  color:var(--mint);font-style:normal;font-size:11px;font-weight:500;letter-spacing:.04em;
+  text-transform:none;
+}
+aside.cta .acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+aside.cta a.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:6px;
+  font-size:14px;font-weight:600;text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+aside.cta a.primary{background:var(--mint);color:var(--ink)}
+aside.cta a.primary:hover{background:#a5e2bd}
+aside.cta a.secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+aside.cta a.secondary:hover{border-color:var(--mint);color:var(--mint)}
+aside.cta p.note{margin:22px 0 0;font-size:12.5px;color:var(--faint)}
+@media (max-width:680px){aside.cta{padding:26px 20px}}
+
+#totop{display:none}
+  header.hero{min-height:auto;page-break-after:always;background:#fff}
+  header.hero img,header.hero .veil,.hero-credit{display:none}
+  header.hero h1,h2,h3,h4,strong{color:#000}
+  header.hero p.sub,p,td,li{color:#222}
+  .code{background:#f4f4f2;border-color:#ddd}
+  .code code{color:#111} .code .c{color:#666} .code .s{color:#256b41}
+  .tablewrap,ul.checklist li,figure.diagram{background:#fff;border-color:#ccc}
+  th{background:#f1f1ee;color:#333}
+  footer{background:#fff}
+  h2{page-break-after:avoid} figure,.code,.tablewrap,blockquote{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<div class="topbar">
+  <div class="in">
+    <a class="back" id="back" href="/articles/" title="Return to the previous page">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+           stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>Back</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a class="brand" href="https://www.vallus.eu/" title="vallus.eu"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus</b><span>by ExpandIt</span></a>
+    <span class="crumb">The password is in the trace</span>
+  </div>
+</div>
+
+<header class="hero">
+  <picture><source type="image/avif" srcset="/articles/test-data-leaving-closed-environments/assets/img/p_turnstile-900.avif 900w, /articles/test-data-leaving-closed-environments/assets/img/p_turnstile-1440.avif 1440w" sizes="100vw"><source type="image/webp" srcset="/articles/test-data-leaving-closed-environments/assets/img/p_turnstile-900.webp 900w, /articles/test-data-leaving-closed-environments/assets/img/p_turnstile-1440.webp 1440w" sizes="100vw"><img src="/articles/test-data-leaving-closed-environments/assets/img/p_turnstile-1440.jpg" srcset="/articles/test-data-leaving-closed-environments/assets/img/p_turnstile-900.jpg 900w, /articles/test-data-leaving-closed-environments/assets/img/p_turnstile-1440.jpg 1440w" sizes="100vw" alt="An emergency exit gate at an elevated railway station" width="1440" height="1080" fetchpriority="high" decoding="async"></picture>
+  <div class="veil"></div>
+  <div class="inner">
+    <p class="eyebrow">Closed environments · test artefacts</p>
+    <h1>The password is in the trace</h1>
+    <p class="sub">What test artefacts carry when they leave a closed environment, and an export that takes only what may cross</p>
+    <div class="byline">
+      <span class="author">Piotr Gajownik</span>
+      <i>·</i><span>ExpandIt</span>
+      <i>·</i><time datetime="2026-10-19">19 October 2026</time>
+      <i>·</i><span>about 12 min read</span>
+    </div>
+    <p class="topics">Test artefacts · data protection · exports</p>
+  </div>
+  <div class="hero-credit">Woodhaven Bl Jamaica Av 15 - BMT Jamaica.jpg - Tdorante10, CC BY-SA 4.0 (Wikimedia Commons)</div>
+</header>
+
+<main>
+<article>
+  <nav class="toc">
+    <h2>In this article</h2>
+    <ol><li><a href="#1-what-actually-leaves"><span>1</span>What actually leaves</a></li><li><a href="#2-six-planted-values-one-failing-test"><span>2</span>Six planted values, one failing test</a></li><li><a href="#3-the-trace-is-a-recording-not-a-picture"><span>3</span>The trace is a recording, not a picture</a></li><li><a href="#4-the-report-inherits-everything"><span>4</span>The report inherits everything</a></li><li><a href="#5-what-can-legitimately-leave"><span>5</span>What can legitimately leave</a></li><li><a href="#6-keep-it-out-of-the-artefacts-in-the-first-place"><span>6</span>Keep it out of the artefacts in the first place</a></li><li><a href="#7-an-export-that-carries-only-what-may-cross"><span>7</span>An export that carries only what may cross</a></li><li><a href="#8-when-you-are-asked-to-send-more"><span>8</span>When you are asked to send more</a></li><li><a href="#9-a-checklist"><span>9</span>A checklist</a></li><li><a href="#10-where-vallus-fits-and-where-it-does-not"><span>10</span>Where vallus fits, and where it does not</a></li><li><a href="#11-conclusion"><span>11</span>Conclusion</a></li></ol>
+  </nav>
+  <h3 id="introduction-everyone-watches-the-wrong-door">Introduction: everyone watches the wrong door</h3>
+<p>Most of the effort around closed environments points inwards. How to get browsers in. How to get packages in. How to get an approved build in without a route to the internet. Those are the problems people write about, including me, and they are real.</p>
+<p>They are also the cheap half. Getting an unreviewed binary <strong>into</strong> an isolated network costs that network an unknown artefact. Getting test data <strong>out</strong> of it can be a data protection incident or a breach of contract, depending on the sector and on what exactly moved.</p>
+<p>The outbound direction gets far less attention because inbound failures are loud. A missing browser stops the pipeline and someone raises a ticket. Outbound movement succeeds quietly. Somebody attaches a trace to a defect, mails a report to a manager or copies a results folder to a laptop, and the file arrives exactly as intended. Nobody looks at it again until an audit asks where it went.</p>
+<p>This piece belongs to a series on <a href="https://vallus.eu/articles/testing-closed-environments/">test automation in closed environments</a>. The overview covers what a testing <em>tool</em> sends out on its own, and how to prove it sends nothing. This text is about the files people move by hand. I planted six values in a test run and then searched every file the run left behind, so what follows is a measurement and not a list of worries.</p>
+<hr>
+<h2 id="1-what-actually-leaves"><span class="num">1</span>What actually leaves</h2>
+<p>&quot;Data left the environment&quot; sounds like someone copying a database. In practice it is almost never that, and the mundane version is what makes it hard to see.</p>
+<div class="tablewrap"><table><thead><tr><th>What moves</th><th>Why somebody moved it</th></tr></thead><tbody><tr><td><strong>The HTML report</strong></td><td>A manager or a customer wants to see the result</td></tr><tr><td><strong>A trace file</strong></td><td>Debugging something that only fails there</td></tr><tr><td><strong>Screenshots and video</strong></td><td>Attached to a defect in the tracker</td></tr><tr><td><strong>JUnit XML or JSON results</strong></td><td>Imported into test management or a dashboard</td></tr><tr><td><strong>The run&#x27;s log</strong></td><td>Sent to someone who can read it</td></tr><tr><td><strong>A saved login state</strong></td><td>Copied so a colleague can reproduce a failure</td></tr></tbody></table></div>
+<p>None of it looks like data at the moment it moves. It looks like work product. The question is what each of those files contains, and the person moving one is usually the last to know.</p>
+<hr>
+<h2 id="2-six-planted-values-one-failing-test"><span class="num">2</span>Six planted values, one failing test</h2>
+<p>The setup was small on purpose. A tiny web application, the official Playwright 1.59.1 image and no network. The application holds six synthetic values, each tagged so it can be found again:</p>
+<ul><li><strong>a password</strong>, typed into the login form;</li><li><strong>a bearer token</strong>, sent by the page in an <code>Authorization</code> header;</li><li><strong>a session cookie</strong>, set by the server at login;</li><li><strong>a name</strong> and <strong>an IBAN</strong>, shown on the account page;</li><li><strong>an unshown field</strong>, returned by the API but never displayed.</li></ul>
+<p>One test signs in, opens the account page and fails on purpose, because failures are when a run keeps its artefacts. The configuration is the one most projects start from: <code>trace: &#x27;retain-on-failure&#x27;</code>, <code>screenshot: &#x27;only-on-failure&#x27;</code>, <code>video: &#x27;retain-on-failure&#x27;</code>, and the HTML, JSON and JUnit reporters. After the run, a script searched every file it left, inside zip archives and inside the report&#x27;s embedded data as well.</p>
+<div class="tablewrap"><table><thead><tr><th>Artefact</th><th>What turned up in it</th></tr></thead><tbody><tr><td><strong>Trace (<code>trace.zip</code>)</strong></td><td>All six</td></tr><tr><td><strong>HTML report</strong></td><td>All six: it embeds the trace</td></tr><tr><td><strong>Screenshot on failure</strong></td><td>Name and IBAN, on the image</td></tr><tr><td><strong>Video</strong></td><td>Name and IBAN, frame by frame</td></tr><tr><td><strong><code>error-context.md</code></strong></td><td>Name and IBAN</td></tr><tr><td><strong>JSON report</strong></td><td>IBAN, in the error message</td></tr><tr><td><strong>JUnit XML</strong></td><td>IBAN, in the failure message</td></tr></tbody></table></div>
+<p>The screenshot and the video are images, so no text search finds anything in them. I found the values there by looking. That is worth remembering when a tool advertises that it scans artefacts for secrets.</p>
+<hr>
+<h2 id="3-the-trace-is-a-recording-not-a-picture"><span class="num">3</span>The trace is a recording, not a picture</h2>
+<p>A trace is easy to think of as a richer screenshot. It is a recording of everything the browser did, and in this run it held the password in five separate places:</p>
+<ul><li>the parameters of the <code>fill</code> action;</li><li>the step&#x27;s title, <code>Fill &quot;…&quot; getByLabel(&#x27;Password&#x27;)</code>;</li><li>the call log of that action;</li><li>the snapshot of the page, which stores the input&#x27;s value;</li><li>the body of the login request, in the network log.</li></ul>
+<p>The token was in the <code>Authorization</code> header of the request that carried it. The cookie was on every request after login. The unshown field was in the stored response body: never on screen, and still in the file. The IBAN appeared in the page snapshots and seven times in the call log of the failing assertion, which prints what it found on every retry.</p>
+<p>The trace options can shrink this, but not make it safe. With <code>trace: { mode: &#x27;retain-on-failure&#x27;, snapshots: false, screenshots: false, sources: false }</code> the network log went too, so the token, the cookie and the unshown field were gone. The password was still there three times (the action, the step title and the call log), and the IBAN was still in the assertion&#x27;s call log. A smaller trace is still a trace.</p>
+<hr>
+<h2 id="4-the-report-inherits-everything"><span class="num">4</span>The report inherits everything</h2>
+<p>The HTML report is the artefact most often sent to someone outside, because it opens in any browser. It is also the one that collects the rest.</p>
+<p><strong>It embeds the trace and the screenshots</strong> of every failed test, so one file carries all six values.</p>
+<p><strong>It lists the steps of every test, including those that passed.</strong> In a second run, the login moved into a setup project with tracing switched off and its test passed. The report still showed <code>Fill &quot;…&quot; getByLabel(&#x27;Password&#x27;)</code>, with the real password, in that test&#x27;s step list. Turning the trace off does not touch the step titles.</p>
+<p><strong>The JSON and JUnit results carry the error message</strong>, and an assertion&#x27;s message includes what it received. The JUnit file is what gets imported into test management, so the IBAN travels on into the tracker with it.</p>
+<p><strong><code>error-context.md</code></strong> is written next to each failure: a text snapshot of the page, convenient for reading a failure without opening the trace. Here it held the name and the IBAN.</p>
+<p>Two files people rarely think of complete the picture:</p>
+<ul><li><strong>The saved login state</strong> (<code>storageState</code>) held the session cookie. As long as that session is valid, the file is a login.</li><li><strong>A HAR recorded with <code>content: &#x27;omit&#x27;</code></strong> still held the password in the form body, the token in a header and the cookie. <code>omit</code> drops response bodies. The request side stays.</li></ul>
+<hr>
+<h2 id="5-what-can-legitimately-leave"><span class="num">5</span>What can legitimately leave</h2>
+<p>More than teams assume, which is why the informal route so often turns out to have been unnecessary.</p>
+<p><strong>Counts and durations.</strong> Pass and fail totals, durations, flake rates. Numbers about tests are rarely sensitive. The sensitive part is what the tests touched. A dashboard fed by counts satisfies most management reporting without a single artefact leaving.</p>
+<p><strong>Test titles, after reading them.</strong> The title of the test above was <code>account shows the right IBAN</code>. That is harmless; titles that name a customer, a product nobody has announced yet or an internal system are not. Read them before publishing them to a shared tool.</p>
+<p><strong>Findings, described rather than attached.</strong> &quot;The account page shows the wrong IBAN after a currency change&quot; travels fine. The trace that proves it does not.</p>
+<p><strong>Artefacts of a run on synthetic data.</strong> If the environment runs on generated data with a documented seed, most objections to moving artefacts disappear. This is the strongest argument for investing in synthetic data in the first place.</p>
+<p>The practical test is not &quot;is this sensitive&quot; but &quot;does anyone outside this environment have a documented right to hold it&quot;. The overview&#x27;s section on <a href="https://vallus.eu/articles/testing-closed-environments/">the legal and contractual dimension</a> covers why personal data, contract clauses and sector rules all end up asking that question.</p>
+<hr>
+<h2 id="6-keep-it-out-of-the-artefacts-in-the-first-place"><span class="num">6</span>Keep it out of the artefacts in the first place</h2>
+<p>Masking that happens before sending depends on somebody remembering, and eventually somebody is in a hurry. What can be done when the artefact is written is worth doing there. Three changes covered most of what the experiment found.</p>
+<p><strong>Sign in through the API, in a project with no trace.</strong> The password then never passes through a <code>fill</code>, so it has no step title, no snapshot and no call log:</p>
+<div class="code"><span class="lang">typescript</span><pre><code><span class="c">// playwright.config.ts</span>
+import { defineConfig } from <span class="s">&#x27;@playwright/test&#x27;</span>;
+
+export default defineConfig({
+  use: {
+    baseURL: process.env.APP_URL,
+    trace: <span class="s">&#x27;retain-on-failure&#x27;</span>,
+    <span class="c">// The automatic screenshot cannot mask anything: see afterEach below.</span>
+    screenshot: <span class="s">&#x27;off&#x27;</span>,
+    video: <span class="s">&#x27;off&#x27;</span>,
+  },
+  projects: [
+    <span class="c">// Signs in once. Nothing in this project is traced.</span>
+    { name: <span class="s">&#x27;login&#x27;</span>, testMatch: /login\.setup\.ts/, use: { trace: <span class="s">&#x27;off&#x27;</span> } },
+    {
+      name: <span class="s">&#x27;tests&#x27;</span>,
+      testMatch: /.*\.spec\.ts/,
+      dependencies: [<span class="s">&#x27;login&#x27;</span>],
+      use: { storageState: <span class="s">&#x27;.auth/state.json&#x27;</span> },
+    },
+  ],
+});</code></pre></div>
+<div class="code"><span class="lang">typescript</span><pre><code><span class="c">// tests/login.setup.ts</span>
+import { test as setup } from <span class="s">&#x27;@playwright/test&#x27;</span>;
+
+setup(<span class="s">&#x27;sign in&#x27;</span>, async ({ request }) =&gt; {
+  <span class="c">// A form post rather than a typed field: no step title, no input snapshot.</span>
+  await request.post(<span class="s">&#x27;/login&#x27;</span>, {
+    form: { user: process.env.APP_USER!, password: process.env.APP_PASSWORD! },
+    maxRedirects: 0,
+  });
+  await request.storageState({ path: <span class="s">&#x27;.auth/state.json&#x27;</span> });
+});</code></pre></div>
+<p><strong>Take the failure screenshot yourself, masked.</strong> In Playwright 1.59 the automatic <code>screenshot</code> option accepts only <code>fullPage</code> and <code>omitBackground</code>. There is no mask. An explicit <code>page.screenshot()</code> has one, which paints the given elements over:</p>
+<div class="code"><span class="lang">typescript</span><pre><code>test.afterEach(async ({ page }, testInfo) =&gt; {
+  if (testInfo.status !== testInfo.expectedStatus) {
+    await testInfo.attach(<span class="s">&#x27;failure&#x27;</span>, {
+      body: await page.screenshot({
+        mask: [page.getByTestId(<span class="s">&#x27;name&#x27;</span>), page.getByTestId(<span class="s">&#x27;iban&#x27;</span>)],
+      }),
+      contentType: <span class="s">&#x27;image/png&#x27;</span>,
+    });
+  }
+});</code></pre></div>
+<p>Video has no mask at all, which is why it is off.</p>
+<p>With exactly this code, the same planted values and the same failing test, I searched everything the run left again. <strong>The password was in no file at all.</strong> The report had one screenshot, with the name and the IBAN painted over. What remained:</p>
+<div class="tablewrap"><table><thead><tr><th>Artefact</th><th>Still in it</th><th>Why</th></tr></thead><tbody><tr><td>Trace</td><td>token, cookie, name, IBAN, unshown field</td><td>Its network log and snapshots</td></tr><tr><td>JSON and HTML report</td><td>IBAN</td><td>The assertion quotes it</td></tr><tr><td><code>error-context.md</code></td><td>name, IBAN</td><td>A snapshot of the page</td></tr><tr><td><code>.auth/state.json</code></td><td>cookie</td><td>It is a login</td></tr></tbody></table></div>
+<p>That table is the honest result. Configuration removes what the tests themselves put into the artefacts. It cannot remove what the application shows and sends, because recording that is the point of a trace. So the rule that follows is not &quot;make the trace safe&quot;. It is <strong>traces, screenshots, <code>error-context.md</code> and the login state stay inside</strong>, and only something built for the purpose leaves. Keep <code>.auth/</code> out of version control as well.</p>
+<hr>
+<h2 id="7-an-export-that-carries-only-what-may-cross"><span class="num">7</span>An export that carries only what may cross</h2>
+<figure class="photo"><picture><source type="image/avif" srcset="/articles/test-data-leaving-closed-environments/assets/img/p_bureaucracy-900.avif 900w, /articles/test-data-leaving-closed-environments/assets/img/p_bureaucracy-1440.avif 1440w" sizes="(max-width: 860px) 100vw, 760px"><source type="image/webp" srcset="/articles/test-data-leaving-closed-environments/assets/img/p_bureaucracy-900.webp 900w, /articles/test-data-leaving-closed-environments/assets/img/p_bureaucracy-1440.webp 1440w" sizes="(max-width: 860px) 100vw, 760px"><img src="/articles/test-data-leaving-closed-environments/assets/img/p_bureaucracy-1440.jpg" srcset="/articles/test-data-leaving-closed-environments/assets/img/p_bureaucracy-900.jpg 900w, /articles/test-data-leaving-closed-environments/assets/img/p_bureaucracy-1440.jpg 1440w" sizes="(max-width: 860px) 100vw, 760px" alt="A form, a stamp and a named authority. The export log is the plain version of the same record: what left, when" width="1440" height="960" loading="lazy" decoding="async"></picture><figcaption>A form, a stamp and a named authority. The export log is the plain version of the same record: what left, when, who sent it and a checksum to prove it.<span class="credit">Bureaucracy Illustration Czech.jpg - Petr Novák, CC BY-SA 2.5 (Wikimedia Commons)</span></figcaption></figure>
+<p>The smallest useful version is a script that reads Playwright&#x27;s JSON report and writes counts. It never copies error messages, attachments or output, so nobody under deadline pressure can include them by accident:</p>
+<div class="code"><span class="lang">javascript</span><pre><code><span class="c">// export-summary.mjs - node export-summary.mjs report.json export/</span>
+<span class="c">// Builds the one file that may leave: counts from Playwright&#x27;s JSON report,</span>
+<span class="c">// never its error messages, attachments or stdout. Test titles only when the</span>
+<span class="c">// agreed list says they may cross.</span>
+import { createHash } from <span class="s">&#x27;node:crypto&#x27;</span>;
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from <span class="s">&#x27;node:fs&#x27;</span>;
+import { userInfo } from <span class="s">&#x27;node:os&#x27;</span>;
+
+const [reportPath, outDir] = process.argv.slice(2);
+const report = JSON.parse(readFileSync(reportPath, <span class="s">&#x27;utf8&#x27;</span>));
+const titles = process.env.EXPORT_TITLES === <span class="s">&#x27;yes&#x27;</span>;
+
+const failed = [];
+const walk = (suite, path) =&gt; {
+  for (const spec of suite.specs ?? [])
+    for (const test of spec.tests)
+      if (test.status === <span class="s">&#x27;unexpected&#x27;</span>)
+        failed.push([...path, spec.title].join(&#x27; &gt; &#x27;));
+  for (const child of suite.suites ?? []) walk(child, [...path, child.title]);
+};
+for (const suite of report.suites) walk(suite, [suite.title]);
+
+const { startTime, duration, expected, unexpected, flaky, skipped } = report.stats;
+const summary = {
+  startTime, durationSeconds: Math.round(duration / 1000),
+  passed: expected, failed: unexpected, flaky, skipped,
+  ...(titles ? { failedTests: failed } : {}),
+};
+
+mkdirSync(outDir, { recursive: true });
+const body = JSON.stringify(summary, null, 2) + <span class="s">&#x27;\n&#x27;</span>;
+writeFileSync(`${outDir}/summary.json`, body);
+const sha256 = createHash(<span class="s">&#x27;sha256&#x27;</span>).update(body).digest(<span class="s">&#x27;hex&#x27;</span>);
+<span class="c">// The record of what crossed: one line per export, kept on the inside.</span>
+const row = [new Date().toISOString(), userInfo().username, <span class="s">&#x27;summary.json&#x27;</span>, sha256];
+appendFileSync(<span class="s">&#x27;exports.log&#x27;</span>, row.join(<span class="s">&#x27; &#x27;</span>) + <span class="s">&#x27;\n&#x27;</span>);
+console.log(`summary.json ${sha256}`);</code></pre></div>
+<p>Run against the report from section 2, the one that held all six values, it wrote this:</p>
+<div class="code"><span class="lang">json</span><pre><code>{
+  <span class="s">&quot;startTime&quot;</span>: <span class="s">&quot;2026-10-19T08:10:45.367Z&quot;</span>,
+  <span class="s">&quot;durationSeconds&quot;</span>: 4,
+  <span class="s">&quot;passed&quot;</span>: 0,
+  <span class="s">&quot;failed&quot;</span>: 1,
+  <span class="s">&quot;flaky&quot;</span>: 0,
+  <span class="s">&quot;skipped&quot;</span>: 0
+}</code></pre></div>
+<p>The same search found none of the six values in it. With <code>EXPORT_TITLES=yes</code> it adds the titles of the failed tests, which is the switch to flip only once someone has agreed that titles may cross.</p>
+<p>The log line matters more than it looks. <code>exports.log</code> stays inside and records the date, the user and the SHA-256 of every file that left. It turns &quot;somebody sent the results out&quot; into a list that can be checked against what the receiving side holds. It protects the people doing the work at least as much as it protects the data.</p>
+<hr>
+<h2 id="8-when-you-are-asked-to-send-more"><span class="num">8</span>When you are asked to send more</h2>
+<p>Sometimes the agreed path exists and the request is still for the trace, because the person asking wants to debug it themselves. What helps is short:</p>
+<ul><li><strong>Ask who owns the data, not who wants the file.</strong> They are different people, and the second cannot answer for the first.</li><li><strong>Offer the smaller version.</strong> A described finding, a masked screenshot, the counts. A surprising share of requests are satisfied by it, because what the requester wants is the answer, not the file.</li><li><strong>Get the request in writing</strong> if it still has to go: one neutral message naming the artefact, the destination and who approved it.</li><li><strong>Write down what moved</strong>, in the same log as the exports. Your own record is what separates a documented action from an unexplained transfer found two years later.</li></ul>
+<hr>
+<h2 id="9-a-checklist"><span class="num">9</span>A checklist</h2>
+<p class="grouplabel"><strong>Know what you have</strong></p>
+<ul class="checklist"><li class="">a list of the artefact types your suite produces, including <code>error-context.md</code> and</li></ul>
+<p>saved login state</p>
+<ul class="checklist"><li class="">a run with planted values, searched, so the list says what each one contains rather</li></ul>
+<p>than what it usually contains</p>
+<ul class="checklist"><li class="">whether the test data is real, anonymised or synthetic</li></ul>
+<p class="grouplabel"><strong>Keep it out at the source</strong></p>
+<ul class="checklist"><li class="">secrets entered through the API in an untraced setup project, never through <code>fill</code></li><li class="">failure screenshots taken with <code>mask</code>; the automatic screenshot and video off</li><li class=""><code>.auth/</code> out of version control and out of anything that leaves</li></ul>
+<p class="grouplabel"><strong>Make the path real</strong></p>
+<ul class="checklist"><li class="">an agreed list of what may leave, and the name of the person who agreed it</li><li class="">an export that produces that list and nothing else</li><li class="">a log of every export, with a checksum, kept inside</li></ul>
+<hr>
+<h2 id="10-where-vallus-fits-and-where-it-does-not"><span class="num">10</span>Where vallus fits, and where it does not</h2>
+<p>vallus is the self-hosted runner we build for closed environments. Everything a run produces (Playwright HTML or Allure reports, traces, screenshots, run history) stays on the instance&#x27;s own disk, and vallus sends no telemetry. What leaves is whatever a workflow is configured to send, and each of those is narrower than the artefacts above:</p>
+<ul><li><strong>Notifications</strong> to Slack, Teams, a webhook or e-mail carry the workflow&#x27;s name, the environment, the counts and the duration. No test titles, no error messages.</li><li><strong>Metrics</strong> for Grafana, pushed to InfluxDB or read from a Prometheus endpoint, are counts and durations tagged with the workflow, Playwright project and environment names.</li><li><strong>Evidence packs</strong> for a signed release hold <code>summary.json</code>, <code>report.html</code> and a <code>manifest.json</code> with the SHA-256 of each file: test titles, statuses, durations and requirements, no traces, screenshots or error messages.</li><li><strong>Xray and ReportPortal</strong> are where more goes, and it is worth knowing what. Xray gets each failed or flaky test&#x27;s first error message as a comment, and screenshots only when its evidence setting is changed from the default of none. ReportPortal imports the JUnit results, failure messages included.</li><li><strong>Secrets</strong> a workflow resolves (encrypted variables and vault references) are replaced with a marker in the run&#x27;s log before it is stored or shown.</li></ul>
+<p>What it does not do: it does not mask screenshots, strip traces or scan reports, and the log redaction covers workflow secrets only, not values that came from a <code>.env</code> file. Section 6 is still your suite&#x27;s job. And it cannot decide what may leave. That list belongs to whoever owns the data.</p>
+<p>To see where a run&#x27;s artefacts live on an instance behind an air gap, <a href="https://vallus.eu/#demo">book a demo</a> and ask for the 21-day evaluation key, which has every feature. The <a href="https://vallus.eu/free/">Free licence</a> (two users, one project, one run at a time) keeps reports, traces and history on your own disk as well.</p>
+<hr>
+<h2 id="11-conclusion"><span class="num">11</span>Conclusion</h2>
+<p>The inbound problem is an engineering inconvenience. The outbound problem is a liability, and it lands on whoever moved the file rather than whoever asked for it.</p>
+<ol><li><strong>A trace is a recording.</strong> In one failing test it held a password, a token, a session cookie and a field that was never on screen. The HTML report embeds it, and lists typed values as step titles even for tests that passed.</li><li><strong>Configuration removes what the tests put in, not what the application shows.</strong> Sign in through the API, mask the screenshots you take yourself, and treat traces as data that does not leave.</li><li><strong>The fix is a path, not a policy.</strong> A script that writes counts, a list of what may cross and a log of what did is a day&#x27;s work, and it is what makes the informal route unnecessary.</li></ol>
+  <aside class="byline-card"><span class="avatar" aria-hidden="true">PG</span><div><p class="who">About the author</p><p class="name">Piotr Gajownik <span>· ExpandIt</span></p><p class="bio">Senior Test Engineer. He has been testing software since 2007, working on delivery into regulated and network-isolated environments.</p></div></aside>
+  <p class="dl"><a href="/articles/test-data-leaving-closed-environments-offline.html" download><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>Download the offline copy</a><span>One HTML file with everything inside - opens with no internet at all.</span></p>
+  <aside class="cta"><p class="eyebrow">The runner behind this article</p><h2>These are the problems vallus was built to solve</h2><p class="lead">Everything above describes constraints we kept meeting at customer sites: no route to the internet, no access to the machine where a run failed, and a report that has to answer every question on its own. vallus is the Playwright runner written for exactly those conditions.</p><ul><li><b>Nothing leaves the network</b>No telemetry, no licence server, no call home. Once installed, the instance needs no route to the internet at all - the licence is a file verified locally. §5.4</li><li><b>Results stay on your disk</b>Reports, traces, screenshots and cross-run history live on your infrastructure, in formats that open without us. Nobody at the vendor can see your runs. §5.1</li><li><b>A container per run<em class="scope">Docker installs</em></b>On a Docker deployment each run gets its own container built from that project’s code and dependencies, with an image per version of your tests: a rollback is a tag, not a rebuild. Without Docker the runner executes suites directly on the host. §3.4</li><li><b>Reports built for absent engineers</b>Playwright HTML or Allure per run, traces served over HTTPS, plus run history and trends - the execution context the report has to carry when you cannot log in. §4.3</li><li><b>One dashboard, many environments</b>Scheduling, a run queue, per-project Playwright versions and access rules, so the same suite runs the same way on every environment you ship to. §3.3</li></ul><div class="acts"><a class="btn primary" href="https://www.vallus.eu/">Explore vallus<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="btn secondary" href="https://www.vallus.eu/#demo">Book a demo</a></div><p class="note">vallus is a product of ExpandIt · deployed on your own infrastructure.</p></aside>
+</article>
+</main>
+
+<footer>
+  <div class="in">
+    <a class="fbrand" href="https://www.vallus.eu/"><svg viewBox="0 0 153 120" fill="currentColor" aria-hidden="true"><rect x="24" y="24" width="9" height="72" rx="1.2"/><rect x="40" y="40" width="9" height="56" rx="1.2"/><rect x="56" y="56" width="9" height="40" rx="1.2"/><rect x="72" y="66" width="9" height="30" rx="1.2"/><rect x="88" y="56" width="9" height="40" rx="1.2"/><rect x="104" y="40" width="9" height="56" rx="1.2"/><rect x="120" y="24" width="9" height="72" rx="1.2"/></svg><b>vallus · by ExpandIt</b></a>
+    <nav class="flinks" aria-label="vallus.eu"><a href="https://www.vallus.eu/#features">Features</a><a href="https://www.vallus.eu/#pricing">Pricing</a><a href="https://www.vallus.eu/free/">Free</a><a href="https://www.vallus.eu/articles/">Articles</a><a href="https://www.vallus.eu/#deployment">Security</a><a href="https://www.vallus.eu/#faq">FAQ</a><a href="https://www.vallus.eu/privacy/">Privacy</a><a href="https://www.vallus.eu/licenses/">Licences</a><a class="cta" href="https://www.vallus.eu/#demo">Book a demo</a></nav>
+    <h3>Photographs</h3>
+    <ul><li>Woodhaven Bl Jamaica Av 15 - BMT Jamaica.jpg - Tdorante10, CC BY-SA 4.0 (Wikimedia Commons)</li><li>Bureaucracy Illustration Czech.jpg - Petr Novák, CC BY-SA 2.5 (Wikimedia Commons)</li></ul>
+    <p class="note">An offline copy of this article is linked at the top: one file with the images, fonts and styles embedded, which opens on a machine with no network at all.</p>
+  </div>
+</footer>
+
+<button id="totop" type="button" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>Back to top</button>
+
+<script>
+(function () {
+  var bar = document.getElementById('bar');
+  var top = document.getElementById('totop');
+  function upd() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    top.classList.toggle('show', h.scrollTop > 700);
+  }
+  document.addEventListener('scroll', upd, {passive: true});
+  // Przycisk wstecz cofa w historii tylko wtedy, gdy poprzednia strona byla nasza.
+  // Wejscie prosto z wyszukiwarki albo z LinkedIna zostawia href, czyli liste artykulow.
+  var back = document.getElementById('back');
+  var from = document.referrer;
+  var sameSite = false;
+  try {
+    sameSite = !!from && new URL(from).origin === location.origin
+               && new URL(from).pathname !== location.pathname;
+  } catch (e) { sameSite = false; }
+  if (sameSite && history.length > 1) {
+    back.addEventListener('click', function (event) {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      history.back();
+    });
+  } else if (back.dataset.needsHistory) {
+    // Offline i bez historii: zostaje tylko adres w internecie, ktorego tu moze nie byc.
+    back.remove();
+    var sep = document.querySelector('.topbar .sep');
+    if (sep) sep.remove();
+  }
+
+  var canSmooth = 'scrollBehavior' in document.documentElement.style;
+  top.addEventListener('click', function () {
+    if (canSmooth) window.scrollTo({top: 0, behavior: 'smooth'});
+    else window.scrollTo(0, 0);
+  });
+  upd();
+})();
+</script>
+</body>
+</html>
